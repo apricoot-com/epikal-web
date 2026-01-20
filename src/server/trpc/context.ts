@@ -1,22 +1,85 @@
 import type { inferAsyncReturnType } from "@trpc/server";
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import { prisma } from "@/src/server/db/client";
+import { auth } from "@/src/lib/auth";
+import { isSuperadmin } from "@/src/lib/superadmin";
+import { headers, cookies } from "next/headers";
 
 /**
  * Creates context for tRPC requests.
  * Includes:
  * - Prisma client
- * - User session (to be added with Better Auth)
- * - Active company/tenant (to be added)
+ * - User session from Better Auth
+ * - Active company/tenant (from cookie or user's first company)
+ * - Superadmin flag
  */
 export async function createContext(opts?: FetchCreateContextFnOptions) {
-    // TODO: Add session resolution from Better Auth
-    // TODO: Add active company resolution
+    // Get session from Better Auth
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    // Check if user is a superadmin
+    const userIsSuperadmin = isSuperadmin(session?.user?.email);
+
+    // Get user's active company if authenticated
+    let company: { id: string; slug: string; name: string } | null = null;
+
+    if (session?.user) {
+        // Check for active company cookie
+        const cookieStore = await cookies();
+        const activeCompanyId = cookieStore.get("activeCompanyId")?.value;
+
+        if (activeCompanyId) {
+            // Verify user has access to this company
+            const membership = await prisma.userCompany.findFirst({
+                where: {
+                    userId: session.user.id,
+                    companyId: activeCompanyId,
+                    status: "ACTIVE",
+                },
+                include: {
+                    company: true,
+                },
+            });
+
+            if (membership) {
+                company = {
+                    id: membership.company.id,
+                    slug: membership.company.slug,
+                    name: membership.company.name,
+                };
+            }
+        }
+
+        // Fallback to first company if no valid cookie
+        if (!company) {
+            const membership = await prisma.userCompany.findFirst({
+                where: {
+                    userId: session.user.id,
+                    status: "ACTIVE",
+                },
+                include: {
+                    company: true,
+                },
+            });
+
+            if (membership) {
+                company = {
+                    id: membership.company.id,
+                    slug: membership.company.slug,
+                    name: membership.company.name,
+                };
+            }
+        }
+    }
 
     return {
         prisma,
-        user: null as null | { id: string; email: string; name: string },
-        company: null as null | { id: string; slug: string },
+        user: session?.user ?? null,
+        session: session?.session ?? null,
+        company,
+        isSuperadmin: userIsSuperadmin,
         headers: opts?.req.headers,
     };
 }

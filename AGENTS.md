@@ -171,6 +171,29 @@ Los agentes:
 
 ---
 
+## Diseño Responsive y Mobile-First
+
+Epikal **DEBE** ser completamente responsive y diseñado con enfoque **mobile-first**.
+
+### Reglas de UI
+
+- Todo componente debe funcionar correctamente en móvil, tablet y desktop
+- El diseño base es para pantallas pequeñas, se escala hacia arriba
+- Usar breakpoints de Tailwind: `sm`, `md`, `lg`, `xl`
+- El dashboard debe ser usable desde un teléfono
+- Los formularios deben ser táctiles (touch-friendly)
+- Los botones deben tener tamaño mínimo de 44px para touch
+
+### Pruebas requeridas
+
+Antes de considerar una UI completa, verificar en:
+- iPhone SE (375px)
+- iPhone 14 Pro (393px)
+- iPad (768px)
+- Desktop (1280px+)
+
+---
+
 ## Aprendizaje y Evolución
 
 Epikal es un sistema vivo.

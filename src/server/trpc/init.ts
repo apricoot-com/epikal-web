@@ -75,3 +75,34 @@ const enforceCompany = t.middleware(({ ctx, next }) => {
  * Company-scoped procedure - requires auth + active tenant
  */
 export const companyProcedure = t.procedure.use(enforceCompany);
+
+/**
+ * Middleware to enforce superadmin access
+ */
+const enforceSuperadmin = t.middleware(({ ctx, next }) => {
+    if (!ctx.user) {
+        throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "You must be logged in to access this resource",
+        });
+    }
+    if (!ctx.isSuperadmin) {
+        throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "This action requires superadmin privileges",
+        });
+    }
+    return next({
+        ctx: {
+            ...ctx,
+            user: ctx.user,
+            isSuperadmin: true as const,
+        },
+    });
+});
+
+/**
+ * Superadmin procedure - requires superadmin privileges
+ * Use for platform-level operations (cross-tenant access, system config, etc.)
+ */
+export const superadminProcedure = t.procedure.use(enforceSuperadmin);

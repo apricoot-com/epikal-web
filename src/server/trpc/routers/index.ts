@@ -1,4 +1,8 @@
 import { router, publicProcedure } from "../init";
+import { companyRouter } from "./company";
+import { teamRouter } from "./team";
+import { locationRouter } from "./location";
+import { onboardingRouter } from "./onboarding";
 
 /**
  * Root router for all tRPC endpoints
@@ -12,10 +16,11 @@ export const appRouter = router({
         return { status: "ok", timestamp: new Date().toISOString() };
     }),
 
-    // TODO: Add module routers
-    // company: companyRouter,
-    // services: servicesRouter,
-    // scheduling: schedulingRouter,
+    // Module routers
+    company: companyRouter,
+    team: teamRouter,
+    location: locationRouter,
+    onboarding: onboardingRouter,
 });
 
 export type AppRouter = typeof appRouter;
