@@ -15,6 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trash2, Plus, ArrowLeft, Save } from "lucide-react";
 import { trpc } from "@/src/lib/trpc/client";
 import { toast } from "sonner";
+import { MarkdownEditor } from "@/components/editor/markdown-editor";
 
 const faqSchema = z.object({
     question: z.string().min(1, "La pregunta es requerida"),
@@ -160,15 +161,17 @@ export default function ServiceEditorPage(props: { params: Promise<{ serviceId: 
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>Descripción Detallada (Markdown)</Label>
-                                    <Textarea
-                                        {...form.register("content")}
-                                        className="min-h-[400px] font-mono text-sm leading-relaxed"
-                                        placeholder="# Título&#10;Descripción detallada del servicio..."
-                                    />
-                                    <div className="flex justify-between text-xs text-muted-foreground">
-                                        <span>Usa Markdown para formato rico.</span>
-                                        <span>Soporta: **negrita**, - listas, # títulos</span>
+                                    <Label>Descripción Detallada (Editor Web)</Label>
+                                    <div className="min-h-[400px]">
+                                        <MarkdownEditor
+                                            value={form.watch("content") || ""}
+                                            onChange={(val) => form.setValue("content", val, { shouldDirty: true })}
+                                            placeholder="Escribe aquí los detalles del servicio..."
+                                        />
+                                    </div>
+                                    <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                                        <span>Usa la barra de herramientas para dar formato.</span>
+                                        <span>Editor rico habilitado.</span>
                                     </div>
                                 </div>
                             </CardContent>

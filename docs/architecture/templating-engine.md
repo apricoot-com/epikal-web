@@ -132,6 +132,74 @@ model Company {
   siteSettings   Json?     // e.g. { "primaryColor": "#ff0000", "heroImage": "..." }
 }
 
+### 5. Template Block Schema (JSON Page Builder)
+
+To support a single `index.html` rendering diverse layouts, we define a standard **Block Schema**. The `TEMPLATE_DATA` will include a `blocks` array.
+
+#### Block Types & Props
+
+| Block Type | Description | Key Props |
+| :--- | :--- | :--- |
+| `hero` | Main entry banner | `title`, `subtitle`, `image`, `ctaText`, `ctaLink` |
+| `features` | Grid of feature cards | `title`, `items: [{ icon, title, description }]` |
+| `content` | Rich text section | `htmlContent`, `alignment` (left/center) |
+| `testimonials` | Carousel/Grid of reviews | `items: [{ name, role, quote, avatar }]` |
+| `faq` | Accordion of questions | `items: [{ question, answer }]` |
+| `cta` | Call to action banner | `title`, `text`, `buttonText`, `buttonLink` |
+| `contact` | Contact form & info | `email`, `phone`, `address`, `mapEmbedUrl` |
+
+#### Example JSON Structure
+
+```json
+{
+  "pageTitle": "My Service",
+  "blocks": [
+    {
+      "type": "hero",
+      "id": "hero-1",
+      "props": {
+        "title": "Welcome to ${company.name}",
+        "subtitle": "Discover our ${service.count} premium services.",
+        "ctaText": "Get Started",
+        "ctaLink": "/contact"
+      }
+    },
+    // ...
+  ]
+}
+```
+
+#### Variable Interpolation & Root Entities
+
+Interpolation availability depends on the **Page Context** (Root Entity).
+
+1.  **Home / Static Pages (`/`, `/about`):**
+    - **Root Entity:** `Company`
+    - **Available Variables:**
+        - `${company.name}`, `${company.email}`, `${company.phone}`
+        - `${company.address}`, `${company.description}`
+
+2.  **Service Detail Page (`/services/:slug`):**
+    - **Root Entity:** `Service` (specific record founded by slug)
+    - **Available Variables:**
+        - **All Company variables** (global scope)
+        - **Service variables:**
+            - `${service.name}`
+            - `${service.description}`
+            - `${service.price}`
+            - `${service.duration}`
+            - `${service.image}`
+            - `${service.extra.*}` (custom fields)
+
+**Note:** If a block uses `${service.price}` on the Home page, it will fail or render empty, unless that specific block is provided with a specific service context explicitly. But generally, blocks inherit the Page's Root Entity.
+
+**Mechanism:**
+1.  Backend identifies route type (e.g., Service Detail).
+2.  Backend fetches the **Root Entity** (e.g., the Service record).
+3.  Backend resolves variables against this entity + Global Company data.
+4.  Backend replaces strings in the JSON Blocks.
+5.  Injected JSON is sent to client.
+
 ### Service Extension (Web Layer)
 
 ```typescript
