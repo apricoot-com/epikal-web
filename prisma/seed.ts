@@ -67,6 +67,13 @@ async function main() {
             language: "es",
             currency: "MXN",
             timezone: "America/Mexico_City",
+            socialUrls: {
+                facebook: "https://facebook.com/clinicaaurora",
+                instagram: "https://instagram.com/clinicaaurora",
+                twitter: "https://x.com/clinicaaurora",
+                linkedin: "https://linkedin.com/company/clinicaaurora",
+                tiktok: "https://tiktok.com/@clinicaaurora"
+            }
         },
     });
 

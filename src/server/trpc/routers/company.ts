@@ -42,7 +42,16 @@ export const companyRouter = router({
                 currency: z.string().length(3).optional(),
                 language: z.string().length(2).optional(),
                 siteTemplateId: z.string().optional(),
-                siteSettings: z.record(z.unknown()).optional(), // Allow flexible JSON input
+                siteSettings: z.record(z.string(), z.unknown()).optional(), // Allow flexible JSON input
+                socialUrls: z
+                    .object({
+                        facebook: z.string().optional().nullable(),
+                        instagram: z.string().optional().nullable(),
+                        twitter: z.string().optional().nullable(),
+                        linkedin: z.string().optional().nullable(),
+                        tiktok: z.string().optional().nullable(),
+                    })
+                    .optional(),
             })
         )
         .mutation(async ({ ctx, input }) => {

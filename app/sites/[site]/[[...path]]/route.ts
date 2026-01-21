@@ -91,7 +91,7 @@ export async function GET(
     } else if (pathSegments[0] === "services" && pathSegments[1]) {
         // Service Detail Page: /services/[slug]
         const serviceSlug = pathSegments[1];
-        const service = company.services.find(s => s.webPage?.slug === serviceSlug);
+        const service = company.services.find((s: any) => s.webPage?.slug === serviceSlug);
 
         if (service) {
             if (fs.existsSync(path.join(templatePath, "service-detail.html"))) {
@@ -147,6 +147,7 @@ export async function GET(
             heroTitle: siteSettings.home?.heroTitle || company.name,
             heroDescription: siteSettings.home?.heroDescription || "Tu clínica de confianza.",
             heroImage: siteSettings.home?.heroImage,
+            social: company.socialUrls || {}, // { facebook, instagram, ... }
             branding: {
                 colors: {
                     primary: branding.primaryColor,
@@ -154,7 +155,7 @@ export async function GET(
                 },
                 logo: branding.logoUrl,
             },
-            services: company.services.map(s => ({
+            services: company.services.map((s: any) => ({
                 name: s.name,
                 slug: s.webPage?.slug,
                 description: s.description,

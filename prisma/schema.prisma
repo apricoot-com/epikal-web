@@ -68,6 +68,9 @@ model Company {
   currency      String        @default("USD")
   timezone      String        @default("America/Mexico_City")
   
+  // Custom Settings
+  socialUrls    Json?         // { facebook, instagram, twitter, linkedin, tiktok }
+
   // Module 4: Subscription & Billing
   subscriptionTier    SubscriptionTier    @default(FREE)
   subscriptionStatus  SubscriptionStatus  @default(ACTIVE)

@@ -99,63 +99,92 @@
                 <!-- Services injected here -->
             </div>
         </div>
-    </div>
+        <!-- Dynamic Footer -->
+        <footer class="bg-gray-800 text-white py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Brand -->
+                    <div>
+                        <h3 id="footer-brand" class="text-xl font-bold mb-4">Brand</h3>
+                        <p id="footer-desc" class="text-gray-400">Tu belleza, nuestra pasión.</p>
+                    </div>
+                    <!-- Contact -->
+                    <div>
+                        <h4 class="text-lg font-semibold mb-4">Contacto</h4>
+                        <ul class="space-y-2 text-gray-400">
+                            <li id="footer-email">email@example.com</li>
+                            <li id="footer-phone">+1 234 567 890</li>
+                        </ul>
+                    </div>
+                    <!-- Social -->
+                    <div>
+                        <h4 class="text-lg font-semibold mb-4">Síguenos</h4>
+                        <div id="footer-social" class="flex space-x-4">
+                            <!-- Social Icons Injected Here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400">
+                    <p>&copy; 2024 <span id="footer-copy-brand">Brand</span>. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
 
-    <!-- Initialization Script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const data = window.TEMPLATE_DATA;
+        <!-- Initialization Script -->
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const data = window.TEMPLATE_DATA;
 
-            if (!data) {
-                console.warn("No TEMPLATE_DATA found. Running in standalone mode?");
-                return;
-            }
+                if (!data) {
+                    console.warn("No TEMPLATE_DATA found. Running in standalone mode?");
+                    return;
+                }
 
-            console.log("Hydrating with:", data);
+                console.log("Hydrating with:", data);
 
-            // 1. Branding (CSS Variables)
-            if (data.company.branding.colors) {
-                document.documentElement.style.setProperty('--color-primary', data.company.branding.colors.primary);
-                document.documentElement.style.setProperty('--color-secondary', data.company.branding.colors.secondary);
-            }
+                // 1. Branding (CSS Variables)
+                if (data.company.branding.colors) {
+                    document.documentElement.style.setProperty('--color-primary', data.company.branding.colors.primary);
+                    document.documentElement.style.setProperty('--color-secondary', data.company.branding.colors.secondary);
+                }
 
-            // 2. Company Info & Hero
-            document.getElementById('nav-brand').innerText = data.company.name;
-            document.title = data.company.name;
+                // 2. Company Info & Hero
+                document.getElementById('nav-brand').innerText = data.company.name;
+                document.title = data.company.name;
 
-            // Hero
-            if (data.company.heroTitle) {
-                document.getElementById('hero-title').innerText = data.company.heroTitle;
-            } else {
-                document.getElementById('hero-title').innerText = data.company.name;
-            }
+                // Hero
+                if (data.company.heroTitle) {
+                    document.getElementById('hero-title').innerText = data.company.heroTitle;
+                } else {
+                    document.getElementById('hero-title').innerText = data.company.name;
+                }
 
-            if (data.company.heroDescription) {
-                document.getElementById('hero-desc').innerText = data.company.heroDescription;
-            }
+                if (data.company.heroDescription) {
+                    document.getElementById('hero-desc').innerText = data.company.heroDescription;
+                }
 
-            // Hero Image Background (if set)
-            if (data.company.heroImage) {
-                const heroEl = document.getElementById('hero');
-                // Creating a background overlay
-                // Simplest approach: Replace the img src if structure matches
-                const imgEl = heroEl.querySelector('img');
-                if (imgEl) imgEl.src = data.company.heroImage;
-            }
+                // Hero Image Background (if set)
+                if (data.company.heroImage) {
+                    const heroEl = document.getElementById('hero');
+                    // Creating a background overlay
+                    // Simplest approach: Replace the img src if structure matches
+                    const imgEl = heroEl.querySelector('img');
+                    if (imgEl) imgEl.src = data.company.heroImage;
+                }
 
-            // 3. Logo
-            if (data.company.branding.logo) {
-                const logoEl = document.getElementById('nav-logo');
-                logoEl.style.backgroundImage = `url(${data.company.branding.logo})`;
-                logoEl.style.backgroundSize = 'contain';
-                logoEl.style.backgroundRepeat = 'no-repeat';
-                logoEl.style.backgroundColor = 'transparent';
-            }
+                // 3. Logo
+                if (data.company.branding.logo) {
+                    const logoEl = document.getElementById('nav-logo');
+                    logoEl.style.backgroundImage = `url(${data.company.branding.logo})`;
+                    logoEl.style.backgroundSize = 'contain';
+                    logoEl.style.backgroundRepeat = 'no-repeat';
+                    logoEl.style.backgroundColor = 'transparent';
+                }
 
-            // 4. Services List
-            const servicesGrid = document.getElementById('services-grid');
-            if (data.company.services && servicesGrid) {
-                servicesGrid.innerHTML = data.company.services.map(service => `
+                // 4. Services List
+                const servicesGrid = document.getElementById('services-grid');
+                if (data.company.services && servicesGrid) {
+                    servicesGrid.innerHTML = data.company.services.map(service => `
                     <div class="flex flex-col rounded-lg shadow-lg overflow-hidden transition-transform hover:-translate-y-1">
                         <div class="flex-shrink-0">
                             <img class="h-48 w-full object-cover" src="${service.image || 'https://via.placeholder.com/400x300'}" alt="${service.name}">
@@ -174,9 +203,9 @@
                         </div>
                     </div>
                 `).join('');
-            }
-        });
-    </script>
+                }
+            });
+        </script>
 </body>
 
 </html>

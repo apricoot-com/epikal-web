@@ -36,6 +36,14 @@ export default function CompanySettingsPage() {
     const [primaryColor, setPrimaryColor] = useState("#3B82F6");
     const [secondaryColor, setSecondaryColor] = useState("#10B981");
 
+    const [socialUrls, setSocialUrls] = useState({
+        facebook: "",
+        instagram: "",
+        twitter: "",
+        linkedin: "",
+        tiktok: "",
+    });
+
     // Initialize form when data loads
     const initForm = () => {
         if (company) {
@@ -43,6 +51,15 @@ export default function CompanySettingsPage() {
             setLegalName(company.legalName || "");
             setPrimaryColor(company.branding?.primaryColor || "#3B82F6");
             setSecondaryColor(company.branding?.secondaryColor || "#10B981");
+
+            const savedSocial = (company.socialUrls as any) || {};
+            setSocialUrls({
+                facebook: savedSocial.facebook || "",
+                instagram: savedSocial.instagram || "",
+                twitter: savedSocial.twitter || "",
+                linkedin: savedSocial.linkedin || "",
+                tiktok: savedSocial.tiktok || "",
+            });
         }
     };
 
@@ -51,6 +68,19 @@ export default function CompanySettingsPage() {
         await updateCompany.mutateAsync({
             name,
             legalName: legalName || null,
+        });
+    };
+
+    // Handle social settings save
+    const handleSaveSocial = async () => {
+        await updateCompany.mutateAsync({
+            socialUrls: {
+                facebook: socialUrls.facebook || null,
+                instagram: socialUrls.instagram || null,
+                twitter: socialUrls.twitter || null,
+                linkedin: socialUrls.linkedin || null,
+                tiktok: socialUrls.tiktok || null,
+            },
         });
     };
 
@@ -81,9 +111,10 @@ export default function CompanySettingsPage() {
             <DashboardHeader title="Empresa" />
             <div className="flex flex-1 flex-col p-4">
                 <Tabs defaultValue="general" className="w-full" onValueChange={initForm}>
-                    <TabsList className="grid w-full grid-cols-2 max-w-md">
+                    <TabsList className="grid w-full grid-cols-3 max-w-md">
                         <TabsTrigger value="general">General</TabsTrigger>
                         <TabsTrigger value="branding">Marca</TabsTrigger>
+                        <TabsTrigger value="social">Redes Sociales</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="general" className="mt-4">
@@ -241,6 +272,83 @@ export default function CompanySettingsPage() {
                         </Card>
                     </TabsContent>
 
+                    <TabsContent value="social" className="mt-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Redes Sociales</CardTitle>
+                                <CardDescription>
+                                    Enlaza tus perfiles oficiales para que aparezcan en tu sitio web
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="facebook">Facebook</Label>
+                                    <Input
+                                        id="facebook"
+                                        placeholder="https://facebook.com/tupagina"
+                                        value={socialUrls.facebook}
+                                        onChange={(e) => setSocialUrls({ ...socialUrls, facebook: e.target.value })}
+                                        disabled={!canEdit}
+                                        className="max-w-md"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="instagram">Instagram</Label>
+                                    <Input
+                                        id="instagram"
+                                        placeholder="https://instagram.com/tuusuario"
+                                        value={socialUrls.instagram}
+                                        onChange={(e) => setSocialUrls({ ...socialUrls, instagram: e.target.value })}
+                                        disabled={!canEdit}
+                                        className="max-w-md"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="twitter">X / Twitter</Label>
+                                    <Input
+                                        id="twitter"
+                                        placeholder="https://x.com/tuusuario"
+                                        value={socialUrls.twitter}
+                                        onChange={(e) => setSocialUrls({ ...socialUrls, twitter: e.target.value })}
+                                        disabled={!canEdit}
+                                        className="max-w-md"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="linkedin">LinkedIn</Label>
+                                    <Input
+                                        id="linkedin"
+                                        placeholder="https://linkedin.com/company/tuempresa"
+                                        value={socialUrls.linkedin}
+                                        onChange={(e) => setSocialUrls({ ...socialUrls, linkedin: e.target.value })}
+                                        disabled={!canEdit}
+                                        className="max-w-md"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="tiktok">TikTok</Label>
+                                    <Input
+                                        id="tiktok"
+                                        placeholder="https://tiktok.com/@tuusuario"
+                                        value={socialUrls.tiktok}
+                                        onChange={(e) => setSocialUrls({ ...socialUrls, tiktok: e.target.value })}
+                                        disabled={!canEdit}
+                                        className="max-w-md"
+                                    />
+                                </div>
+
+                                {canEdit && (
+                                    <Button
+                                        onClick={handleSaveSocial}
+                                        disabled={updateCompany.isPending}
+                                        className="mt-4"
+                                    >
+                                        {updateCompany.isPending ? "Guardando..." : "Guardar redes sociales"}
+                                    </Button>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
                 </Tabs>
             </div>
         </>
