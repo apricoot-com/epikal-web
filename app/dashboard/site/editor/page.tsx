@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { trpc } from "@/src/lib/trpc/client";
 import { toast } from "sonner";
 import {
@@ -70,7 +70,7 @@ function BlockPropsForm({
                 {/* Dynamic Variable Helper */}
                 {(zodType instanceof z.ZodString) && (
                     <div className="flex gap-1">
-                        {['${company.name}', '${company.phone}', '${service.name}'].map(v => (
+                        {['${company.name}', '${company.phone}', '${service.name}', '${service.description}'].map(v => (
                             <Badge
                                 key={v}
                                 variant="outline"
@@ -258,11 +258,11 @@ export default function SiteEditorPage() {
 
     // Core Data Fetching
     const { data: company, isLoading: isLoadingCompany } = trpc.company.get.useQuery();
-    const { data: services, isLoading: isLoadingServices } = trpc.service.list.useQuery();
 
     // Editor State
-    const [pageType, setPageType] = useState<"standard" | "service">("standard"); // 'standard' (home, about) or 'service'
-    const [pageId, setPageId] = useState("home"); // 'home', 'about', or serviceId
+    const searchParams = useSearchParams();
+    const initialPageId = searchParams.get("page") || "home";
+    const [pageId, setPageId] = useState(initialPageId); // 'home', 'about', 'services', 'contact', 'service-template'
 
     const [blocks, setBlocks] = useState<SiteBlock[]>([]);
     const [seo, setSeo] = useState<any>({});
@@ -270,38 +270,15 @@ export default function SiteEditorPage() {
     const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
     const [isSeoOpen, setIsSeoOpen] = useState(false);
 
-    // Derived: Find current service if in service mode
-    const currentService = pageType === 'service' ? services?.find(s => s.id === pageId) : null;
-
     // --- 1. Load Data Logic ---
     useEffect(() => {
         if (!company) return;
 
-        if (pageType === 'standard') {
-            const settings = (company.siteSettings as any) || {};
-            const pageData = settings.pages?.[pageId] || {};
-            setBlocks(pageData.blocks || []);
-            setSeo(pageData.seo || { title: "", description: "" });
-        } else if (pageType === 'service' && currentService) {
-            // We need to fetch the specific web details for this service if not fully loaded
-            // For now, rely on what's available or fetching individual service might be better if list is shallow
-            // Assuming list includes basic info, but we might need `get` for deep fields
-        }
-    }, [company, pageType, pageId, currentService]);
-
-    // Fetch individual service details when selected to ensure we have blocks/webPage
-    const { data: serviceDetail } = trpc.service.get.useQuery(
-        { id: pageId },
-        { enabled: pageType === 'service' && !!pageId }
-    );
-
-    useEffect(() => {
-        if (pageType === 'service' && serviceDetail) {
-            const web = serviceDetail.webPage;
-            setBlocks((web?.blocks as SiteBlock[]) || []);
-            setSeo((web?.seo as any) || { title: serviceDetail.name, description: serviceDetail.description });
-        }
-    }, [serviceDetail, pageType]);
+        const settings = (company.siteSettings as any) || {};
+        const pageData = settings.pages?.[pageId] || {};
+        setBlocks(pageData.blocks || []);
+        setSeo(pageData.seo || { title: "", description: "" });
+    }, [company, pageId]);
 
 
     // --- 2. Save Logic ---
@@ -313,42 +290,20 @@ export default function SiteEditorPage() {
         onError: (err) => toast.error("Error saving: " + err.message)
     });
 
-    const updateService = trpc.service.updateWebDetails.useMutation({
-        onSuccess: () => {
-            toast.success("Service page saved successfully");
-            utils.service.get.invalidate({ id: pageId });
-        },
-        onError: (err) => toast.error("Error saving: " + err.message)
-    });
-
     const handleSave = () => {
-        if (pageType === 'standard') {
-            const currentSettings = (company?.siteSettings as any) || {};
-            const newSettings = {
-                ...currentSettings,
-                pages: {
-                    ...currentSettings.pages,
-                    [pageId]: {
-                        ...currentSettings.pages?.[pageId],
-                        blocks: blocks,
-                        seo: seo
-                    }
+        const currentSettings = (company?.siteSettings as any) || {};
+        const newSettings = {
+            ...currentSettings,
+            pages: {
+                ...currentSettings.pages,
+                [pageId]: {
+                    ...currentSettings.pages?.[pageId],
+                    blocks: blocks,
+                    seo: seo
                 }
-            };
-            updateCompany.mutate({ siteSettings: newSettings });
-        } else {
-            // Saving a service
-            if (!serviceDetail?.webPage?.slug) {
-                toast.error("Service needs a slug before designing (Edit in Business Settings)");
-                return;
             }
-            updateService.mutate({
-                serviceId: pageId,
-                slug: serviceDetail.webPage.slug, // Keep existing
-                blocks: blocks,
-                seo: seo
-            });
-        }
+        };
+        updateCompany.mutate({ siteSettings: newSettings });
     };
 
     // --- Drag & Drop Handlers (Same as before) ---
@@ -389,10 +344,10 @@ export default function SiteEditorPage() {
         if (editingBlockId === id) setEditingBlockId(null);
     };
 
-    if (isLoadingCompany || isLoadingServices) return <div className="p-10">Loading editor...</div>;
+    if (isLoadingCompany) return <div className="p-10">Loading editor...</div>;
 
     const editingBlock = blocks.find(b => b.id === editingBlockId);
-    const isLoadingSave = updateCompany.isPending || updateService.isPending;
+    const isLoadingSave = updateCompany.isPending;
 
     return (
         <div className="h-[calc(100vh-4rem)] flex flex-col bg-gray-50/50">
@@ -409,28 +364,17 @@ export default function SiteEditorPage() {
                             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Editing Page</span>
                             <select
                                 className="text-sm font-semibold bg-transparent border-none focus:ring-0 cursor-pointer hover:underline p-0"
-                                value={pageType === 'standard' ? pageId : `service:${pageId}`}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (val.startsWith('service:')) {
-                                        setPageType('service');
-                                        setPageId(val.replace('service:', ''));
-                                    } else {
-                                        setPageType('standard');
-                                        setPageId(val);
-                                    }
-                                }}
+                                value={pageId}
+                                onChange={(e) => setPageId(e.target.value)}
                             >
-                                <optgroup label="Core Pages">
+                                <optgroup label="Main Pages">
                                     <option value="home">Home</option>
                                     <option value="about">About Us</option>
-                                    <option value="services">All Services (Index)</option>
+                                    <option value="services">Services Index</option>
                                     <option value="contact">Contact</option>
                                 </optgroup>
-                                <optgroup label="Individual Services">
-                                    {services?.map(s => (
-                                        <option key={s.id} value={`service:${s.id}`}>{s.name}</option>
-                                    ))}
+                                <optgroup label="Templates">
+                                    <option value="service-detail">Service Detail (Template)</option>
                                 </optgroup>
                             </select>
                         </div>

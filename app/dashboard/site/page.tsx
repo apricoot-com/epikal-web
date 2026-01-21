@@ -2,20 +2,35 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+    CardFooter
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/src/lib/trpc/client";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
+import {
+    LayoutTemplate,
+    Home,
+    MessageSquare,
+    Contact,
+    Settings,
+    ArrowRight,
+    ExternalLink
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function SiteEditorPage() {
     const router = useRouter();
     const { data: company, isLoading, refetch } = trpc.company.get.useQuery();
-    const { data: services } = trpc.service.list.useQuery();
 
     const updateSettingsMutation = trpc.company.update.useMutation({
         onSuccess: () => {
@@ -24,13 +39,7 @@ export default function SiteEditorPage() {
         }
     });
 
-    const [activeTab, setActiveTab] = useState("general");
-
-    const handleEditService = (id: string) => {
-        router.push(`/dashboard/site/services/${id}`);
-    };
-
-    if (isLoading) return <div className="p-8">Cargando editor...</div>;
+    if (isLoading) return <div className="p-8">Cargando dashboard...</div>;
     if (!company) return <div className="p-8">No se encontró la empresa.</div>;
 
     const siteSettings = (company.siteSettings as any) || {};
@@ -54,189 +63,155 @@ export default function SiteEditorPage() {
         });
     };
 
-    const handleSaveHome = (e: React.FormEvent) => {
-        e.preventDefault();
-        const formData = new FormData(e.target as HTMLFormElement);
-
-        const home = {
-            heroTitle: formData.get("heroTitle"),
-            heroDescription: formData.get("heroDescription"),
-            heroImage: formData.get("heroImage"),
-        };
-
-        const newSettings = {
-            ...siteSettings,
-            home,
-        };
-
-        updateSettingsMutation.mutate({
-            siteSettings: newSettings,
-        });
-    };
+    const templates = [
+        {
+            id: "home",
+            name: "Página de Inicio",
+            description: "La portada de tu sitio web. Configura el hero y la bienvenida.",
+            icon: Home,
+            pageParam: "home"
+        },
+        {
+            id: "service-template",
+            name: "Plantilla de Servicios",
+            description: "El diseño maestro para todas tus páginas de servicios individuales.",
+            icon: LayoutTemplate,
+            pageParam: "service-detail",
+            badge: "Global"
+        },
+        {
+            id: "about",
+            name: "Sobre Nosotros",
+            description: "Historia de la empresa y equipo.",
+            icon: MessageSquare,
+            pageParam: "about"
+        },
+        {
+            id: "services-index",
+            name: "Índice de Servicios",
+            description: "Listado principal de todos los servicios ofrecidos.",
+            icon: LayoutTemplate,
+            pageParam: "services"
+        },
+        {
+            id: "contact",
+            name: "Contacto",
+            description: "Información de contacto y formulario.",
+            icon: Contact,
+            pageParam: "contact"
+        }
+    ];
 
     return (
-        <div className="flex-1 space-y-4 p-8 pt-6">
-            <div className="flex items-center justify-between space-y-2">
-                <h2 className="text-3xl font-bold tracking-tight">Editor del Sitio</h2>
+        <div className="flex-1 space-y-8 p-8 w-full">
+            {/* Header */}
+            <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-3xl font-bold tracking-tight">Gestión del Sitio Web</h2>
+                        <p className="text-muted-foreground">Administra las plantillas y configuración global de tu sitio.</p>
+                    </div>
+                    {company.siteTemplate && (
+                        <Button variant="outline" asChild>
+                            <a
+                                href={`http://${company.slug}.localhost:3000`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="gap-2"
+                            >
+                                <ExternalLink className="h-4 w-4" />
+                                Ver sitio en vivo
+                            </a>
+                        </Button>
+                    )}
+                </div>
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <Tabs defaultValue="templates" className="space-y-6">
                 <TabsList>
-                    <TabsTrigger value="general">General</TabsTrigger>
-                    <TabsTrigger value="home">Inicio (Home)</TabsTrigger>
-                    <TabsTrigger value="services">Servicios</TabsTrigger>
-                    <TabsTrigger value="contact">Contacto</TabsTrigger>
+                    <TabsTrigger value="templates">Plantillas</TabsTrigger>
+                    <TabsTrigger value="configuration">Configuración</TabsTrigger>
                 </TabsList>
 
-                {/* GENERAL TAB */}
-                <TabsContent value="general" className="space-y-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Analítica y configuración global</CardTitle>
-                            <CardDescription>Conecta herramientas externas.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            {/* Template Info Section */}
-                            <div className="space-y-2 p-4 border rounded-lg bg-muted/30">
-                                <Label className="text-base">Plantilla Activa</Label>
-                                {company.siteTemplate ? (
-                                    <div className="flex items-center justify-between mt-2">
-                                        <div>
-                                            <p className="font-semibold">{company.siteTemplate.name}</p>
-                                            <p className="text-sm text-muted-foreground">{company.siteTemplate.description}</p>
+                <TabsContent value="templates" className="space-y-6">
+                    {/* Templates Grid */}
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {templates.map((template) => (
+                            <Card key={template.id} className="group hover:border-primary/50 transition-colors flex flex-col">
+                                <CardHeader>
+                                    <div className="flex items-start justify-between mb-2">
+                                        <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                            <template.icon className="h-5 w-5" />
                                         </div>
-                                        <div className="flex gap-2">
-                                            <Button variant="outline" size="sm" asChild>
-                                                <a
-                                                    href={`http://${company.slug}.localhost:3000`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                >
-                                                    Ver sitio público
-                                                </a>
-                                            </Button>
+                                        {template.badge && (
+                                            <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-wider">
+                                                {template.badge}
+                                            </Badge>
+                                        )}
+                                    </div>
+                                    <CardTitle className="text-lg">{template.name}</CardTitle>
+                                    <CardDescription className="line-clamp-2">
+                                        {template.description}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="flex-1">
+                                </CardContent>
+                                <CardFooter className="pt-0">
+                                    <Button
+                                        className="w-full justify-between group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                                        variant="secondary"
+                                        onClick={() => router.push(`/dashboard/site/editor?page=${template.pageParam}`)}
+                                    >
+                                        Editar Plantilla
+                                        <ArrowRight className="h-4 w-4 ml-2 opacity-50 group-hover:opacity-100" />
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        ))}
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="configuration">
+                    {/* Global Settings */}
+                    <div className="w-full">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Analítica</CardTitle>
+                                <CardDescription>
+                                    Conecta Google Tag Manager y Facebook Pixel.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <form onSubmit={handleSaveGeneral} className="space-y-4">
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="gtmId">Google Tag Manager ID</Label>
+                                            <Input
+                                                id="gtmId"
+                                                name="gtmId"
+                                                defaultValue={siteSettings.analytics?.googleTagManagerId}
+                                                placeholder="GTM-XXXXXX"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="pixelId">Facebook Pixel ID</Label>
+                                            <Input
+                                                id="pixelId"
+                                                name="pixelId"
+                                                defaultValue={siteSettings.analytics?.facebookPixelId}
+                                                placeholder="1234567890"
+                                            />
                                         </div>
                                     </div>
-                                ) : (
-                                    <p className="text-muted-foreground mt-1">No hay plantilla seleccionada.</p>
-                                )}
-                            </div>
-
-                            <Separator />
-
-                            <form onSubmit={handleSaveGeneral} className="space-y-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="gtmId">Google Tag Manager ID (GTM-XXXX)</Label>
-                                    <Input
-                                        id="gtmId"
-                                        name="gtmId"
-                                        defaultValue={siteSettings.analytics?.googleTagManagerId}
-                                        placeholder="GTM-..."
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="pixelId">Facebook Pixel ID</Label>
-                                    <Input
-                                        id="pixelId"
-                                        name="pixelId"
-                                        defaultValue={siteSettings.analytics?.facebookPixelId}
-                                        placeholder="123456789..."
-                                    />
-                                </div>
-                                <Button type="submit" disabled={updateSettingsMutation.isPending}>
-                                    Guardar Cambios
-                                </Button>
-                            </form>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* HOME TAB */}
-                <TabsContent value="home" className="space-y-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Página de Inicio</CardTitle>
-                            <CardDescription>Personaliza el hero y la bienvenida.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleSaveHome} className="space-y-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="heroTitle">Título Principal</Label>
-                                    <Input
-                                        id="heroTitle"
-                                        name="heroTitle"
-                                        defaultValue={siteSettings.home?.heroTitle || company.name}
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="heroDescription">Descripción Corta</Label>
-                                    <Textarea
-                                        id="heroDescription"
-                                        name="heroDescription"
-                                        defaultValue={siteSettings.home?.heroDescription}
-                                        placeholder="Breve descripción de tu clínica..."
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="heroImage">Imagen de Fondo (URL)</Label>
-                                    <Input
-                                        id="heroImage"
-                                        name="heroImage"
-                                        defaultValue={siteSettings.home?.heroImage}
-                                        placeholder="https://..."
-                                    />
-                                    <p className="text-xs text-muted-foreground">Recomendado: 1920x1080px</p>
-                                </div>
-                                <Button type="submit" disabled={updateSettingsMutation.isPending}>
-                                    Guardar Cambios
-                                </Button>
-                            </form>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* SERVICES TAB */}
-                <TabsContent value="services" className="space-y-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Contenido de Servicios</CardTitle>
-                            <CardDescription>Edita la descripción detallada y preguntas frecuentes de cada servicio.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                {services?.map((service: any) => (
-                                    <Card key={service.id} className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 border-l-4 border-l-primary transition-colors"
-                                        onClick={() => handleEditService(service.id)}
-                                    >
-                                        <CardHeader>
-                                            <CardTitle className="text-lg">{service.name}</CardTitle>
-                                            <CardDescription>
-                                                {service.isPublic ? "Visible en web" : "Oculto"}
-                                            </CardDescription>
-                                        </CardHeader>
-                                        <CardContent className="text-xs text-muted-foreground pb-4">
-                                            Click para editar contenido web y FAQs.
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* CONTACT TAB */}
-                <TabsContent value="contact" className="space-y-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Información de Contacto</CardTitle>
-                            <CardDescription>Datos mostrados en el pie de página y página de contacto.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-sm text-zinc-500">
-                                Próximamente: Configuración de mapa y horarios visibles.
-                            </div>
-                        </CardContent>
-                    </Card>
+                                    <div className="flex justify-end pt-4">
+                                        <Button type="submit" disabled={updateSettingsMutation.isPending}>
+                                            {updateSettingsMutation.isPending ? "Guardando..." : "Guardar Configuración"}
+                                        </Button>
+                                    </div>
+                                </form>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </TabsContent>
             </Tabs>
         </div>

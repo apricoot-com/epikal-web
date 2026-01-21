@@ -252,14 +252,14 @@ export default function FacilitiesPage() {
                                             <div className="space-y-2">
                                                 <Label>Ubicación</Label>
                                                 <Select
-                                                    value={form.locationId}
-                                                    onValueChange={(v) => setForm({ ...form, locationId: v })}
+                                                    value={form.locationId || "unassigned"}
+                                                    onValueChange={(v) => setForm({ ...form, locationId: v === "unassigned" ? "" : v })}
                                                 >
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="Selecciona ubicación" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="">Sin ubicación fija</SelectItem>
+                                                        <SelectItem value="unassigned">Sin ubicación fija</SelectItem>
                                                         {locations.map((loc: LocationData) => (
                                                             <SelectItem key={loc.id} value={loc.id}>
                                                                 {loc.name}
