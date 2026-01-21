@@ -303,16 +303,30 @@ async function main() {
 
 Nuestro facial profundo es un tratamiento de **60 minutos** diseñado para purificar, hidratar y revitalizar la piel de tu rostro.
 
-**Incluye:**
-*   Doble limpieza
-*   Vapor ozono para abrir poros
-*   Extracción manual cuidadosa
-*   Alta frecuencia (bactericida)
-*   Mascarilla hidratante personalizada
-*   Masaje facial y craneal
+#### ¿Qué incluye?
+*   **Doble limpieza**: Eliminamos impurezas superficiales.
+*   **Vapor ozono**: Abre los poros para una extracción efectiva.
+*   **Extracción manual**: Cuidadosa y detallada.
+*   **Alta frecuencia**: Acción bactericida y calmante.
+*   **Mascarilla hidratante**: Personalizada según tu tipo de piel.
+*   **Masaje relajante**: Facial y craneal para desconectar.
 
 Ideal para *todo tipo de piel*. Recomendamos realizar este tratamiento una vez al mes para mantener resultados óptimos.
 `,
+                    faqs: [
+                        {
+                            question: "¿Duele la extracción?",
+                            answer: "Puede ser ligeramente molesta pero no dolorosa. Nuestras esteticistas son muy cuidadosas."
+                        },
+                        {
+                            question: "¿Puedo maquillarme después?",
+                            answer: "Recomendamos esperar al menos 12 horas para dejar respirar tu piel."
+                        },
+                        {
+                            question: "¿Con qué frecuencia debo hacérmelo?",
+                            answer: "Para mejores resultados, recomendamos una vez al mes."
+                        }
+                    ]
                 }
             },
             resources: {
