@@ -276,3 +276,9 @@ sequenceDiagram
     - `TEMPLATE_DATA` includes boolean flags (e.g., `features.agentEnabled`).
     - Template JS is responsible for conditionally rendering components (like the Chat Bubble).
 
+---
+
+## Related Documents
+
+- [User, Company & Billing Architecture](./user-company-billing.md) - Users, companies, roles, subscriptions
+- [Analytics & Tracking Architecture](./analytics.md) - Page view tracking, GTM, Facebook Conversions API
