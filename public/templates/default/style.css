@@ -1,1 +1,22 @@
-body { font-family: sans-serif; }
+:root {
+    --color-primary: #3B82F6;
+    --color-secondary: #10B981;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-secondary);
+}

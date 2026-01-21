@@ -2,6 +2,21 @@ import "dotenv/config";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
+import crypto from "crypto";
+import { auth } from "../src/lib/auth";
+
+async function hashPassword(password: string) {
+    // Basic Scrypt hash compliant with many auth systems
+    // Format: salt:key
+    const salt = crypto.randomBytes(16).toString("hex");
+    const key = (await new Promise<Buffer>((resolve, reject) => {
+        crypto.scrypt(password, salt, 64, (err, derivedKey) => {
+            if (err) reject(err);
+            else resolve(derivedKey);
+        });
+    })).toString("hex");
+    return `${salt}:${key}`;
+}
 
 /**
  * Seed script for Epikal database
@@ -121,16 +136,58 @@ async function main() {
     // =========================================================================
     // ADMIN USER
     // =========================================================================
+    // =========================================================================
+    // ADMIN USER (Use Auth API for proper hashing)
+    // =========================================================================
     console.log("👤 Creating admin user...");
 
-    const adminUser = await prisma.user.create({
-        data: {
-            name: "Dra. Sofía Mendoza",
+    // We import auth dynamically or use a workaround if ESM troubles occur,
+    // but assuming standard usage:
+    // Actually, in a seed script running with tsx, we might not have the full server context 
+    // (headers, request) that auth.api expects, but typically signUpEmail works without it
+    // or mocks it. 
+    // However, if that fails, we fallback to the known Scrypt hash which IS the Better Auth default.
+    // The previous hash failed because maybe Better Auth V1 uses Argon2?
+    // Let's force a trusted hash format if we can't use the API.
+
+    // WAIT! Better Auth documentation says it uses Scrypt by default.
+    // Maybe the salt separator is different or parameters are different.
+
+    // Let's try to use the API directly.
+    // Importing auth from src/lib/auth might fail due to @ alias in tsx without tsconfig path resolution.
+    // We need to assume tsx handles it or use relative path if needed.
+    // Let's try importing relative.
+
+    // Since we are inside prisma/seed.ts, ../src/lib/auth should work.
+
+    // But wait, `auth` relies on database adapter which relies on `prisma` client.
+    // It should work.
+
+    // NOTE: We will keep the hashPassword function as a fallback or if we decide to stick to manual.
+    // But clearly manual failed. 
+    // Let's try to simulate the user creation via a helper that uses better-auth/api 
+    // but actually, we can just use the internal `auth.api.signUpEmail` if we can import `auth`.
+
+    // Replacing manual creation with:
+
+    const adminUserRes = await auth.api.signUpEmail({
+        body: {
             email: "sofia@clinica-aurora.com",
-            emailVerified: true,
-            status: "ACTIVE",
+            password: "password123",
+            name: "Dra. Sofía Mendoza",
         },
+        asResponse: true // Try to get full response or object
     });
+
+    // signUpEmail returns the created user session/user object usually.
+    // But since it's an API call wrapper, it might return a response object.
+    // Let's assume we can fetch the user by email after creation to link it.
+
+    // WAIT: `auth.api` is not available on the client instance, but on the server instance `auth`.
+    // We need to import `auth` from `../src/lib/auth`.
+
+    const adminUser = await prisma.user.findUnique({ where: { email: "sofia@clinica-aurora.com" } });
+    if (!adminUser) throw new Error("Admin user creation failed via Auth API");
 
     console.log(`   ✓ User created: ${adminUser.name} (${adminUser.email})`);
 
@@ -155,13 +212,25 @@ async function main() {
     // =========================================================================
     console.log("👤 Creating staff user...");
 
-    const staffUser = await prisma.user.create({
-        data: {
-            name: "María García",
+    await auth.api.signUpEmail({
+        body: {
             email: "maria@clinica-aurora.com",
-            emailVerified: true,
-            status: "ACTIVE",
-        },
+            password: "password123",
+            name: "María García",
+        }
+    });
+
+    const staffUser = await prisma.user.findUnique({ where: { email: "maria@clinica-aurora.com" } });
+    if (!staffUser) throw new Error("Staff user creation failed via Auth API");
+
+    await prisma.user.update({
+        where: { id: staffUser.id },
+        data: { emailVerified: true }
+    });
+    // Manually verify admin too
+    await prisma.user.update({
+        where: { id: adminUser.id },
+        data: { emailVerified: true }
     });
 
     await prisma.userCompany.create({
@@ -229,7 +298,21 @@ async function main() {
                     slug: "facial-profundo",
                     displayTitle: "Limpieza Facial Premium",
                     heroImage: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&q=80&w=2070",
-                    content: "Disfruta de una experiencia rejuvenecedora...",
+                    content: `
+### Tu piel merece lo mejor
+
+Nuestro facial profundo es un tratamiento de **60 minutos** diseñado para purificar, hidratar y revitalizar la piel de tu rostro.
+
+**Incluye:**
+*   Doble limpieza
+*   Vapor ozono para abrir poros
+*   Extracción manual cuidadosa
+*   Alta frecuencia (bactericida)
+*   Mascarilla hidratante personalizada
+*   Masaje facial y craneal
+
+Ideal para *todo tipo de piel*. Recomendamos realizar este tratamiento una vez al mes para mantener resultados óptimos.
+`,
                 }
             },
             resources: {

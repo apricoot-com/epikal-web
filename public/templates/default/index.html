@@ -1,22 +1,163 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
+
 <head>
-  <title>Epikal Default Template</title>
-  <link rel='stylesheet' href='style.css'>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Epikal Site</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: 'var(--color-primary)',
+                        secondary: 'var(--color-secondary)',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
-  <div id='app'>
-    <h1 id='title'>Loading...</h1>
-    <div id='branding' style='width: 100px; height: 100px; background: #ccc;'></div>
-  </div>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-       const data = window.TEMPLATE_DATA;
-       if(data) {
-           document.getElementById('title').innerText = data.company.name;
-           document.getElementById('branding').style.background = data.company.branding.colors.primary;
-       }
-    });
-  </script>
+
+<body class="bg-gray-50 text-gray-900 font-sans">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- Logo / Brand -->
+                <div class="flex items-center">
+                    <a href="/" class="flex-shrink-0 flex items-center gap-2">
+                        <div id="nav-logo" class="h-8 w-8 rounded bg-primary"></div>
+                        <span id="nav-brand" class="font-bold text-xl text-gray-800">Brand</span>
+                    </a>
+                </div>
+                <!-- Links -->
+                <div class="hidden sm:flex sm:items-center sm:space-x-8">
+                    <a href="#"
+                        class="text-gray-900 px-3 py-2 rounded-md text-sm font-medium hover:text-primary transition-colors">Inicio</a>
+                    <a href="#services"
+                        class="text-gray-500 px-3 py-2 rounded-md text-sm font-medium hover:text-primary transition-colors">Servicios</a>
+                    <a href="#team"
+                        class="text-gray-500 px-3 py-2 rounded-md text-sm font-medium hover:text-primary transition-colors">Equipo</a>
+                </div>
+                <!-- CTA -->
+                <div class="flex items-center">
+                    <button
+                        class="bg-primary hover:bg-opacity-90 text-white px-4 py-2 rounded-full text-sm font-bold transition-all shadow-lg hover:shadow-xl">
+                        Reservar Cita
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div id="hero" class="relative bg-white overflow-hidden">
+        <div class="max-w-7xl mx-auto">
+            <div class="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+                <main class="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+                    <div class="sm:text-center lg:text-left">
+                        <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+                            <span class="block xl:inline">Bienvenido a</span>
+                            <span id="hero-title" class="block text-primary">Tu Nueva Clínica</span>
+                        </h1>
+                        <p id="hero-desc"
+                            class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                            Descubre nuestros tratamientos exclusivos diseñados para resaltar tu belleza natural.
+                        </p>
+                        <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                            <div class="rounded-md shadow">
+                                <a href="#services"
+                                    class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-opacity-90 md:py-4 md:text-lg md:px-10">
+                                    Ver Servicios
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+        <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 bg-gray-100">
+            <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full"
+                src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=2068"
+                alt="Salon interior">
+        </div>
+    </div>
+
+    <!-- Services Section (Dynamic) -->
+    <div id="services-section" class="py-12 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Nuestros Servicios</h2>
+                <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+                    Tratamientos diseñados para tu bienestar.
+                </p>
+            </div>
+            <div id="services-grid" class="mt-10 grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                <!-- Services injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Initialization Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const data = window.TEMPLATE_DATA;
+
+            if (!data) {
+                console.warn("No TEMPLATE_DATA found. Running in standalone mode?");
+                return;
+            }
+
+            console.log("Hydrating with:", data);
+
+            // 1. Branding (CSS Variables)
+            if (data.company.branding.colors) {
+                document.documentElement.style.setProperty('--color-primary', data.company.branding.colors.primary);
+                document.documentElement.style.setProperty('--color-secondary', data.company.branding.colors.secondary);
+            }
+
+            // 2. Company Info
+            document.getElementById('nav-brand').innerText = data.company.name;
+            document.getElementById('hero-title').innerText = data.company.name;
+            document.title = data.company.name;
+
+            // 3. Logo
+            if (data.company.branding.logo) {
+                const logoEl = document.getElementById('nav-logo');
+                logoEl.style.backgroundImage = `url(${data.company.branding.logo})`;
+                logoEl.style.backgroundSize = 'contain';
+                logoEl.style.backgroundRepeat = 'no-repeat';
+                logoEl.style.backgroundColor = 'transparent';
+            }
+
+            // 4. Services List
+            const servicesGrid = document.getElementById('services-grid');
+            if (data.company.services && servicesGrid) {
+                servicesGrid.innerHTML = data.company.services.map(service => `
+                    <div class="flex flex-col rounded-lg shadow-lg overflow-hidden transition-transform hover:-translate-y-1">
+                        <div class="flex-shrink-0">
+                            <img class="h-48 w-full object-cover" src="${service.image || 'https://via.placeholder.com/400x300'}" alt="${service.name}">
+                        </div>
+                        <div class="flex-1 bg-white p-6 flex flex-col justify-between">
+                            <div class="flex-1">
+                                <a href="/services/${service.slug}" class="block mt-2">
+                                    <p class="text-xl font-semibold text-gray-900 hover:text-primary transition-colors">${service.name}</p>
+                                    <p class="mt-3 text-base text-gray-500 line-clamp-3">${service.description}</p>
+                                </a>
+                            </div>
+                            <div class="mt-6 flex items-center justify-between">
+                                <span class="text-lg font-bold text-primary">$${service.price}</span>
+                                <a href="/services/${service.slug}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Ver Detalles &rarr;</a>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        });
+    </script>
 </body>
+
 </html>
