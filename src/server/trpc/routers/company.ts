@@ -15,6 +15,7 @@ export const companyRouter = router({
             where: { id: ctx.company.id },
             include: {
                 branding: true,
+                siteTemplate: true,
             },
         });
 

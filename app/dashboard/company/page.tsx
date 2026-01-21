@@ -84,6 +84,7 @@ export default function CompanySettingsPage() {
                     <TabsList className="grid w-full grid-cols-2 max-w-md">
                         <TabsTrigger value="general">General</TabsTrigger>
                         <TabsTrigger value="branding">Marca</TabsTrigger>
+                        <TabsTrigger value="site">Sitio Web</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="general" className="mt-4">
@@ -237,6 +238,59 @@ export default function CompanySettingsPage() {
                                         {updateBranding.isPending ? "Guardando..." : "Guardar colores"}
                                     </Button>
                                 )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="site" className="mt-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Configuración del Sitio Web</CardTitle>
+                                <CardDescription>
+                                    Selecciona la plantilla y previsualiza tu sitio público
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label>Plantilla Activa</Label>
+                                    <div className="p-4 border rounded-lg bg-muted/50">
+                                        {company?.siteTemplate ? (
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="font-semibold">{company.siteTemplate.name}</p>
+                                                    <p className="text-sm text-muted-foreground">{company.siteTemplate.description}</p>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <Button variant="outline" size="sm" asChild>
+                                                        <a
+                                                            href={`http://${company.slug}.localhost:3000`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                        >
+                                                            Ver sitio
+                                                        </a>
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <p className="text-muted-foreground">No hay plantilla seleccionada (Usa el seed script por ahora)</p>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Dominio Personalizado</Label>
+                                    <div className="flex gap-2 max-w-md">
+                                        <Input
+                                            value={company?.customDomain || ""}
+                                            placeholder="tudominio.com"
+                                            disabled
+                                        />
+                                        <Button variant="outline" disabled>Configurar</Button>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Contacta a soporte para configurar un dominio propio.
+                                    </p>
+                                </div>
                             </CardContent>
                         </Card>
                     </TabsContent>

@@ -19,6 +19,42 @@ export function middleware(request: NextRequest) {
         (path) => pathname === path || pathname.startsWith(path + "/")
     );
 
+    // Module 3: Subdomain Handling (Sites)
+    const hostname = request.headers.get("host") || "";
+    // Allow custom domains or subdomains, excluding main domain (e.g. localhost:3000 or app.epikal.com)
+    // For local dev, we might use "test.localhost:3000"
+    const isLocal = hostname.includes("localhost");
+    const rootDomain = isLocal ? "localhost:3000" : (process.env.NEXT_PUBLIC_ROOT_DOMAIN || "epikal.com");
+
+    // Check if this is a templated site request (subdomain or custom domain)
+    // E.g. "salon-maria.epikal.com" -> we want to serve /sites/salon-maria
+    // Logic: If hostname != rootDomain and not a reserved subdomain (like "app" or "www")
+
+    const isMainDomain = hostname === rootDomain || hostname === `www.${rootDomain}`;
+    // TODO: Add "app" to reserved subdomains if we use app.epikal.com
+
+    if (!isMainDomain) {
+        // Extract subdomain or custom domain
+        // For subdomains: salon.epikal.com -> salon
+        // For custom: mysalon.com -> mysalon.com
+
+        let siteId = hostname.replace(`.${rootDomain}`, "");
+        if (hostname === siteId) {
+            // It's a custom domain, pass full hostname
+            // Logic later will look up by customDomain field
+        }
+
+        // Rewrite to the sites folder
+        // We preserve the pathname (e.g. /about)
+        // New URL: /_sites/{siteId}/about
+        // Correction: Using Next.js Dynamic Route (sites)/[[...path]]
+        // We can pass the siteId as a search param or part of the path if we structure it that way.
+        // Or better: Rewrite to `/sites/${hostname}${pathname}` and handle parsing in the page.
+
+        // Let's rewrite to /sites/[hostname] + pathname
+        return NextResponse.rewrite(new URL(`/sites/${hostname}${pathname}`, request.url));
+    }
+
     if (isPublicPath) {
         return NextResponse.next();
     }
@@ -32,10 +68,6 @@ export function middleware(request: NextRequest) {
         loginUrl.searchParams.set("callbackUrl", pathname);
         return NextResponse.redirect(loginUrl);
     }
-
-    // Note: We can't check for company membership here because middleware
-    // can't do async DB calls. The onboarding redirect is handled client-side
-    // in the dashboard layout or via tRPC response.
 
     return NextResponse.next();
 }

@@ -173,10 +173,123 @@ async function main() {
         },
     });
 
-    console.log(`   ✓ User created: ${staffUser.name} as STAFF`);
+    // =========================================================================
+    // RESOURCES (Professionals & Facilities)
+    // =========================================================================
+    console.log("👩‍⚕️ Creating resources...");
+
+    const profMaria = await prisma.resource.create({
+        data: {
+            companyId: company.id,
+            locationId: locationPolanco.id,
+            type: "PROFESSIONAL",
+            name: "María García", // Reuse user logic ideally, but simplest to double entry for now
+            status: "ACTIVE",
+        }
+    });
+
+    const profLaura = await prisma.resource.create({
+        data: {
+            companyId: company.id,
+            locationId: locationPolanco.id,
+            type: "PROFESSIONAL",
+            name: "Dra. Laura Torres",
+            status: "ACTIVE",
+        }
+    });
+
+    const roomFacial = await prisma.resource.create({
+        data: {
+            companyId: company.id,
+            locationId: locationPolanco.id,
+            type: "PHYSICAL",
+            name: "Cabina de Faciales",
+            status: "ACTIVE",
+        }
+    });
+
+    console.log(`   ✓ Resources created: 2 Professionals, 1 Physical`);
 
     // =========================================================================
-    // SUMMARY
+    // SERVICES
+    // =========================================================================
+    console.log("💆‍♀️ Creating services...");
+
+    const serviceFacial = await prisma.service.create({
+        data: {
+            companyId: company.id,
+            name: "Limpieza Facial Profunda",
+            description: "Tratamiento completo para renovar tu piel",
+            duration: 60,
+            price: 850.00,
+            isPublic: true,
+            status: "ACTIVE",
+            webPage: {
+                create: {
+                    slug: "facial-profundo",
+                    displayTitle: "Limpieza Facial Premium",
+                    heroImage: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&q=80&w=2070",
+                    content: "Disfruta de una experiencia rejuvenecedora...",
+                }
+            },
+            resources: {
+                create: [
+                    { resource: { connect: { id: profMaria.id } } },
+                    { resource: { connect: { id: roomFacial.id } } }
+                ]
+            }
+        },
+        include: { webPage: true }
+    });
+
+    const serviceMassage = await prisma.service.create({
+        data: {
+            companyId: company.id,
+            name: "Masaje Relajante",
+            description: "Masaje de cuerpo completo con aromaterapia",
+            duration: 50,
+            price: 1200.00,
+            isPublic: true,
+            status: "ACTIVE",
+            webPage: {
+                create: {
+                    slug: "masaje-relajante",
+                    displayTitle: "Masaje Relajante Holístico",
+                    heroImage: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&q=80&w=2070",
+                    content: "Relaja tus sentidos con nuestra técnica exclusiva...",
+                }
+            },
+            resources: {
+                create: [
+                    { resource: { connect: { id: profLaura.id } } }
+                ]
+            }
+        },
+        include: { webPage: true }
+    });
+
+    console.log(`   ✓ Services created: ${serviceFacial.name}, ${serviceMassage.name}`);
+
+    // =========================================================================
+    // TEMPLATES
+    // =========================================================================
+    console.log("📄 Creating default template...");
+
+    const template = await prisma.template.create({
+        data: {
+            name: "Default Minimal",
+            description: "A simple testing template",
+            storagePath: "default",
+            isPublic: true,
+        }
+    });
+
+    await prisma.company.update({
+        where: { id: company.id },
+        data: { siteTemplateId: template.id }
+    });
+
+    console.log(`   ✓ Template created and assigned: ${template.name}`);
     // =========================================================================
     console.log("\n" + "=".repeat(60));
     console.log("✅ Seed completed successfully!\n");

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Epikal Default Template</title>
+  <link rel='stylesheet' href='style.css'>
+</head>
+<body>
+  <div id='app'>
+    <h1 id='title'>Loading...</h1>
+    <div id='branding' style='width: 100px; height: 100px; background: #ccc;'></div>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+       const data = window.TEMPLATE_DATA;
+       if(data) {
+           document.getElementById('title').innerText = data.company.name;
+           document.getElementById('branding').style.background = data.company.branding.colors.primary;
+       }
+    });
+  </script>
+</body>
+</html>

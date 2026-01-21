@@ -65,6 +65,12 @@ model Company {
   services      Service[]
   resources     Resource[]
   
+  // Module 3: Web Pages
+  siteTemplateId String?
+  siteTemplate  Template?     @relation("InstalledTemplate", fields: [siteTemplateId], references: [id])
+  siteSettings  Json?         // Custom settings (colors, logo override, etc) for the template
+  createdTemplates Template[] @relation("TemplateOwner")
+  
   @@map("companies")
 }
 
@@ -191,6 +197,7 @@ model Service {
   // Relations
   company         Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   resources       ServiceResource[]
+  webPage         ServiceWebPage?
   
   @@map("services")
 }
@@ -287,4 +294,57 @@ model Verification {
   updatedAt  DateTime @updatedAt
   
   @@map("verifications")
+}
+
+// =============================================================================
+// WEB PAGES & TEMPLATING (Module 3)
+// =============================================================================
+
+/// Defines a deployable site template (11ty build)
+model Template {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  storagePath   String   // Folder name in public/templates (e.g. "minimal-v1")
+  previewImage  String?
+  isPublic      Boolean  @default(true) // Available to all companies?
+  companyId     String?  // If uploaded by a specific client (custom template)
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  company       Company? @relation("TemplateOwner", fields: [companyId], references: [id])
+  installations Company[] @relation("InstalledTemplate")
+  
+  @@map("templates")
+}
+
+/// Web-specific configuration for a Service
+model ServiceWebPage {
+  id                String   @id @default(cuid())
+  serviceId         String   @unique
+  slug              String   @unique
+  displayTitle      String?
+  heroImage         String?
+  content           String?  // Rich text description
+  
+  // Feature Flags
+  schedulingEnabled Boolean @default(true)
+  agentEnabled      Boolean @default(false)
+  analyticsEnabled  Boolean @default(false)
+  
+  // Module Configs (JSON for flexibility)
+  agentConfig       Json?
+  bookingConfig     Json?
+  
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  service           Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  
+  @@map("service_web_pages")
 }
