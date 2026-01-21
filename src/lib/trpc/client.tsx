@@ -1,11 +1,13 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
 import { useState } from "react";
 import superjson from "superjson";
 import type { AppRouter } from "@/src/server/trpc/routers";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner"; // Assuming sonner is used, or replace with console/alert if uncertain
 
 /**
  * tRPC React hooks
@@ -22,6 +24,8 @@ function getBaseUrl() {
  * tRPC Provider component
  */
 export function TRPCProvider({ children }: { children: React.ReactNode }) {
+    const router = useRouter();
+
     const [queryClient] = useState(
         () =>
             new QueryClient({
@@ -29,8 +33,27 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
                     queries: {
                         staleTime: 5 * 1000,
                         refetchOnWindowFocus: false,
+                        retry: false, // Don't retry on error
                     },
                 },
+                queryCache: new QueryCache({
+                    onError: (error: any) => {
+                        // Check if it's a TRPC error with UNAUTHORIZED code
+                        if (error?.data?.code === "UNAUTHORIZED") {
+                            // Redirect to login
+                            router.push("/login");
+                        }
+                    },
+                }),
+                mutationCache: new MutationCache({
+                    onError: (error: any) => {
+                        // Check if it's a TRPC error with UNAUTHORIZED code
+                        if (error?.data?.code === "UNAUTHORIZED") {
+                            // Redirect to login
+                            router.push("/login");
+                        }
+                    }
+                })
             })
     );
 
