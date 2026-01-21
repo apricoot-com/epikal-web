@@ -62,6 +62,7 @@ export const serviceRouter = router({
                             resource: true,
                         },
                     },
+                    webPage: true,
                 },
             });
 
@@ -206,5 +207,55 @@ export const serviceRouter = router({
             });
 
             return { success: true };
+        }),
+
+    /**
+     * Update web-specific details for a service
+     */
+    updateWebDetails: companyProcedure
+        .input(
+            z.object({
+                serviceId: z.string(),
+                slug: z.string().min(1).max(100),
+                displayTitle: z.string().optional(),
+                heroImage: z.string().url().optional().or(z.literal("")),
+                content: z.string().optional(),
+                // Expect simple array: [{ question, answer }]
+                faqs: z.array(z.object({
+                    question: z.string(),
+                    answer: z.string()
+                })).optional()
+            })
+        )
+        .mutation(async ({ ctx, input }) => {
+            const { serviceId, faqs, ...data } = input;
+
+            // Verify ownership
+            const existing = await ctx.prisma.service.findFirst({
+                where: { id: serviceId, companyId: ctx.company.id },
+            });
+
+            if (!existing) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Servicio no encontrado",
+                });
+            }
+
+            // Update or create ServiceWebPage
+            const webPage = await ctx.prisma.serviceWebPage.upsert({
+                where: { serviceId },
+                create: {
+                    serviceId,
+                    ...data,
+                    faqs: faqs as any, // Cast to InputJsonValue
+                },
+                update: {
+                    ...data,
+                    faqs: faqs as any,
+                }
+            });
+
+            return webPage;
         }),
 });

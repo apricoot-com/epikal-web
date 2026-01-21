@@ -41,6 +41,8 @@ export const companyRouter = router({
                 timezone: z.string().optional(),
                 currency: z.string().length(3).optional(),
                 language: z.string().length(2).optional(),
+                siteTemplateId: z.string().optional(),
+                siteSettings: z.record(z.unknown()).optional(), // Allow flexible JSON input
             })
         )
         .mutation(async ({ ctx, input }) => {

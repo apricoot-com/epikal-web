@@ -119,10 +119,29 @@
                 document.documentElement.style.setProperty('--color-secondary', data.company.branding.colors.secondary);
             }
 
-            // 2. Company Info
+            // 2. Company Info & Hero
             document.getElementById('nav-brand').innerText = data.company.name;
-            document.getElementById('hero-title').innerText = data.company.name;
             document.title = data.company.name;
+
+            // Hero
+            if (data.company.heroTitle) {
+                document.getElementById('hero-title').innerText = data.company.heroTitle;
+            } else {
+                document.getElementById('hero-title').innerText = data.company.name;
+            }
+
+            if (data.company.heroDescription) {
+                document.getElementById('hero-desc').innerText = data.company.heroDescription;
+            }
+
+            // Hero Image Background (if set)
+            if (data.company.heroImage) {
+                const heroEl = document.getElementById('hero');
+                // Creating a background overlay
+                // Simplest approach: Replace the img src if structure matches
+                const imgEl = heroEl.querySelector('img');
+                if (imgEl) imgEl.src = data.company.heroImage;
+            }
 
             // 3. Logo
             if (data.company.branding.logo) {

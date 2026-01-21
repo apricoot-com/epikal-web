@@ -15,6 +15,7 @@ import {
     ChevronDown,
     Plus,
     Check,
+    Globe,
 } from "lucide-react";
 
 import {
@@ -101,6 +102,11 @@ const settingsItems = [
         href: "/dashboard/company/locations",
         icon: Settings,
     },
+    {
+        title: "Sitio Web",
+        href: "/dashboard/site",
+        icon: Globe,
+    },
 ];
 
 export function DashboardSidebar() {
@@ -138,7 +144,7 @@ export function DashboardSidebar() {
     };
 
     // Find active company
-    const activeCompany = status?.companies?.find((c) => c.id === status.activeCompanyId);
+    const activeCompany = status?.companies?.find((c: any) => c.id === status.activeCompanyId);
     const currentCompanyName = activeCompany?.name ?? status?.companies?.[0]?.name ?? "Empresa";
 
     return (
@@ -165,7 +171,7 @@ export function DashboardSidebar() {
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent side="bottom" align="start" className="w-64">
-                        {status?.companies?.map((company) => (
+                        {status?.companies?.map((company: any) => (
                             <DropdownMenuItem
                                 key={company.id}
                                 onClick={() => handleSwitchCompany(company.id)}

@@ -338,6 +338,7 @@ model ServiceWebPage {
   // Module Configs (JSON for flexibility)
   agentConfig       Json?
   bookingConfig     Json?
+  faqs              Json?    // Structured FAQs: { question: string, answer: string }[]
   
   // Timestamps
   createdAt         DateTime @default(now())

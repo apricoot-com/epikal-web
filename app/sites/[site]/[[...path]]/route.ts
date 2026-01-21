@@ -15,6 +15,17 @@ export async function GET(
     const urlPath = pathSegments.join("/");
 
     // 1. Resolve Tenant
+    // Define include object to reuse
+    const companyInclude = {
+        siteTemplate: true,
+        branding: true,
+        services: {
+            where: { isPublic: true },
+            include: { webPage: true, resources: true },
+            orderBy: { sortOrder: 'asc' }
+        }
+    };
+
     let company;
     const isLocal = domain.includes("localhost");
 
@@ -22,66 +33,21 @@ export async function GET(
         const slug = domain.split(".")[0];
         company = await prisma.company.findUnique({
             where: { slug },
-            include: {
-                siteTemplate: true,
-                branding: true,
-                services: {
-                    where: { isPublic: true },
-                    include: { webPage: true, resources: true },
-                    orderBy: { sortOrder: 'asc' }
-                }
-            }
-        });
-    } else {
-        const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "epikal.com";
-        const slug = domain.replace(`.${rootDomain}`, "");
-        // Simplified lookup for demo
-        company = await prisma.company.findUnique({
-            where: isLocal ? { slug: slug } : { slug: slug }, // Logic placeholder
-            include: {
-                siteTemplate: true,
-                branding: true,
-                services: {
-                    where: { isPublic: true },
-                    include: { webPage: true, resources: true },
-                    orderBy: { sortOrder: 'asc' }
-                }
-            }
-        });
-
-        // Correct lookup actually:
-        if (!company && !isLocal) {
-            company = await prisma.company.findUnique({
-                where: { customDomain: domain },
-                include: {
-                    siteTemplate: true,
-                    branding: true,
-                    services: {
-                        where: { isPublic: true },
-                        include: { webPage: true, resources: true },
-                        orderBy: { sortOrder: 'asc' }
-                    }
-                }
-            });
-        }
-
-    }
-
-    // Fix tenant lookup logic which I messed up in previous step replacement slightly
-    // Let's rely on previous robust logic but with the new include:
-    if (isLocal) {
-        const slug = domain.split(".")[0];
-        company = await prisma.company.findUnique({
-            where: { slug },
-            include: { siteTemplate: true, branding: true, services: { include: { webPage: true } } }
+            include: companyInclude as any
         });
     } else {
         const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "epikal.com";
         if (domain.endsWith(`.${rootDomain}`)) {
             const slug = domain.replace(`.${rootDomain}`, "");
-            company = await prisma.company.findUnique({ where: { slug }, include: { siteTemplate: true, branding: true, services: { include: { webPage: true } } } });
+            company = await prisma.company.findUnique({
+                where: { slug },
+                include: companyInclude as any
+            });
         } else {
-            company = await prisma.company.findUnique({ where: { customDomain: domain }, include: { siteTemplate: true, branding: true, services: { include: { webPage: true } } } });
+            company = await prisma.company.findUnique({
+                where: { customDomain: domain },
+                include: companyInclude as any
+            });
         }
     }
 
@@ -169,11 +135,18 @@ export async function GET(
         logoUrl: "",
     };
 
+    const siteSettings = (company.siteSettings as any) || {};
+
     const templateData = {
+        settings: siteSettings,
         company: {
             name: company.name,
-            email: "contact@" + domain, // simplified
-            phone: branding.brandKeywords?.join(", ") || "", // placeholder
+            email: siteSettings.contact?.email || "contact@" + domain,
+            phone: siteSettings.contact?.phone || branding.brandKeywords?.join(", ") || "",
+            // Use configured hero or fallback to company name
+            heroTitle: siteSettings.home?.heroTitle || company.name,
+            heroDescription: siteSettings.home?.heroDescription || "Tu clínica de confianza.",
+            heroImage: siteSettings.home?.heroImage,
             branding: {
                 colors: {
                     primary: branding.primaryColor,
