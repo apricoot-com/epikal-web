@@ -309,6 +309,28 @@
                             }
                         }
 
+                        if (type === 'faq') {
+                            const items = Array.isArray(props.items) ? props.items : [];
+                            return `
+                                <div class="py-12 bg-gray-50">
+                                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                        <div class="text-center mb-10">
+                                            <h2 class="text-3xl font-extrabold text-gray-900">${props.title || 'Preguntas Frecuentes'}</h2>
+                                            <p class="mt-4 text-gray-500">${props.description || ''}</p>
+                                        </div>
+                                        <dl class="space-y-8 md:space-y-10 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10 md:space-y-0">
+                                            ${items.map(item => `
+                                                <div>
+                                                    <dt class="font-medium text-gray-900">${item.question}</dt>
+                                                    <dd class="mt-2 text-gray-500">${item.answer}</dd>
+                                                </div>
+                                            `).join('')}
+                                        </dl>
+                                    </div>
+                                </div>
+                            `;
+                        }
+
                         if (type === 'contact') {
                             return `
                                 <section class="py-12 bg-white">

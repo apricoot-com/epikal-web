@@ -155,12 +155,17 @@ export async function GET(
             '${company.name}': company.name,
             '${company.phone}': siteSettings.contact?.phone || "",
             '${company.email}': siteSettings.contact?.email || "",
+            '${company.address}': siteSettings.contact?.address || "",
         };
 
         if (context.type === 'service-detail' && context.data) {
             replacements['${service.name}'] = context.data.name;
             replacements['${service.description}'] = context.data.description;
+            replacements['${service.shortDescription}'] = context.data.description;
+            replacements['${service.longDescription}'] = context.data.htmlContent || "";
             replacements['${service.price}'] = context.data.price?.toString() || "";
+            replacements['${service.duration}'] = context.data.duration?.toString() || "";
+            replacements['${service.image}'] = context.data.webPage?.heroImage || "https://via.placeholder.com/1200x600";
         }
 
         Object.entries(replacements).forEach(([key, value]) => {
@@ -171,7 +176,12 @@ export async function GET(
     };
 
     const deepReplace = (obj: any, context: any): any => {
-        if (typeof obj === 'string') return replaceVariables(obj, context);
+        if (typeof obj === 'string') {
+            if (obj === '${service.faqs}' && context.data?.webPage?.faqs) {
+                return context.data.webPage.faqs;
+            }
+            return replaceVariables(obj, context);
+        }
         if (Array.isArray(obj)) return obj.map(item => deepReplace(item, context));
         if (typeof obj === 'object' && obj !== null) {
             const newObj: any = {};

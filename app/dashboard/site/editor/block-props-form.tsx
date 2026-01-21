@@ -64,14 +64,19 @@ export function BlockPropsForm({ block, onChange }: BlockPropsFormProps) {
         const value = block.props[key] ?? "";
 
         const handleInjectVariable = (variable: string) => {
-            onChange(block.id, { ...block.props, [key]: value + variable });
+            if (typeName === "ZodArray") {
+                // For arrays, we assume the user wants to replace the whole content with the variable
+                onChange(block.id, { ...block.props, [key]: variable });
+            } else {
+                onChange(block.id, { ...block.props, [key]: value + variable });
+            }
         };
 
         const renderLabelWithVariables = () => (
             <div className="flex justify-between items-center">
                 <Label className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</Label>
                 {/* Dynamic Variable Helper - Dropdown */}
-                {(typeName === "ZodString") && (
+                {(typeName === "ZodString" || typeName === "ZodArray") && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 gap-1">
@@ -81,7 +86,7 @@ export function BlockPropsForm({ block, onChange }: BlockPropsFormProps) {
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Available Variables</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            {['${company.name}', '${company.phone}', '${service.name}', '${service.description}'].map(v => (
+                            {['${company.name}', '${company.phone}', '${company.email}', '${company.address}', '${service.name}', '${service.shortDescription}', '${service.longDescription}', '${service.image}', '${service.faqs}', '${service.price}', '${service.duration}'].map(v => (
                                 <DropdownMenuItem key={v} onClick={() => handleInjectVariable(v)}>
                                     <span className="font-mono text-xs">{v}</span>
                                 </DropdownMenuItem>
@@ -164,7 +169,7 @@ export function BlockPropsForm({ block, onChange }: BlockPropsFormProps) {
         if (typeName === "ZodArray") {
             return (
                 <div key={key} className="space-y-2">
-                    <Label className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()} (JSON)</Label>
+                    {renderLabelWithVariables()}
                     <Textarea
                         className="font-mono text-xs bg-muted/20"
                         value={typeof value === 'object' ? JSON.stringify(value, null, 2) : value}
@@ -173,13 +178,17 @@ export function BlockPropsForm({ block, onChange }: BlockPropsFormProps) {
                                 const parsed = JSON.parse(e.target.value);
                                 onChange(block.id, { ...block.props, [key]: parsed });
                             } catch (err) {
-                                // Invalid JSON
+                                // If value is a simple string (variable), pass it through
+                                // This allows saving "${service.faqs}" as a string instead of array
+                                if (e.target.value.startsWith("${")) {
+                                    onChange(block.id, { ...block.props, [key]: e.target.value });
+                                }
                             }
                         }}
                         rows={10}
                     />
                     <p className="text-[10px] text-muted-foreground">
-                        Edita este campo como una lista JSON. Ten cuidado con la sintaxis <code>{`[{ "key": "value" }]`}</code>.
+                        Edita este campo como una lista JSON o inserta una variable (ej. <code>{`\${service.faqs}`}</code>).
                     </p>
                 </div>
             );
