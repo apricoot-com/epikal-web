@@ -62,6 +62,8 @@ model Company {
   members       UserCompany[]
   branding      CompanyBranding?
   locations     Location[]
+  services      Service[]
+  resources     Resource[]
   
   @@map("companies")
 }
@@ -149,8 +151,89 @@ model Location {
   
   // Relations
   company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  resources Resource[]
   
   @@map("locations")
+}
+
+// =============================================================================
+// SERVICES & RESOURCES (Module 2)
+// =============================================================================
+
+enum ResourceType {
+  PROFESSIONAL  // Person (doctor, stylist, etc.)
+  PHYSICAL      // Space/equipment (room, court, etc.)
+}
+
+enum ServiceStatus {
+  ACTIVE
+  INACTIVE
+}
+
+/// Represents what the client buys
+model Service {
+  id              String        @id @default(cuid())
+  companyId       String
+  name            String
+  description     String?
+  duration        Int           // Duration in minutes
+  price           Decimal       @db.Decimal(10, 2)
+  allowsDeposit   Boolean       @default(false)
+  depositAmount   Decimal?      @db.Decimal(10, 2)
+  status          ServiceStatus @default(ACTIVE)
+  isPublic        Boolean       @default(true) // Visible on public web
+  sortOrder       Int           @default(0)
+  
+  // Timestamps
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  company         Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  resources       ServiceResource[]
+  
+  @@map("services")
+}
+
+/// Represents who or what delivers the service
+model Resource {
+  id              String        @id @default(cuid())
+  companyId       String
+  locationId      String?
+  type            ResourceType
+  name            String
+  description     String?
+  status          ServiceStatus @default(ACTIVE)
+  calendarId      String?       // External calendar ID (Google Calendar)
+  
+  // Timestamps
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  company         Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  location        Location?     @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  services        ServiceResource[]
+  
+  @@map("resources")
+}
+
+/// Many-to-many relationship between Service and Resource
+model ServiceResource {
+  serviceId       String
+  resourceId      String
+  
+  // Future: per-resource pricing, duration override
+  
+  // Timestamps
+  createdAt       DateTime      @default(now())
+  
+  // Relations
+  service         Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  resource        Resource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  
+  @@id([serviceId, resourceId])
+  @@map("service_resources")
 }
 
 // =============================================================================

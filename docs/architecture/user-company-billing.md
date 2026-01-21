@@ -202,3 +202,9 @@ Track and handle:
 | Trial eligibility | First company only |
 | Abuse prevention | Block company creation if user has unpaid companies |
 | Company deletion | Soft delete with data retention period |
+
+---
+
+## Related Documents
+
+- [Calendar & Scheduling Architecture](./calendar-scheduling.md) - Appointments, professionals, working hours

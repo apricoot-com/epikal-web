@@ -77,6 +77,16 @@ const navItems = [
 
 const settingsItems = [
     {
+        title: "Profesionales",
+        href: "/dashboard/services/team",
+        icon: Users,
+    },
+    {
+        title: "Instalaciones",
+        href: "/dashboard/services/facilities",
+        icon: Building2,
+    },
+    {
         title: "Empresa",
         href: "/dashboard/company",
         icon: Building2,

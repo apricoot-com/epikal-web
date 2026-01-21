@@ -3,6 +3,8 @@ import { companyRouter } from "./company";
 import { teamRouter } from "./team";
 import { locationRouter } from "./location";
 import { onboardingRouter } from "./onboarding";
+import { serviceRouter } from "./service";
+import { resourceRouter } from "./resource";
 
 /**
  * Root router for all tRPC endpoints
@@ -21,6 +23,8 @@ export const appRouter = router({
     team: teamRouter,
     location: locationRouter,
     onboarding: onboardingRouter,
+    service: serviceRouter,
+    resource: resourceRouter,
 });
 
 export type AppRouter = typeof appRouter;
