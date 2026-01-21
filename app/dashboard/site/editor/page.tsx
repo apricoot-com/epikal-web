@@ -18,20 +18,13 @@ import {
     SortableContext,
     sortableKeyboardCoordinates,
     verticalListSortingStrategy,
-    useSortable
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { BLOCKS, BlockType, SiteBlock } from "@/src/lib/templating/blocks";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Plus, GripVertical, Trash2, Save, ArrowLeft } from "lucide-react";
-import { z } from "zod";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Save } from "lucide-react";
 import {
     Sheet,
     SheetContent,
@@ -39,217 +32,9 @@ import {
     SheetHeader,
     SheetTitle
 } from "@/components/ui/sheet";
-import { BlockPreview } from "./block-preview";
-import { Badge } from "@/components/ui/badge";
 
-// --- Props Form Component (Enhanced) ---
-function BlockPropsForm({
-    block,
-    onChange
-}: {
-    block: SiteBlock;
-    onChange: (id: string, newProps: any) => void;
-}) {
-    const blockDef = BLOCKS[block.type];
-
-    if (!blockDef) return <div>Unknown block type</div>;
-
-    const schemaShape = (blockDef.schema as any).shape;
-
-    // Helper to render input based on schema type
-    const renderField = (key: string, zodType: any) => {
-        const value = block.props[key] ?? "";
-
-        const handleInjectVariable = (variable: string) => {
-            onChange(block.id, { ...block.props, [key]: value + variable });
-        };
-
-        const renderLabelWithVariables = () => (
-            <div className="flex justify-between items-center">
-                <Label className="capitalize">{key}</Label>
-                {/* Dynamic Variable Helper */}
-                {(zodType instanceof z.ZodString) && (
-                    <div className="flex gap-1">
-                        {['${company.name}', '${company.phone}', '${service.name}', '${service.description}'].map(v => (
-                            <Badge
-                                key={v}
-                                variant="outline"
-                                className="cursor-pointer hover:bg-muted text-[10px] h-5 px-1 font-mono text-muted-foreground"
-                                onClick={() => handleInjectVariable(v)}
-                            >
-                                {v}
-                            </Badge>
-                        ))}
-                    </div>
-                )}
-            </div>
-        );
-
-        // String
-        if (zodType instanceof z.ZodString) {
-            if (key === 'content' || key === 'description' || key === 'answer') {
-                return (
-                    <div key={key} className="space-y-2">
-                        {renderLabelWithVariables()}
-                        <Textarea
-                            value={value}
-                            onChange={(e) => onChange(block.id, { ...block.props, [key]: e.target.value })}
-                            rows={6}
-                            className="font-mono text-sm"
-                        />
-                    </div>
-                );
-            }
-            return (
-                <div key={key} className="space-y-2">
-                    {renderLabelWithVariables()}
-                    <Input
-                        value={value}
-                        onChange={(e) => onChange(block.id, { ...block.props, [key]: e.target.value })}
-                    />
-                </div>
-            );
-        }
-
-        // Boolean
-        if (zodType instanceof z.ZodBoolean) {
-            return (
-                <div key={key} className="flex items-center justify-between p-3 border rounded-lg">
-                    <Label className="capitalize">{key}</Label>
-                    <Switch
-                        checked={!!value}
-                        onCheckedChange={(checked: boolean) => onChange(block.id, { ...block.props, [key]: checked })}
-                    />
-                </div>
-            );
-        }
-
-        // Number
-        if (zodType instanceof z.ZodNumber) {
-            return (
-                <div key={key} className="space-y-2">
-                    <Label className="capitalize">{key}</Label>
-                    <Input
-                        type="number"
-                        value={value}
-                        onChange={(e) => onChange(block.id, { ...block.props, [key]: parseFloat(e.target.value) })}
-                    />
-                </div>
-            );
-        }
-
-        // Enum (ZodEnum) logic checks usually involve _def.values
-        if (zodType._def?.typeName === "ZodEnum") {
-            return (
-                <div key={key} className="space-y-2">
-                    <Label className="capitalize">{key}</Label>
-                    <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        value={value}
-                        onChange={(e) => onChange(block.id, { ...block.props, [key]: e.target.value })}
-                    >
-                        {zodType._def.values.map((opt: string) => (
-                            <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                    </select>
-                </div>
-            );
-        }
-
-        // Array (simplified for now - e.g. features list)
-        if (zodType instanceof z.ZodArray) {
-            return (
-                <div key={key} className="space-y-2">
-                    <Label className="capitalize">{key} (JSON)</Label>
-                    <Textarea
-                        className="font-mono text-xs"
-                        value={JSON.stringify(value, null, 2)}
-                        onChange={(e) => {
-                            try {
-                                const parsed = JSON.parse(e.target.value);
-                                onChange(block.id, { ...block.props, [key]: parsed });
-                            } catch (err) {
-                                // Invalid JSON
-                            }
-                        }}
-                        rows={6}
-                    />
-                    <p className="text-xs text-muted-foreground">Edit strictly as JSON.</p>
-                </div>
-            );
-        }
-
-        return null;
-    };
-
-    return (
-        <div className="space-y-6">
-            {Object.entries(schemaShape).map(([key, schema]) => renderField(key, schema))}
-        </div>
-    );
-}
-
-// --- Sortable Item Component (Updated) ---
-function SortableBlockItem({
-    block,
-    onEdit,
-    onDelete
-}: {
-    block: SiteBlock;
-    onEdit: () => void;
-    onDelete: (e: React.MouseEvent) => void;
-}) {
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-    } = useSortable({ id: block.id });
-
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-    };
-
-    const blockDef = BLOCKS[block.type];
-
-    return (
-        <div ref={setNodeRef} style={style} className="mb-6 relative group">
-            {/* Action Bar (Visible on Hover) */}
-            <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                <Button size="sm" variant="secondary" onClick={onEdit} className="shadow-sm">
-                    Edit
-                </Button>
-                <Button size="sm" variant="destructive" size="icon" onClick={onDelete} className="shadow-sm">
-                    <Trash2 className="h-4 w-4" />
-                </Button>
-            </div>
-
-            {/* Drag Handle */}
-            <div {...attributes} {...listeners} className="absolute top-1/2 -left-8 -translate-y-1/2 cursor-grab text-muted-foreground hover:text-primary p-2">
-                <GripVertical className="h-6 w-6" />
-            </div>
-
-            {/* Preview Card */}
-            <div
-                className="border rounded-xl bg-card shadow-sm overflow-hidden hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer"
-                onClick={onEdit}
-            >
-                <div className="border-b bg-muted/30 px-4 py-2 flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[10px] uppercase">{blockDef?.label}</Badge>
-                        <span className="text-xs text-muted-foreground font-mono">{block.id.slice(0, 8)}</span>
-                    </div>
-                </div>
-                <div className="p-0">
-                    {/* Render the Mini Preview */}
-                    <BlockPreview block={block} />
-                </div>
-            </div>
-        </div>
-    );
-}
+import { BlockPropsForm } from "./block-props-form";
+import { SortableBlockItem } from "./sortable-block-item";
 
 // --- Main Editor Page ---
 export default function SiteEditorPage() {
@@ -455,7 +240,7 @@ export default function SiteEditorPage() {
 
             {/* Properties Sheet (Slide-over) */}
             <Sheet open={!!editingBlockId} onOpenChange={(open) => !open && setEditingBlockId(null)}>
-                <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
+                <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto p-6">
                     <SheetHeader className="mb-6">
                         <SheetTitle>Edit Block</SheetTitle>
                         <SheetDescription>

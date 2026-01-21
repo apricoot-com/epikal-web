@@ -204,39 +204,53 @@
                     </div>
                 `).join('');
                 }
-                // 5. Block Rendering Engine
-                const mainContainer = document.querySelector('main');
-                const servicesSection = document.getElementById('services-section');
+                const DEBUG = true;
+                const ENABLE_BLOCKS = true;
 
-                // If we have blocks, clear default content and render blocks
-                if (data.blocks && data.blocks.length > 0) {
-                    // Clear hero and services hardcoded sections if strictly block-based
-                    // For this hybrid approach, we might want to REPLACE everything between nav and footer
-                    // Let's create a container if not exists or use a specific entry point.
+                if (DEBUG) console.log("🔍 Template Hydration Starting", data);
 
-                    // Strategy: Hide default Hero and Services, Render Blocks in a new container
-                    if (document.getElementById('hero')) document.getElementById('hero').style.display = 'none';
-                    if (servicesSection) servicesSection.style.display = 'none';
+                // ... (Branding logic remains) ...
 
-                    let blocksContainer = document.getElementById('blocks-container');
-                    if (!blocksContainer) {
-                        blocksContainer = document.createElement('div');
-                        blocksContainer.id = 'blocks-container';
-                        document.body.insertBefore(blocksContainer, document.querySelector('footer'));
-                    }
+                // 5. Block Rendering Engine (Dynamic Layout)
+                if (ENABLE_BLOCKS && data.blocks && data.blocks.length > 0) {
+                    if (DEBUG) console.log("🧱 Found Blocks:", data.blocks.length);
 
-                    const renderBlock = (block) => {
-                        const { type, props } = block;
+                    try {
+                        // Hide default hardcoded layout
+                        const defaultHero = document.getElementById('hero');
+                        const defaultServices = document.getElementById('services-section');
 
-                        if (type === 'hero') {
-                            return `
+                        if (defaultHero) defaultHero.style.display = 'none';
+                        if (defaultServices) defaultServices.style.display = 'none';
+
+                        // Create Blocks Container
+                        let blocksContainer = document.getElementById('blocks-container');
+                        if (!blocksContainer) {
+                            blocksContainer = document.createElement('div');
+                            blocksContainer.id = 'blocks-container';
+                            blocksContainer.className = 'w-full';
+
+                            const footer = document.querySelector('footer');
+                            if (footer && footer.parentNode) {
+                                footer.parentNode.insertBefore(blocksContainer, footer);
+                            } else {
+                                document.body.appendChild(blocksContainer);
+                            }
+                        }
+
+                        const renderBlock = (block) => {
+                            const { type, props } = block;
+                            if (DEBUG) console.log(`Rendering Block: ${type}`, props);
+
+                            if (type === 'hero') {
+                                return `
                             <div class="relative bg-white overflow-hidden mb-12">
                                 <div class="max-w-7xl mx-auto">
                                     <div class="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
                                         <main class="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
                                             <div class="sm:text-${props.alignment || 'left'} lg:text-left">
                                                 <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-                                                    <span class="block xl:inline">${props.title || 'Welcome'}</span>
+                                                    <span class="block xl:inline">${props.title || ''}</span>
                                                 </h1>
                                                 <p class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl md:mt-5 md:text-xl ${props.alignment === 'center' ? 'mx-auto' : ''}">
                                                     ${props.subtitle || ''}
@@ -258,16 +272,13 @@
                                 </div>` : ''}
                             </div>
                         `;
-                        }
+                            }
 
-                        if (type === 'features') {
-                            const cols = props.columns || 3;
-                            const gridClass = `grid-cols-1 md:grid-cols-${cols}`;
-                            // Tailwind might purify dynamic classes, so we should map explicitly or use style
-                            const gridStyle = `grid-template-columns: repeat(${cols}, minmax(0, 1fr)); display: grid; gap: 2rem;`;
-
-                            const items = props.items || [];
-                            return `
+                            if (type === 'features') {
+                                const cols = props.columns || 3;
+                                const gridStyle = `grid-template-columns: repeat(${cols}, minmax(0, 1fr)); display: grid; gap: 2rem;`;
+                                const items = props.items || [];
+                                return `
                             <div class="py-12 bg-gray-50">
                                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                                     <div class="text-center">
@@ -285,23 +296,73 @@
                                 </div>
                             </div>
                         `;
-                        }
+                            }
 
-                        if (type === 'content') {
-                            return `
+                            if (type === 'content') {
+                                return `
                             <div class="py-12 bg-white">
                                 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 prose prose-indigo text-${props.alignment || 'left'}">
                                     ${props.title ? `<h2>${props.title}</h2>` : ''}
-                                    ${marked.parse(props.content || '')} 
+                                    ${props.content || ''} 
                                 </div>
                             </div>
                         `;
-                        }
+                            }
 
-                        if (type === 'services') {
-                            // Reuse existing service rendering but strictly from blocks
-                            if (data.company.services) {
+                            if (type === 'testimonials') {
+                                const items = props.items || [];
                                 return `
+                                <section class="py-12 bg-gray-50 overflow-hidden md:py-20 lg:py-24">
+                                    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                        <div class="relative">
+                                            <div class="text-center mb-10">
+                                                <h2 class="text-3xl font-extrabold text-gray-900">${props.title || 'Client Testimonials'}</h2>
+                                            </div>
+                                            <div class="grid gap-8 lg:grid-cols-3">
+                                                ${items.map(item => `
+                                                    <div class="bg-white rounded-lg shadow-lg overflow-hidden p-8">
+                                                        <blockquote class="mt-2 text-gray-500">
+                                                            <p class="mb-5">"${item.text || item.quote}"</p>
+                                                            <footer class="text-sm font-medium text-gray-900">
+                                                                - ${item.author}, <span class="text-gray-500">${item.role || 'Client'}</span>
+                                                            </footer>
+                                                        </blockquote>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            `;
+                            }
+
+                            if (type === 'gallery') {
+                                const images = props.images || [];
+                                const cols = props.columns || 3;
+                                const gridStyle = `grid-template-columns: repeat(${cols}, minmax(0, 1fr)); display: grid; gap: 1rem;`;
+
+                                return `
+                                <section class="py-12 bg-white">
+                                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                         <div class="text-center mb-10">
+                                            <h2 class="text-3xl font-extrabold text-gray-900">${props.title || 'Gallery'}</h2>
+                                            ${props.description ? `<p class="mt-4 text-gray-500">${props.description}</p>` : ''}
+                                        </div>
+                                        <div class="mt-10" style="${gridStyle}">
+                                            ${images.map(img => `
+                                                <div class="relative h-64 w-full overflow-hidden rounded-lg">
+                                                    <img src="${img}" alt="Gallery Image" class="h-full w-full object-cover transition-transform duration-300 hover:scale-105">
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                </section>
+                             `;
+                            }
+
+                            if (type === 'services') {
+                                if (data.company.services) {
+                                    return `
                                 <div class="py-12 bg-white">
                                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                                         <div class="text-center mb-10">
@@ -328,13 +389,69 @@
                                     </div>
                                 </div>
                             `;
+                                }
                             }
-                        }
 
-                        return `<!-- Unknown block type: ${type} -->`;
-                    };
+                            if (type === 'contact') {
+                                return `
+                                <section class="py-12 bg-white">
+                                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                        <div class="max-w-lg mx-auto md:max-w-none md:grid md:grid-cols-2 md:gap-8">
+                                            <div>
+                                                <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl">${props.title || 'Contact Us'}</h2>
+                                                <div class="mt-3">
+                                                    <p class="text-lg text-gray-500">${props.subtitle || 'Get in touch with us.'}</p>
+                                                </div>
+                                                <div class="mt-9">
+                                                    <div class="flex">
+                                                        <div class="flex-shrink-0">
+                                                            <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                                            </svg>
+                                                        </div>
+                                                        <div class="ml-3 text-base text-gray-500">
+                                                            <p>${data.company.phone || '+1 (555) 123-4567'}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mt-6 flex">
+                                                        <div class="flex-shrink-0">
+                                                            <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                            </svg>
+                                                        </div>
+                                                        <div class="ml-3 text-base text-gray-500">
+                                                            <p>${data.company.email || 'support@example.com'}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            `;
+                            }
 
-                    blocksContainer.innerHTML = data.blocks.map(renderBlock).join('');
+                            // Debug: Render unknown blocks visibly if DEBUG is on
+                            if (DEBUG) {
+                                return `<div class="p-4 border-2 border-red-500 text-red-700 bg-red-50 my-4 text-center">
+                                <strong>⚠️ Unknown Block Type: ${type}</strong><br>
+                                <pre class="text-xs text-left overflow-auto mt-2">${JSON.stringify(props, null, 2)}</pre>
+                            </div>`;
+                            }
+                        };
+
+                        const renderedBlocks = data.blocks.map(renderBlock).join('');
+                        if (DEBUG) console.log("Rendered HTML Length:", renderedBlocks.length);
+                        blocksContainer.innerHTML = renderedBlocks;
+
+                    } catch (e) {
+                        console.error("🔥 Error rendering blocks:", e);
+                        // Recover: Show defaults
+                        if (document.getElementById('hero')) document.getElementById('hero').style.display = 'block';
+                        if (document.getElementById('services-section')) document.getElementById('services-section').style.display = 'block';
+                    }
+                } else {
+                    if (DEBUG) console.log("Blocks disabled or empty. Showing Default Home Content.");
                 }
             });
         </script>

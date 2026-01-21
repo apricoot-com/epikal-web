@@ -94,23 +94,18 @@ export async function GET(
         const service = company.services.find((s: any) => s.webPage?.slug === serviceSlug);
 
         if (service) {
-            if (fs.existsSync(path.join(templatePath, "service-detail.html"))) {
-                fileToRead = "service-detail.html";
-                const rawContent = service.webPage?.content || service.description || "";
+            // Always use index.html as the universal shell
+            fileToRead = "index.html";
+            const rawContent = service.webPage?.content || service.description || "";
 
-                pageContext = {
-                    type: "service-detail",
-                    data: {
-                        ...service,
-                        htmlContent: await marked(rawContent), // Render markdown
-                        webPage: service.webPage
-                    }
-                };
-            } else {
-                // Fallback if template doesn't support details?
-                // For now, 404 if no template file
-                return new NextResponse("Template does not support service details", { status: 404 });
-            }
+            pageContext = {
+                type: "service-detail",
+                data: {
+                    ...service,
+                    htmlContent: await marked(rawContent), // Render markdown
+                    webPage: service.webPage
+                }
+            };
         } else {
             return new NextResponse("Service not found", { status: 404 });
         }
@@ -143,12 +138,59 @@ export async function GET(
     if (urlPath === "about") pageConfigKey = "about";
     if (urlPath === "contact") pageConfigKey = "contact";
     if (urlPath === "services") pageConfigKey = "services";
+    // Check if we are in a service detail context
+    if (pageContext.type === "service-detail") {
+        pageConfigKey = "service-detail";
+    }
 
-    const blocks = siteSettings.pages?.[pageConfigKey]?.blocks || [];
+    let blocks = siteSettings.pages?.[pageConfigKey]?.blocks || [];
+
+    // Variable Substitution Helper
+    const replaceVariables = (text: string, context: any) => {
+        if (!text || typeof text !== 'string') return text;
+        let result = text;
+
+        // Flatten context for easier access? Or just manual mapping
+        const replacements: Record<string, string> = {
+            '${company.name}': company.name,
+            '${company.phone}': siteSettings.contact?.phone || "",
+            '${company.email}': siteSettings.contact?.email || "",
+        };
+
+        if (context.type === 'service-detail' && context.data) {
+            replacements['${service.name}'] = context.data.name;
+            replacements['${service.description}'] = context.data.description;
+            replacements['${service.price}'] = context.data.price?.toString() || "";
+        }
+
+        Object.entries(replacements).forEach(([key, value]) => {
+            result = result.replaceAll(key, value || "");
+        });
+
+        return result;
+    };
+
+    const deepReplace = (obj: any, context: any): any => {
+        if (typeof obj === 'string') return replaceVariables(obj, context);
+        if (Array.isArray(obj)) return obj.map(item => deepReplace(item, context));
+        if (typeof obj === 'object' && obj !== null) {
+            const newObj: any = {};
+            for (const key in obj) {
+                newObj[key] = deepReplace(obj[key], context);
+            }
+            return newObj;
+        }
+        return obj;
+    };
+
+    // Apply substitution to blocks
+    blocks = blocks.map((block: any) => {
+        return { ...block, props: deepReplace(block.props, pageContext) };
+    });
 
     const templateData = {
         settings: siteSettings,
-        blocks: blocks, // Inject blocks here
+        blocks: blocks, // Inject processed blocks here
         company: {
             name: company.name,
             email: siteSettings.contact?.email || "contact@" + domain,
