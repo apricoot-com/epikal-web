@@ -77,6 +77,11 @@ model Company {
   subscriptionEndsAt  DateTime?           // For trials or pending cancellations
   customLimits        Json?               // Override tier defaults: { maxLocations: 5, ... }
   
+  // Module 6: Analytics & Tracking
+  gtmContainerId  String?       // Google Tag Manager container ID (e.g., "GTM-XXXXXX")
+  fbPixelId       String?       // Facebook Pixel ID
+  fbAccessToken   String?       // Facebook Conversions API access token (encrypted)
+  
   // Timestamps
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -93,6 +98,10 @@ model Company {
   siteTemplate  Template?     @relation("InstalledTemplate", fields: [siteTemplateId], references: [id])
   siteSettings  Json?         // Custom settings (colors, logo override, etc) for the template
   createdTemplates Template[] @relation("TemplateOwner")
+  
+  // Module 6: Analytics
+  analyticsEvents AnalyticsEvent[]
+  dailyStats      DailyStats[]
   
   @@map("companies")
 }
@@ -221,6 +230,7 @@ model Service {
   company         Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   resources       ServiceResource[]
   webPage         ServiceWebPage?
+  analyticsEvents AnalyticsEvent[]
   
   @@map("services")
 }
@@ -375,4 +385,70 @@ model ServiceWebPage {
   service           Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   
   @@map("service_web_pages")
+}
+
+// =============================================================================
+// ANALYTICS & TRACKING (Module 6)
+// =============================================================================
+
+/// Raw analytics events (page views, conversions, etc.)
+model AnalyticsEvent {
+  id           String   @id @default(cuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  // Event data
+  type         String   // "pageview", "lead", "booking"
+  path         String   // URL path (e.g., "/services/haircut")
+  pageType     String   // "home", "service-detail", "about", "contact"
+  
+  // Service tracking
+  serviceId    String?
+  service      Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  
+  // UTM Parameters (traffic source attribution)
+  utmSource    String?
+  utmMedium    String?
+  utmCampaign  String?
+  utmContent   String?
+  utmTerm      String?
+  
+  // Session tracking
+  sessionId    String   // 30-minute session cookie
+  visitorId    String   // Long-term visitor cookie (2 years)
+  
+  // Metadata
+  referrer     String?
+  userAgent    String?
+  
+  timestamp    DateTime @default(now())
+  
+  @@index([companyId, timestamp])
+  @@index([serviceId, timestamp])
+  @@index([sessionId])
+  @@map("analytics_events")
+}
+
+/// Aggregated daily statistics per company
+model DailyStats {
+  id              String   @id @default(cuid())
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  date            DateTime @db.Date
+  
+  // Aggregated metrics
+  pageViews       Int      @default(0)
+  uniqueVisitors  Int      @default(0)
+  
+  // Top performers (JSON arrays)
+  topServices     Json     // [{ id, name, views }]
+  topSources      Json     // [{ source, views }]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([companyId, date])
+  @@index([companyId, date])
+  @@map("daily_stats")
 }

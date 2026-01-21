@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Plus } from "lucide-react";
 import {
     Sheet,
     SheetContent,
@@ -32,6 +32,14 @@ import {
     SheetHeader,
     SheetTitle
 } from "@/components/ui/sheet";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { BlockPropsForm } from "./block-props-form";
 import { SortableBlockItem } from "./sortable-block-item";
@@ -261,7 +269,7 @@ export default function SiteEditorPage() {
 
             {/* SEO Sheet */}
             <Sheet open={isSeoOpen} onOpenChange={setIsSeoOpen}>
-                <SheetContent>
+                <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto p-6">
                     <SheetHeader className="mb-6">
                         <SheetTitle>SEO Settings</SheetTitle>
                         <SheetDescription>
@@ -270,7 +278,25 @@ export default function SiteEditorPage() {
                     </SheetHeader>
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label>Meta Title</Label>
+                            <div className="flex justify-between items-center">
+                                <Label>Meta Title</Label>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 gap-1">
+                                            <Plus className="h-3 w-3" /> Insert Variable
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Available Variables</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        {['${company.name}', '${service.name}'].map(v => (
+                                            <DropdownMenuItem key={v} onClick={() => setSeo({ ...seo, title: (seo.title || '') + v })}>
+                                                <span className="font-mono text-xs">{v}</span>
+                                            </DropdownMenuItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                             <Input
                                 value={seo.title || ""}
                                 onChange={(e) => setSeo({ ...seo, title: e.target.value })}
@@ -278,7 +304,25 @@ export default function SiteEditorPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Meta Description</Label>
+                            <div className="flex justify-between items-center">
+                                <Label>Meta Description</Label>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 gap-1">
+                                            <Plus className="h-3 w-3" /> Insert Variable
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Available Variables</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        {['${company.name}', '${service.name}', '${service.shortDescription}'].map(v => (
+                                            <DropdownMenuItem key={v} onClick={() => setSeo({ ...seo, description: (seo.description || '') + v })}>
+                                                <span className="font-mono text-xs">{v}</span>
+                                            </DropdownMenuItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                             <Textarea
                                 value={seo.description || ""}
                                 onChange={(e) => setSeo({ ...seo, description: e.target.value })}
@@ -287,7 +331,25 @@ export default function SiteEditorPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Social Image (URL)</Label>
+                            <div className="flex justify-between items-center">
+                                <Label>Social Image (URL)</Label>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 gap-1">
+                                            <Plus className="h-3 w-3" /> Insert Variable
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Available Variables</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        {['${service.image}', '${company.branding.logo}'].map(v => (
+                                            <DropdownMenuItem key={v} onClick={() => setSeo({ ...seo, ogImage: (seo.ogImage || '') + v })}>
+                                                <span className="font-mono text-xs">{v}</span>
+                                            </DropdownMenuItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                             <Input
                                 value={seo.ogImage || ""}
                                 onChange={(e) => setSeo({ ...seo, ogImage: e.target.value })}

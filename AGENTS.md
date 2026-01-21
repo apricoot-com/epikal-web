@@ -194,7 +194,64 @@ Antes de considerar una UI completa, verificar en:
 
 ---
 
+## Idioma y Estándares de Código
+
+### Regla Absoluta de Idioma
+
+**TODO el código debe estar en INGLÉS:**
+- Variables, funciones, clases, tipos
+- Nombres de archivos
+- Comentarios en el código
+- Commits de Git
+- Documentación técnica
+
+**TODAS las etiquetas de UI deben estar en ESPAÑOL:**
+- Labels de formularios
+- Botones
+- Mensajes de error
+- Notificaciones (toasts)
+- Títulos de páginas
+- Textos de ayuda
+- Placeholders
+
+### Ejemplos
+
+✅ **Correcto:**
+```typescript
+// Código en inglés
+const handleSubmit = async (data: FormData) => {
+  try {
+    await createService(data);
+    toast.success("Servicio creado exitosamente"); // Label en español
+  } catch (error) {
+    toast.error("Error al crear el servicio"); // Label en español
+  }
+};
+
+// UI Component
+<Button onClick={handleSubmit}>
+  Guardar Cambios  {/* Label en español */}
+</Button>
+```
+
+❌ **Incorrecto:**
+```typescript
+// NO mezclar idiomas en código
+const manejarEnvio = async (datos: FormData) => { // ❌ Español en código
+  toast.success("Service created successfully"); // ❌ Inglés en UI
+};
+```
+
+### Conversaciones con el Usuario
+
+- Las conversaciones pueden ser en inglés o español según preferencia del usuario
+- Los agentes deben adaptarse al idioma de la conversación
+- **Independientemente del idioma de conversación, el código SIEMPRE en inglés y las labels SIEMPRE en español**
+
+---
+
 ## Aprendizaje y Evolución
+
 
 Epikal es un sistema vivo.
 
