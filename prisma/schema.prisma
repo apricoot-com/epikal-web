@@ -36,6 +36,20 @@ enum MembershipStatus {
   REVOKED
 }
 
+enum SubscriptionTier {
+  FREE
+  BASIC
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+}
+
 // =============================================================================
 // CORE ENTITIES (Module 1)
 // =============================================================================
@@ -53,6 +67,12 @@ model Company {
   language      String        @default("es")
   currency      String        @default("USD")
   timezone      String        @default("America/Mexico_City")
+  
+  // Module 4: Subscription & Billing
+  subscriptionTier    SubscriptionTier    @default(FREE)
+  subscriptionStatus  SubscriptionStatus  @default(ACTIVE)
+  subscriptionEndsAt  DateTime?           // For trials or pending cancellations
+  customLimits        Json?               // Override tier defaults: { maxLocations: 5, ... }
   
   // Timestamps
   createdAt     DateTime      @default(now())

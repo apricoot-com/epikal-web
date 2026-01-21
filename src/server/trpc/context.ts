@@ -23,7 +23,14 @@ export async function createContext(opts?: FetchCreateContextFnOptions) {
     const userIsSuperadmin = isSuperadmin(session?.user?.email);
 
     // Get user's active company if authenticated
-    let company: { id: string; slug: string; name: string } | null = null;
+    let company: {
+        id: string;
+        slug: string;
+        name: string;
+        subscriptionTier: any;
+        subscriptionStatus: any;
+        customLimits: any;
+    } | null = null;
 
     if (session?.user) {
         // Check for active company cookie
@@ -48,6 +55,9 @@ export async function createContext(opts?: FetchCreateContextFnOptions) {
                     id: membership.company.id,
                     slug: membership.company.slug,
                     name: membership.company.name,
+                    subscriptionTier: membership.company.subscriptionTier,
+                    subscriptionStatus: membership.company.subscriptionStatus,
+                    customLimits: membership.company.customLimits,
                 };
             }
         }
@@ -69,6 +79,9 @@ export async function createContext(opts?: FetchCreateContextFnOptions) {
                     id: membership.company.id,
                     slug: membership.company.slug,
                     name: membership.company.name,
+                    subscriptionTier: membership.company.subscriptionTier,
+                    subscriptionStatus: membership.company.subscriptionStatus,
+                    customLimits: membership.company.customLimits,
                 };
             }
         }

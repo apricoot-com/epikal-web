@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { router, companyProcedure } from "../init";
 import { TRPCError } from "@trpc/server";
+import { canCreateResource } from "@/src/lib/subscription/limits";
 
 /**
  * Location router
@@ -71,6 +72,29 @@ export const locationRouter = router({
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only owners and admins can create locations",
+                });
+            }
+
+            // Check subscription limits
+            const currentCount = await ctx.prisma.location.count({
+                where: { companyId: ctx.company.id },
+            });
+
+            const limitCheck = canCreateResource(
+                currentCount,
+                ctx.company.subscriptionTier,
+                "locations",
+                ctx.company.customLimits as any
+            );
+
+            if (!limitCheck.allowed) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: limitCheck.reason || "Subscription limit reached",
+                    cause: {
+                        limitCheck,
+                        upgradeUrl: "/dashboard/settings/billing",
+                    },
                 });
             }
 
