@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -57,6 +58,38 @@ export function MarkdownEditor({
             onChange(html);
         },
     });
+
+    // START FIX: Update editor content when value prop changes (e.g. from DB load)
+    useEffect(() => {
+        if (editor && value !== editor.getHTML()) {
+            // Only update if content is actually different to avoid cursor jumps/loops
+            // Check strictly or allows some normalization? HTML comparison is tricky.
+            // For simple cases, let's try to set it if it's completely different or empty.
+            // Better strategy: only set if editor is empty acting as "initial load" or if we accept external changes
+            // For this specific bug (loading data), value changes from "" to "content".
+
+            // If editor is effectively empty and value is provided, set it.
+            if (editor.isEmpty && value) {
+                editor.commands.setContent(value);
+                return;
+            }
+
+            // Fallback for non-empty external updates (less common in this form but possible)
+            // We'll trust the value prop if it differs significantly, but this might cause cursor jumps if user is typing
+            // and we get a race.
+            // Given the use case (form load), checking for mismatch is safet.
+
+            const currentContent = editor.getHTML();
+            if (currentContent !== value) {
+                // To avoid loop on local typing:
+                // Only update if the value likely comes from external source (not just the onChange we just emitted).
+                // But here we can't easily distinguish.
+                // However, for the "loading" bug, the key is that `value` updates from parent while editor is displayed.
+                editor.commands.setContent(value);
+            }
+        }
+    }, [value, editor]);
+    // END FIX
 
     if (!editor) {
         return null;
