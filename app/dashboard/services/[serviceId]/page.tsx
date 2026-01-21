@@ -11,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Save, Loader2, GripVertical, Trash2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Save, Loader2, GripVertical, Trash2, DollarSign, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -120,138 +121,153 @@ export default function ServiceEditorPage() {
             </div>
 
             <div className="flex-1 overflow-auto p-4 md:p-8">
-                <div className="max-w-4xl mx-auto grid gap-6 md:grid-cols-[2fr_1fr]">
+                <div className="max-w-4xl mx-auto">
+                    <Tabs defaultValue="general" className="w-full">
+                        <TabsList className="grid w-full grid-cols-3 mb-8">
+                            <TabsTrigger value="general">Details</TabsTrigger>
+                            <TabsTrigger value="pricing">Pricing</TabsTrigger>
+                            <TabsTrigger value="resources" disabled={isNew}>Resources</TabsTrigger>
+                        </TabsList>
 
-                    {/* Main Content */}
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Basic Details</CardTitle>
-                                <CardDescription>The core information shown to your clients.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label>Service Name</Label>
-                                    <Input
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                        placeholder="e.g. Deep Tissue Massage"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Description</Label>
-                                    <Textarea
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                        rows={4}
-                                        placeholder="Describe the service..."
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <TabsContent value="general" className="grid gap-6 md:grid-cols-[2fr_1fr]">
+                            <div className="space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Basic Information</CardTitle>
+                                        <CardDescription>Internal details for this service.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label>Service Name</Label>
+                                            <Input
+                                                value={name}
+                                                onChange={(e) => setName(e.target.value)}
+                                                placeholder="e.g. Deep Tissue Massage"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Description</Label>
+                                            <Textarea
+                                                value={description}
+                                                onChange={(e) => setDescription(e.target.value)}
+                                                rows={4}
+                                                placeholder="Describe the service..."
+                                            />
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Pricing & Duration</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Price ($)</Label>
-                                        <Input
-                                            type="number"
-                                            min={0}
-                                            value={price}
-                                            onChange={(e) => setPrice(parseFloat(e.target.value))}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Duration (min)</Label>
-                                        <Input
-                                            type="number"
-                                            min={5}
-                                            step={5}
-                                            value={duration}
-                                            onChange={(e) => setDuration(parseInt(e.target.value))}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between p-4 border rounded-lg">
-                                    <div className="space-y-0.5">
-                                        <Label>Require Deposit</Label>
-                                        <p className="text-sm text-muted-foreground">Charge a partial amount at booking</p>
-                                    </div>
-                                    <Switch checked={allowsDeposit} onCheckedChange={setAllowsDeposit} />
-                                </div>
-
-                                {allowsDeposit && (
-                                    <div className="space-y-2 pl-4 border-l-2 border-primary/20">
-                                        <Label>Deposit Amount ($)</Label>
-                                        <Input
-                                            type="number"
-                                            min={0}
-                                            value={depositAmount}
-                                            onChange={(e) => setDepositAmount(parseFloat(e.target.value))}
-                                        />
-                                    </div>
+                            <div className="space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Visibility</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <Label>Publicly Visible</Label>
+                                            <Switch checked={isPublic} onCheckedChange={setIsPublic} />
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">
+                                            If disabled, this service won't show on your booking site.
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                                {!isNew && (
+                                    <Card className="border-dashed bg-muted/10">
+                                        <CardContent className="pt-6">
+                                            <Button
+                                                variant="outline"
+                                                className="w-full justify-start text-muted-foreground hover:text-destructive"
+                                            >
+                                                <Trash2 className="h-4 w-4 mr-2" /> Delete Service
+                                            </Button>
+                                        </CardContent>
+                                    </Card>
                                 )}
-                            </CardContent>
-                        </Card>
-                    </div>
+                            </div>
+                        </TabsContent>
 
-                    {/* Sidebar / Aside */}
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Settings</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <Label>Publicly Visible</Label>
-                                    <Switch checked={isPublic} onCheckedChange={setIsPublic} />
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    If disabled, this service won't show on your booking site.
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        {!isNew && (
-                            <Card className="bg-muted/10 border-dashed">
+                        <TabsContent value="pricing">
+                            <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-base text-muted-foreground">Resources</CardTitle>
+                                    <CardTitle>Pricing & Duration</CardTitle>
+                                    <CardDescription>Set the cost and time required for this service.</CardDescription>
                                 </CardHeader>
-                                <CardContent>
-                                    <p className="text-sm text-muted-foreground mb-4">
-                                        Assign staff or rooms required for this service.
-                                    </p>
-                                    {/* Link to Resources Tab (Future) */}
-                                    <Button variant="outline" className="w-full" disabled>
-                                        Manage Resources
-                                    </Button>
+                                <CardContent className="space-y-6 max-w-2xl">
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <Label>Price ($)</Label>
+                                            <div className="relative">
+                                                <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                                <Input
+                                                    type="number"
+                                                    min={0}
+                                                    className="pl-9"
+                                                    value={price}
+                                                    onChange={(e) => setPrice(parseFloat(e.target.value))}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Duration (Minutes)</Label>
+                                            <div className="relative">
+                                                <Clock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                                <Input
+                                                    type="number"
+                                                    min={5}
+                                                    step={5}
+                                                    className="pl-9"
+                                                    value={duration}
+                                                    onChange={(e) => setDuration(parseInt(e.target.value))}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/5">
+                                        <div className="space-y-0.5">
+                                            <Label>Require Deposit</Label>
+                                            <p className="text-sm text-muted-foreground">Charge a partial amount online to secure the booking.</p>
+                                        </div>
+                                        <Switch checked={allowsDeposit} onCheckedChange={setAllowsDeposit} />
+                                    </div>
+
+                                    {allowsDeposit && (
+                                        <div className="space-y-2 pl-4 border-l-2 border-primary/20 animate-in fade-in slide-in-from-left-2">
+                                            <Label>Deposit Amount ($)</Label>
+                                            <Input
+                                                type="number"
+                                                min={0}
+                                                value={depositAmount}
+                                                onChange={(e) => setDepositAmount(parseFloat(e.target.value))}
+                                            />
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
-                        )}
+                        </TabsContent>
 
-                        {!isNew && (
-                            <div className="pt-4 border-t">
-                                <Button
-                                    variant="outline"
-                                    className="w-full justify-start text-muted-foreground hover:text-destructive"
-                                    onClick={() => {
-                                        if (confirm("Are you sure you want to delete this service?")) {
-                                            // TODO: Specific delete mutation
-                                            // For now relies on list page delete
-                                        }
-                                    }}
-                                >
-                                    <Trash2 className="h-4 w-4 mr-2" /> Delete Service
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-
+                        <TabsContent value="resources">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Resources & Staff</CardTitle>
+                                    <CardDescription>Manage who and what is needed for this service.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex flex-col items-center justify-center py-10 text-center">
+                                        <div className="bg-muted rounded-full p-3 mb-4">
+                                            <GripVertical className="h-6 w-6 text-muted-foreground" />
+                                        </div>
+                                        <h3 className="text-lg font-semibold">Resource Management Coming Soon</h3>
+                                        <p className="text-sm text-muted-foreground max-w-sm mt-2">
+                                            You will be able to assign specific staff members and rooms to this service here.
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    </Tabs>
                 </div>
             </div>
         </div>
