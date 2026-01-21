@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,13 +11,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/src/lib/trpc/client";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
-import { ServiceWebEditor } from "@/components/dashboard/site/service-web-editor";
 
 export default function SiteEditorPage() {
+    const router = useRouter();
     const { data: company, isLoading, refetch } = trpc.company.get.useQuery();
     const { data: services } = trpc.service.list.useQuery();
 
-    // Mutations (placeholders for now, will connect to routers)
     const updateSettingsMutation = trpc.company.update.useMutation({
         onSuccess: () => {
             toast.success("Configuración guardada");
@@ -26,19 +26,13 @@ export default function SiteEditorPage() {
 
     const [activeTab, setActiveTab] = useState("general");
 
-    // Editor State
-    const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
-    const [isEditorOpen, setIsEditorOpen] = useState(false);
-
     const handleEditService = (id: string) => {
-        setEditingServiceId(id);
-        setIsEditorOpen(true);
+        router.push(`/dashboard/site/services/${id}`);
     };
 
-    if (isLoading) return <div>Cargando editor...</div>;
-    if (!company) return <div>No se encontró la empresa.</div>;
+    if (isLoading) return <div className="p-8">Cargando editor...</div>;
+    if (!company) return <div className="p-8">No se encontró la empresa.</div>;
 
-    // Helper to parse siteSettings safely
     const siteSettings = (company.siteSettings as any) || {};
 
     const handleSaveGeneral = (e: React.FormEvent) => {
@@ -92,7 +86,6 @@ export default function SiteEditorPage() {
                     <TabsTrigger value="home">Inicio (Home)</TabsTrigger>
                     <TabsTrigger value="services">Servicios</TabsTrigger>
                     <TabsTrigger value="contact">Contacto</TabsTrigger>
-                    {/* <TabsTrigger value="privacy">Legal</TabsTrigger> */}
                 </TabsList>
 
                 {/* GENERAL TAB */}
@@ -210,7 +203,6 @@ export default function SiteEditorPage() {
                             <CardDescription>Edita la descripción detallada y preguntas frecuentes de cada servicio.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {/* Placeholder for service list */}
                             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                                 {services?.map((service: any) => (
                                     <Card key={service.id} className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 border-l-4 border-l-primary transition-colors"
@@ -247,12 +239,6 @@ export default function SiteEditorPage() {
                     </Card>
                 </TabsContent>
             </Tabs>
-
-            <ServiceWebEditor
-                serviceId={editingServiceId}
-                open={isEditorOpen}
-                onOpenChange={setIsEditorOpen}
-            />
         </div>
     );
 }
