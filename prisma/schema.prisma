@@ -353,6 +353,10 @@ model ServiceWebPage {
   heroImage         String?
   content           String?  // Rich text description
   
+  // Page Builder & SEO
+  blocks            Json?    // Array of SiteBlock
+  seo               Json?    // { title, description, keywords, ogImage }
+
   // Feature Flags
   schedulingEnabled Boolean @default(true)
   agentEnabled      Boolean @default(false)

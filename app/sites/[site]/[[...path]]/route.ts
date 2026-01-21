@@ -137,8 +137,18 @@ export async function GET(
 
     const siteSettings = (company.siteSettings as any) || {};
 
+    // Block Resolving Logic
+    // Default to "home" page config for root
+    let pageConfigKey = "home";
+    if (urlPath === "about") pageConfigKey = "about";
+    if (urlPath === "contact") pageConfigKey = "contact";
+    if (urlPath === "services") pageConfigKey = "services";
+
+    const blocks = siteSettings.pages?.[pageConfigKey]?.blocks || [];
+
     const templateData = {
         settings: siteSettings,
+        blocks: blocks, // Inject blocks here
         company: {
             name: company.name,
             email: siteSettings.contact?.email || "contact@" + domain,

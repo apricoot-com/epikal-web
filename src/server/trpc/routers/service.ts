@@ -220,6 +220,13 @@ export const serviceRouter = router({
                 displayTitle: z.string().optional(),
                 heroImage: z.string().url().optional().or(z.literal("")),
                 content: z.string().optional(),
+                blocks: z.array(z.any()).optional(), // SiteBlock[]
+                seo: z.object({
+                    title: z.string().optional(),
+                    description: z.string().optional(),
+                    keywords: z.string().optional(),
+                    ogImage: z.string().optional()
+                }).optional(),
                 // Expect simple array: [{ question, answer }]
                 faqs: z.array(z.object({
                     question: z.string(),

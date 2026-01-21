@@ -204,6 +204,138 @@
                     </div>
                 `).join('');
                 }
+                // 5. Block Rendering Engine
+                const mainContainer = document.querySelector('main');
+                const servicesSection = document.getElementById('services-section');
+
+                // If we have blocks, clear default content and render blocks
+                if (data.blocks && data.blocks.length > 0) {
+                    // Clear hero and services hardcoded sections if strictly block-based
+                    // For this hybrid approach, we might want to REPLACE everything between nav and footer
+                    // Let's create a container if not exists or use a specific entry point.
+
+                    // Strategy: Hide default Hero and Services, Render Blocks in a new container
+                    if (document.getElementById('hero')) document.getElementById('hero').style.display = 'none';
+                    if (servicesSection) servicesSection.style.display = 'none';
+
+                    let blocksContainer = document.getElementById('blocks-container');
+                    if (!blocksContainer) {
+                        blocksContainer = document.createElement('div');
+                        blocksContainer.id = 'blocks-container';
+                        document.body.insertBefore(blocksContainer, document.querySelector('footer'));
+                    }
+
+                    const renderBlock = (block) => {
+                        const { type, props } = block;
+
+                        if (type === 'hero') {
+                            return `
+                            <div class="relative bg-white overflow-hidden mb-12">
+                                <div class="max-w-7xl mx-auto">
+                                    <div class="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+                                        <main class="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+                                            <div class="sm:text-${props.alignment || 'left'} lg:text-left">
+                                                <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+                                                    <span class="block xl:inline">${props.title || 'Welcome'}</span>
+                                                </h1>
+                                                <p class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl md:mt-5 md:text-xl ${props.alignment === 'center' ? 'mx-auto' : ''}">
+                                                    ${props.subtitle || ''}
+                                                </p>
+                                                <div class="mt-5 sm:mt-8 sm:flex sm:justify-${props.alignment === 'center' ? 'center' : 'start'}">
+                                                    <div class="rounded-md shadow">
+                                                        <a href="${props.ctaLink || '#'}" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-opacity-90 md:py-4 md:text-lg md:px-10">
+                                                            ${props.ctaText || 'Get Started'}
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </main>
+                                    </div>
+                                </div>
+                                ${props.backgroundImage ? `
+                                <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+                                    <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" src="${props.backgroundImage}" alt="">
+                                </div>` : ''}
+                            </div>
+                        `;
+                        }
+
+                        if (type === 'features') {
+                            const cols = props.columns || 3;
+                            const gridClass = `grid-cols-1 md:grid-cols-${cols}`;
+                            // Tailwind might purify dynamic classes, so we should map explicitly or use style
+                            const gridStyle = `grid-template-columns: repeat(${cols}, minmax(0, 1fr)); display: grid; gap: 2rem;`;
+
+                            const items = props.items || [];
+                            return `
+                            <div class="py-12 bg-gray-50">
+                                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                    <div class="text-center">
+                                        <h2 class="text-3xl font-extrabold text-gray-900">${props.title || 'Features'}</h2>
+                                        <p class="mt-4 text-gray-500">${props.description || ''}</p>
+                                    </div>
+                                    <div class="mt-10" style="${gridStyle}">
+                                        ${items.map(item => `
+                                            <div class="bg-white p-6 rounded-lg shadow text-center">
+                                                <h3 class="text-lg font-medium text-gray-900">${item.title}</h3>
+                                                <p class="mt-2 text-base text-gray-500">${item.description}</p>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        }
+
+                        if (type === 'content') {
+                            return `
+                            <div class="py-12 bg-white">
+                                <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 prose prose-indigo text-${props.alignment || 'left'}">
+                                    ${props.title ? `<h2>${props.title}</h2>` : ''}
+                                    ${marked.parse(props.content || '')} 
+                                </div>
+                            </div>
+                        `;
+                        }
+
+                        if (type === 'services') {
+                            // Reuse existing service rendering but strictly from blocks
+                            if (data.company.services) {
+                                return `
+                                <div class="py-12 bg-white">
+                                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                        <div class="text-center mb-10">
+                                             <h2 class="text-3xl font-extrabold text-gray-900">${props.title || 'Our Services'}</h2>
+                                        </div>
+                                        <div class="grid gap-8 grid-cols-1 md:grid-cols-3">
+                                            ${data.company.services.map(service => `
+                                                <div class="flex flex-col rounded-lg shadow-lg overflow-hidden">
+                                                    <div class="flex-shrink-0">
+                                                        <img class="h-48 w-full object-cover" src="${service.image || 'https://via.placeholder.com/400x300'}" alt="${service.name}">
+                                                    </div>
+                                                    <div class="flex-1 bg-white p-6 flex flex-col justify-between">
+                                                        <div class="flex-1">
+                                                            <a href="/services/${service.slug}" class="block mt-2">
+                                                                <p class="text-xl font-semibold text-gray-900">${service.name}</p>
+                                                                <p class="mt-3 text-base text-gray-500 line-clamp-3">${service.description}</p>
+                                                            </a>
+                                                        </div>
+                                                        ${props.showPrice !== false ? `<p class="mt-4 text-lg font-bold text-primary">$${service.price}</p>` : ''}
+                                                    </div>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            }
+                        }
+
+                        return `<!-- Unknown block type: ${type} -->`;
+                    };
+
+                    blocksContainer.innerHTML = data.blocks.map(renderBlock).join('');
+                }
             });
         </script>
 </body>
