@@ -133,7 +133,7 @@ export default function CompanySettingsPage() {
                                         value={name || company?.name || ""}
                                         onChange={(e) => setName(e.target.value)}
                                         disabled={!canEdit}
-                                        className="max-w-md"
+                                        className=""
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -143,12 +143,12 @@ export default function CompanySettingsPage() {
                                         value={legalName || company?.legalName || ""}
                                         onChange={(e) => setLegalName(e.target.value)}
                                         disabled={!canEdit}
-                                        className="max-w-md"
+                                        className=""
                                     />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="slug">URL pública</Label>
-                                    <div className="flex items-center gap-2 max-w-md">
+                                    <div className="flex items-center gap-2">
                                         <span className="text-sm text-muted-foreground">
                                             epikal.com/
                                         </span>
@@ -163,7 +163,7 @@ export default function CompanySettingsPage() {
                                         El slug no se puede cambiar
                                     </p>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-md">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div className="space-y-2">
                                         <Label>Zona horaria</Label>
                                         <Input value={company?.timezone || ""} disabled />
@@ -199,7 +199,7 @@ export default function CompanySettingsPage() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="primaryColor">Color primario</Label>
                                         <div className="flex gap-2">
@@ -241,7 +241,7 @@ export default function CompanySettingsPage() {
                                 </div>
 
                                 {/* Color preview */}
-                                <div className="max-w-md mt-4">
+                                <div className="mt-4">
                                     <Label className="mb-2 block">Vista previa</Label>
                                     <div className="flex gap-2">
                                         <div
@@ -289,7 +289,7 @@ export default function CompanySettingsPage() {
                                         value={socialUrls.facebook}
                                         onChange={(e) => setSocialUrls({ ...socialUrls, facebook: e.target.value })}
                                         disabled={!canEdit}
-                                        className="max-w-md"
+                                        className=""
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -300,7 +300,7 @@ export default function CompanySettingsPage() {
                                         value={socialUrls.instagram}
                                         onChange={(e) => setSocialUrls({ ...socialUrls, instagram: e.target.value })}
                                         disabled={!canEdit}
-                                        className="max-w-md"
+                                        className=""
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -311,7 +311,7 @@ export default function CompanySettingsPage() {
                                         value={socialUrls.twitter}
                                         onChange={(e) => setSocialUrls({ ...socialUrls, twitter: e.target.value })}
                                         disabled={!canEdit}
-                                        className="max-w-md"
+                                        className=""
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -322,7 +322,7 @@ export default function CompanySettingsPage() {
                                         value={socialUrls.linkedin}
                                         onChange={(e) => setSocialUrls({ ...socialUrls, linkedin: e.target.value })}
                                         disabled={!canEdit}
-                                        className="max-w-md"
+                                        className=""
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -333,7 +333,7 @@ export default function CompanySettingsPage() {
                                         value={socialUrls.tiktok}
                                         onChange={(e) => setSocialUrls({ ...socialUrls, tiktok: e.target.value })}
                                         disabled={!canEdit}
-                                        className="max-w-md"
+                                        className=""
                                     />
                                 </div>
 

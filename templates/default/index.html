@@ -53,53 +53,39 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <div id="hero" class="relative bg-white overflow-hidden">
-        <div class="max-w-7xl mx-auto">
-            <div class="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
-                <main class="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
-                    <div class="sm:text-center lg:text-left">
-                        <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-                            <span class="block xl:inline">Bienvenido a</span>
-                            <span id="hero-title" class="block text-primary">Tu Nueva Clínica</span>
-                        </h1>
-                        <p id="hero-desc"
-                            class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                            Descubre nuestros tratamientos exclusivos diseñados para resaltar tu belleza natural.
-                        </p>
-                        <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
-                            <div class="rounded-md shadow">
-                                <a href="#services"
-                                    class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-opacity-90 md:py-4 md:text-lg md:px-10">
-                                    Ver Servicios
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </main>
-            </div>
-        </div>
-        <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 bg-gray-100">
-            <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full"
-                src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=2068"
-                alt="Salon interior">
-        </div>
-    </div>
+    <!-- Dynamic Footer -->
+    <div id="blocks-container" class="w-full"></div>
+    <div class="flex-grow"></div> <!-- Spacer to push footer down if empty -->
 
-    <!-- Services Section (Dynamic) -->
-    <div id="services-section" class="py-12 bg-white">
+    <footer class="bg-gray-800 text-white py-12 mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center">
-                <h2 class="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Nuestros Servicios</h2>
-                <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
-                    Tratamientos diseñados para tu bienestar.
-                </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Brand -->
+                <div>
+                    <h3 id="footer-brand" class="text-xl font-bold mb-4">Brand</h3>
+                    <p id="footer-desc" class="text-gray-400">Tu belleza, nuestra pasión.</p>
+                </div>
+                <!-- Contact -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Contacto</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li id="footer-email">email@example.com</li>
+                        <li id="footer-phone">+1 234 567 890</li>
+                    </ul>
+                </div>
+                <!-- Social -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Síguenos</h4>
+                    <div id="footer-social" class="flex space-x-4">
+                        <!-- Social Icons Injected Here -->
+                    </div>
+                </div>
             </div>
-            <div id="services-grid" class="mt-10 grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                <!-- Services injected here -->
+            <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400">
+                <p>&copy; 2024 <span id="footer-copy-brand">Brand</span>. All rights reserved.</p>
             </div>
         </div>
-    </div>
+    </footer>
 
     <!-- Initialization Script -->
     <script>
@@ -119,29 +105,16 @@
                 document.documentElement.style.setProperty('--color-secondary', data.company.branding.colors.secondary);
             }
 
-            // 2. Company Info & Hero
+            // 2. Company Info
             document.getElementById('nav-brand').innerText = data.company.name;
             document.title = data.company.name;
 
-            // Hero
-            if (data.company.heroTitle) {
-                document.getElementById('hero-title').innerText = data.company.heroTitle;
-            } else {
-                document.getElementById('hero-title').innerText = data.company.name;
-            }
-
-            if (data.company.heroDescription) {
-                document.getElementById('hero-desc').innerText = data.company.heroDescription;
-            }
-
-            // Hero Image Background (if set)
-            if (data.company.heroImage) {
-                const heroEl = document.getElementById('hero');
-                // Creating a background overlay
-                // Simplest approach: Replace the img src if structure matches
-                const imgEl = heroEl.querySelector('img');
-                if (imgEl) imgEl.src = data.company.heroImage;
-            }
+            // Footer Info
+            document.getElementById('footer-brand').innerText = data.company.name;
+            document.getElementById('footer-copy-brand').innerText = data.company.name;
+            if (data.company.heroDescription) document.getElementById('footer-desc').innerText = data.company.heroDescription;
+            document.getElementById('footer-email').innerText = data.company.email;
+            document.getElementById('footer-phone').innerText = data.company.phone;
 
             // 3. Logo
             if (data.company.branding.logo) {
@@ -152,28 +125,265 @@
                 logoEl.style.backgroundColor = 'transparent';
             }
 
-            // 4. Services List
-            const servicesGrid = document.getElementById('services-grid');
-            if (data.company.services && servicesGrid) {
-                servicesGrid.innerHTML = data.company.services.map(service => `
-                    <div class="flex flex-col rounded-lg shadow-lg overflow-hidden transition-transform hover:-translate-y-1">
-                        <div class="flex-shrink-0">
-                            <img class="h-48 w-full object-cover" src="${service.image || 'https://via.placeholder.com/400x300'}" alt="${service.name}">
-                        </div>
-                        <div class="flex-1 bg-white p-6 flex flex-col justify-between">
-                            <div class="flex-1">
-                                <a href="/services/${service.slug}" class="block mt-2">
-                                    <p class="text-xl font-semibold text-gray-900 hover:text-primary transition-colors">${service.name}</p>
-                                    <p class="mt-3 text-base text-gray-500 line-clamp-3">${service.description}</p>
-                                </a>
-                            </div>
-                            <div class="mt-6 flex items-center justify-between">
-                                <span class="text-lg font-bold text-primary">$${service.price}</span>
-                                <a href="/services/${service.slug}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Ver Detalles &rarr;</a>
-                            </div>
-                        </div>
-                    </div>
+            // Social Links
+            const socialContainer = document.getElementById('footer-social');
+            if (data.company.social && socialContainer) {
+                const socials = data.company.social;
+                const socialLinks = [];
+                // ... (Social Icons Rendering logic stays same) ...
+                if (socials.facebook) socialLinks.push({ name: 'Facebook', url: socials.facebook, icon: '<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.791-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>' });
+                if (socials.instagram) socialLinks.push({ name: 'Instagram', url: socials.instagram, icon: '<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>' });
+                if (socials.twitter) socialLinks.push({ name: 'Twitter', url: socials.twitter, icon: '<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.84 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>' });
+                if (socials.linkedin) socialLinks.push({ name: 'LinkedIn', url: socials.linkedin, icon: '<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>' });
+                if (socials.tiktok) socialLinks.push({ name: 'TikTok', url: socials.tiktok, icon: '<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93v6.14c0 1.39-.75 2.75-2.02 3.42-1.3.69-2.92.51-4.04-.37-1.18-.94-1.6-2.58-1.07-4.04.58-1.58 2.22-2.51 3.86-2.22v4.03c-.27-.13-.56-.19-.85-.12-.29.08-.54.28-.69.54-.15.26-.18.57-.09.85.12.33.45.54.8.54.34 0 .66-.21.78-.54.09-.28.06-.59-.09-.85-.15-.26-.4-.46-.69-.54V9.75c3.55-.37 6.4 2.37 6.4 6.14 0 3.77-2.85 6.51-6.4 6.14-3.55.37-6.4-2.37-6.4-6.14 0-1.25.33-2.42.92-3.45.69-1.18 1.76-2.07 3.03-2.47v-4.03c-1.92.56-3.66 1.84-4.87 3.63-1.22 1.8-1.74 3.98-1.43 6.13.31 2.15 1.34 4.09 2.91 5.48 1.57 1.39 3.65 2.13 5.76 2.05 2.11.08 4.19-.66 5.76-2.05 1.57-1.39 2.6-3.33 2.91-5.48.31-2.15-.21-4.33-1.43-6.13-1.21-1.79-2.95-3.07-4.87-3.63v-4.03z"/></svg>' });
+
+                socialContainer.innerHTML = socialLinks.map(link => `
+                    <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors" aria-label="${link.name}">
+                        ${link.icon}
+                    </a>
                 `).join('');
+            }
+
+            const DEBUG = true;
+            const ENABLE_BLOCKS = true;
+
+            // 5. Block Rendering Engine (Dynamic Layout)
+            if (ENABLE_BLOCKS && data.blocks && data.blocks.length > 0) {
+                if (DEBUG) console.log("🧱 Found Blocks:", data.blocks.length);
+
+                try {
+                    // Create Blocks Container Reference
+                    let blocksContainer = document.getElementById('blocks-container');
+
+                    const renderBlock = (block) => {
+                        const { type, props } = block;
+                        if (DEBUG) console.log(`Rendering Block: ${type}`, props);
+
+                        if (type === 'hero') {
+                            return `
+                            <div class="relative bg-white overflow-hidden mb-12">
+                                <div class="max-w-7xl mx-auto">
+                                    <div class="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+                                        <main class="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+                                            <div class="sm:text-${props.alignment || 'left'} lg:text-left">
+                                                <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+                                                    <span class="block xl:inline">${props.title || ''}</span>
+                                                </h1>
+                                                <p class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl md:mt-5 md:text-xl ${props.alignment === 'center' ? 'mx-auto' : ''}">
+                                                    ${props.subtitle || ''}
+                                                </p>
+                                                <div class="mt-5 sm:mt-8 sm:flex sm:justify-${props.alignment === 'center' ? 'center' : 'start'}">
+                                                    <div class="rounded-md shadow">
+                                                        <a href="${props.ctaLink || '#'}" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-opacity-90 md:py-4 md:text-lg md:px-10">
+                                                            ${props.ctaText || 'Get Started'}
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </main>
+                                    </div>
+                                </div>
+                                ${props.backgroundImage ? `
+                                <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+                                    <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" src="${props.backgroundImage}" alt="">
+                                </div>` : ''}
+                            </div>
+                        `;
+                        }
+
+                        if (type === 'features') {
+                            const cols = props.columns || 3;
+                            const gridStyle = `grid-template-columns: repeat(${cols}, minmax(0, 1fr)); display: grid; gap: 2rem;`;
+                            const items = props.items || [];
+                            return `
+                            <div class="py-12 bg-gray-50">
+                                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                    <div class="text-center">
+                                        <h2 class="text-3xl font-extrabold text-gray-900">${props.title || 'Features'}</h2>
+                                        <p class="mt-4 text-gray-500">${props.description || ''}</p>
+                                    </div>
+                                    <div class="mt-10" style="${gridStyle}">
+                                        ${items.map(item => `
+                                            <div class="bg-white p-6 rounded-lg shadow text-center">
+                                                <h3 class="text-lg font-medium text-gray-900">${item.title}</h3>
+                                                <p class="mt-2 text-base text-gray-500">${item.description}</p>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        }
+
+                        if (type === 'content') {
+                            return `
+                            <div class="py-12 bg-white">
+                                <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 prose prose-indigo text-${props.alignment || 'left'}">
+                                    ${props.title ? `<h2>${props.title}</h2>` : ''}
+                                    ${props.content || ''} 
+                                </div>
+                            </div>
+                        `;
+                        }
+
+                        if (type === 'testimonials') {
+                            const items = props.items || [];
+                            return `
+                                <section class="py-12 bg-gray-50 overflow-hidden md:py-20 lg:py-24">
+                                    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                        <div class="relative">
+                                            <div class="text-center mb-10">
+                                                <h2 class="text-3xl font-extrabold text-gray-900">${props.title || 'Client Testimonials'}</h2>
+                                            </div>
+                                            <div class="grid gap-8 lg:grid-cols-3">
+                                                ${items.map(item => `
+                                                    <div class="bg-white rounded-lg shadow-lg overflow-hidden p-8">
+                                                        <blockquote class="mt-2 text-gray-500">
+                                                            <p class="mb-5">"${item.text || item.quote}"</p>
+                                                            <footer class="text-sm font-medium text-gray-900">
+                                                                 - ${item.author}, <span class="text-gray-500">${item.role || 'Client'}</span>
+                                                            </footer>
+                                                        </blockquote>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            `;
+                        }
+
+                        if (type === 'gallery') {
+                            const images = props.images || [];
+                            const cols = props.columns || 3;
+                            const gridStyle = `grid-template-columns: repeat(${cols}, minmax(0, 1fr)); display: grid; gap: 1rem;`;
+
+                            return `
+                                <section class="py-12 bg-white">
+                                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                         <div class="text-center mb-10">
+                                            <h2 class="text-3xl font-extrabold text-gray-900">${props.title || 'Gallery'}</h2>
+                                            ${props.description ? `<p class="mt-4 text-gray-500">${props.description}</p>` : ''}
+                                        </div>
+                                        <div class="mt-10" style="${gridStyle}">
+                                            ${images.map(img => `
+                                                <div class="relative h-64 w-full overflow-hidden rounded-lg">
+                                                    <img src="${img}" alt="Gallery Image" class="h-full w-full object-cover transition-transform duration-300 hover:scale-105">
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                </section>
+                             `;
+                        }
+
+                        if (type === 'services') {
+                            if (data.company.services) {
+                                return `
+                                <div class="py-12 bg-white">
+                                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                        <div class="text-center mb-10">
+                                             <h2 class="text-3xl font-extrabold text-gray-900">${props.title || 'Our Services'}</h2>
+                                        </div>
+                                        <div class="grid gap-8 grid-cols-1 md:grid-cols-3">
+                                            ${data.company.services.map(service => `
+                                                <div class="flex flex-col rounded-lg shadow-lg overflow-hidden">
+                                                    <div class="flex-shrink-0">
+                                                        <img class="h-48 w-full object-cover" src="${service.image || 'https://via.placeholder.com/400x300'}" alt="${service.name}">
+                                                    </div>
+                                                    <div class="flex-1 bg-white p-6 flex flex-col justify-between">
+                                                        <div class="flex-1">
+                                                            <a href="/services/${service.slug}" class="block mt-2">
+                                                                <p class="text-xl font-semibold text-gray-900">${service.name}</p>
+                                                                <p class="mt-3 text-base text-gray-500 line-clamp-3">${service.description}</p>
+                                                            </a>
+                                                        </div>
+                                                        ${props.showPrice !== false ? `<p class="mt-4 text-lg font-bold text-primary">$${service.price}</p>` : ''}
+                                                    </div>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            }
+                        }
+
+                        if (type === 'contact') {
+                            return `
+                                <section class="py-12 bg-white">
+                                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                        <div class="max-w-lg mx-auto md:max-w-none md:grid md:grid-cols-2 md:gap-8">
+                                            <div>
+                                                <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl">${props.title || 'Contact Us'}</h2>
+                                                <div class="mt-3">
+                                                    <p class="text-lg text-gray-500">${props.subtitle || 'Get in touch with us.'}</p>
+                                                </div>
+                                                <div class="mt-9">
+                                                    <div class="flex">
+                                                        <div class="flex-shrink-0">
+                                                            <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                                            </svg>
+                                                        </div>
+                                                        <div class="ml-3 text-base text-gray-500">
+                                                            <p>${data.company.phone || '+1 (555) 123-4567'}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mt-6 flex">
+                                                        <div class="flex-shrink-0">
+                                                            <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                            </svg>
+                                                        </div>
+                                                        <div class="ml-3 text-base text-gray-500">
+                                                            <p>${data.company.email || 'support@example.com'}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            `;
+                        }
+
+                        // Debug: Render unknown blocks visibly if DEBUG is on
+                        if (DEBUG) {
+                            return `<div class="p-4 border-2 border-red-500 text-red-700 bg-red-50 my-4 text-center">
+                                <strong>⚠️ Unknown Block Type: ${type}</strong><br>
+                                <pre class="text-xs text-left overflow-auto mt-2">${JSON.stringify(props, null, 2)}</pre>
+                            </div>`;
+                        }
+                    };
+
+                    const renderedBlocks = data.blocks.map(renderBlock).join('');
+                    if (DEBUG) console.log("Rendered HTML Length:", renderedBlocks.length);
+                    blocksContainer.innerHTML = renderedBlocks;
+
+                } catch (e) {
+                    console.error("🔥 Error rendering blocks:", e);
+                    let blocksContainer = document.getElementById('blocks-container');
+                    blocksContainer.innerHTML = `
+                        <div class="p-8 text-center bg-red-100 text-red-800 border border-red-400 rounded-md m-4">
+                            <p class="font-bold">Error loading content!</p>
+                            <p>There was an issue rendering the dynamic blocks. Please try again later or contact support.</p>
+                            ${DEBUG ? `<pre class="text-xs text-left overflow-auto mt-2">${e.message}</pre>` : ''}
+                        </div>
+                    `;
+                }
+            } else {
+                if (DEBUG) console.log("Blocks disabled or empty. No dynamic content rendered.");
+                // If no blocks are enabled or found, ensure the blocks container is empty or shows a message
+                let blocksContainer = document.getElementById('blocks-container');
+                if (blocksContainer) {
+                    blocksContainer.innerHTML = `
+                        <div class="p-8 text-center bg-gray-100 text-gray-700 border border-gray-300 rounded-md m-4">
+                            <p class="font-bold">No content available</p>
+                            <p>It looks like there's no dynamic content configured for this page.</p>
+                        </div>
+                    `;
+                }
             }
         });
     </script>
