@@ -48,7 +48,15 @@ export async function POST(req: NextRequest) {
         });
 
         return NextResponse.json({ success: true });
-    } catch (error) {
+    } catch (error: any) {
+        // Handle specific Prisma errors
+        if (error.code === 'P2003') { // Foreign key constraint failed
+            return NextResponse.json(
+                { error: 'Invalid companyId or serviceId' },
+                { status: 400 }
+            );
+        }
+
         console.error('Analytics tracking error:', error);
         return NextResponse.json(
             { error: 'Internal server error' },

@@ -12,7 +12,7 @@ export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Public paths that don't require authentication
-    const publicPaths = ["/", "/login", "/signup", "/api/auth", "/api/trpc"];
+    const publicPaths = ["/", "/login", "/signup", "/api/auth", "/api/trpc", "/api/analytics", "/api/public", "/api/cron"];
 
     // Check if path is public
     const isPublicPath = publicPaths.some(
@@ -33,7 +33,7 @@ export function middleware(request: NextRequest) {
     const isMainDomain = hostname === rootDomain || hostname === `www.${rootDomain}`;
     // TODO: Add "app" to reserved subdomains if we use app.epikal.com
 
-    if (!isMainDomain) {
+    if (!isMainDomain && !pathname.startsWith('/api')) {
         // Extract subdomain or custom domain
         // For subdomains: salon.epikal.com -> salon
         // For custom: mysalon.com -> mysalon.com

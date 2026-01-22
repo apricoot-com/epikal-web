@@ -1,0 +1,85 @@
+@baseUrl = http://localhost:3000
+@companyId = cmknzqoty00000drrwl0eof71
+
+### 1. Pageview Home (Directo)
+POST {{baseUrl}}/api/analytics/track
+Content-Type: application/json
+
+{
+    "type": "pageview",
+    "companyId": "{{companyId}}",
+    "path": "/",
+    "pageType": "home",
+    "serviceId": null,
+    "sessionId": "session-uuid-1",
+    "visitorId": "visitor-uuid-1",
+    "utm": {
+        "utmSource": null,
+        "utmMedium": null,
+        "utmCampaign": null
+    }
+}
+
+### 2. Pageview Servicio Facial (Facebook Ads)
+POST {{baseUrl}}/api/analytics/track
+Content-Type: application/json
+
+{
+    "type": "pageview",
+    "companyId": "{{companyId}}",
+    "path": "/services/facial-profundo",
+    "pageType": "service-detail",
+    "serviceId": "SERVICE_ID_IF_KNOWN",
+    "sessionId": "session-uuid-2",
+    "visitorId": "visitor-uuid-2",
+    "utm": {
+        "utmSource": "facebook",
+        "utmMedium": "cpc",
+        "utmCampaign": "promo_verano",
+        "utmContent": "video_testimonial"
+    }
+}
+
+### 3. Pageview Contacto (Google Organic)
+POST {{baseUrl}}/api/analytics/track
+Content-Type: application/json
+
+{
+    "type": "pageview",
+    "companyId": "{{companyId}}",
+    "path": "/contact",
+    "pageType": "contact",
+    "serviceId": null,
+    "sessionId": "session-uuid-3",
+    "visitorId": "visitor-uuid-3",
+    "utm": {
+        "utmSource": "google",
+        "utmMedium": "organic",
+        "utmCampaign": null
+    }
+}
+
+### 4. Pageview Blog (Newsletter Email)
+POST {{baseUrl}}/api/analytics/track
+Content-Type: application/json
+
+{
+    "type": "pageview",
+    "companyId": "{{companyId}}",
+    "path": "/blog/tips-skincare",
+    "pageType": "blog",
+    "serviceId": null,
+    "sessionId": "session-uuid-4",
+    "visitorId": "visitor-uuid-4",
+    "utm": {
+        "utmSource": "newsletter",
+        "utmMedium": "email",
+        "utmCampaign": "boletin_julio",
+        "utmTerm": "tips_skincare"
+    }
+}
+
+### 5. Cron Job (Forzar Agregación - Requiere Auth o CRON_SECRET)
+# Nota: Esto fallará si no tienes el header de autorización configurado en el server
+GET {{baseUrl}}/api/cron/aggregate-analytics
+Authorization: Bearer YOUR_CRON_SECRET

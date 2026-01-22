@@ -249,7 +249,8 @@ export async function GET(
     const templateDataScript = `<script>window.TEMPLATE_DATA = ${JSON.stringify(templateData)};</script>`;
     const analyticsConfigScript = `<script>window.EPIKAL_ANALYTICS = ${JSON.stringify(analyticsConfig)};</script>`;
 
-    // Read and inline analytics script to avoid routing issues with subdomain
+
+    // Read and inline analytics script
     const analyticsScriptPath = path.join(process.cwd(), 'public', 'templates', 'default', 'analytics.js');
     let analyticsScript = '';
     if (fs.existsSync(analyticsScriptPath)) {
@@ -257,8 +258,25 @@ export async function GET(
         analyticsScript = `<script>${analyticsCode}</script>`;
     }
 
+    // Read and inline styles
+    const stylesPath = path.join(templatePath, 'style.css');
+    let stylesInjection = '';
+    if (fs.existsSync(stylesPath)) {
+        const stylesCode = fs.readFileSync(stylesPath, 'utf-8');
+        stylesInjection = `<style>${stylesCode}</style>`;
+    }
+
     const scriptInjection = `${templateDataScript}\n${analyticsConfigScript}\n${analyticsScript}`;
-    const finalHtml = htmlContent.replace("</head>", `${scriptInjection}</head>`);
+    const injection = `${stylesInjection}\n${scriptInjection}`;
+
+    // Replace existing style link if present to avoid 404, otherwise just append
+    // Standard template has <link rel="stylesheet" href="style.css">
+    let finalHtmlWithStyles = htmlContent;
+    if (htmlContent.includes('href="style.css"')) {
+        finalHtmlWithStyles = htmlContent.replace(/<link[^>]*href="style\.css"[^>]*>/, '');
+    }
+
+    const finalHtml = finalHtmlWithStyles.replace("</head>", `${injection}</head>`);
 
     return new NextResponse(finalHtml, {
         headers: { "Content-Type": "text/html" }
