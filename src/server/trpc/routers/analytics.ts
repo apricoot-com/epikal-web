@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { router, companyProcedure } from '../init';
-import { startOfDay, endOfDay, subDays } from 'date-fns';
+import { startOfDay, subDays } from 'date-fns';
 import { aggregateDailyStats } from '@/src/lib/analytics/aggregator';
 
 export const analyticsRouter = router({
@@ -12,7 +12,8 @@ export const analyticsRouter = router({
             days: z.number().default(30)
         }))
         .query(async ({ ctx, input }) => {
-            const startDate = subDays(new Date(), input.days);
+            // Use startOfDay to include the full range of days, including today
+            const startDate = startOfDay(subDays(new Date(), input.days));
 
             const stats = await ctx.prisma.dailyStats.aggregate({
                 where: {
@@ -39,7 +40,7 @@ export const analyticsRouter = router({
             days: z.number().default(30)
         }))
         .query(async ({ ctx, input }) => {
-            const startDate = subDays(new Date(), input.days);
+            const startDate = startOfDay(subDays(new Date(), input.days));
 
             const dailyData = await ctx.prisma.dailyStats.findMany({
                 where: {
@@ -66,7 +67,7 @@ export const analyticsRouter = router({
             limit: z.number().default(5)
         }))
         .query(async ({ ctx, input }) => {
-            const startDate = subDays(new Date(), input.days);
+            const startDate = startOfDay(subDays(new Date(), input.days));
 
             // Group events by serviceId
             const events = await ctx.prisma.analyticsEvent.groupBy({
@@ -106,7 +107,7 @@ export const analyticsRouter = router({
             limit: z.number().default(5)
         }))
         .query(async ({ ctx, input }) => {
-            const startDate = subDays(new Date(), input.days);
+            const startDate = startOfDay(subDays(new Date(), input.days));
 
             const events = await ctx.prisma.analyticsEvent.groupBy({
                 by: ['utmSource'],
@@ -171,11 +172,11 @@ export const analyticsRouter = router({
             try {
                 console.log('[tRPC] forceAggregate called');
 
-                // Run aggregation for yesterday
-                const yesterday = subDays(new Date(), 1);
-                console.log('[tRPC] Calling aggregateDailyStats for:', yesterday.toISOString());
+                // Run aggregation for TODAY to see immediate results from testing
+                const today = new Date();
+                console.log('[tRPC] Calling aggregateDailyStats for:', today.toISOString());
 
-                const result = await aggregateDailyStats(yesterday);
+                const result = await aggregateDailyStats(today);
 
                 console.log('[tRPC] Aggregation result:', result);
                 return result;
