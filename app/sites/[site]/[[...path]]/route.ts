@@ -14,6 +14,11 @@ export async function GET(
     const pathSegments = params.path || [];
     const urlPath = pathSegments.join("/");
 
+    // Skip this handler for API routes - let them be handled by their own route handlers
+    if (urlPath.startsWith('api/')) {
+        return new NextResponse('Not Found', { status: 404 });
+    }
+
     // 1. Resolve Tenant
     // Define include object to reuse
     const companyInclude = {
@@ -231,8 +236,28 @@ export async function GET(
         }
     };
 
-    // 4. Inject
-    const scriptInjection = `<script>window.TEMPLATE_DATA = ${JSON.stringify(templateData)};</script>`;
+    // Analytics Configuration
+    const analyticsConfig = {
+        companyId: company.id,
+        pageType: pageContext.type || 'home',
+        serviceId: pageContext.type === 'service-detail' ? pageContext.data?.id : null,
+        serviceName: pageContext.type === 'service-detail' ? pageContext.data?.name : null,
+        gtmContainerId: company.gtmContainerId || null
+    };
+
+    // 4. Inject Scripts
+    const templateDataScript = `<script>window.TEMPLATE_DATA = ${JSON.stringify(templateData)};</script>`;
+    const analyticsConfigScript = `<script>window.EPIKAL_ANALYTICS = ${JSON.stringify(analyticsConfig)};</script>`;
+
+    // Read and inline analytics script to avoid routing issues with subdomain
+    const analyticsScriptPath = path.join(process.cwd(), 'public', 'templates', 'default', 'analytics.js');
+    let analyticsScript = '';
+    if (fs.existsSync(analyticsScriptPath)) {
+        const analyticsCode = fs.readFileSync(analyticsScriptPath, 'utf-8');
+        analyticsScript = `<script>${analyticsCode}</script>`;
+    }
+
+    const scriptInjection = `${templateDataScript}\n${analyticsConfigScript}\n${analyticsScript}`;
     const finalHtml = htmlContent.replace("</head>", `${scriptInjection}</head>`);
 
     return new NextResponse(finalHtml, {

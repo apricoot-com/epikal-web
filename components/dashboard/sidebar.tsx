@@ -107,6 +107,11 @@ const settingsItems = [
         href: "/dashboard/site",
         icon: Globe,
     },
+    {
+        title: "Integraciones",
+        href: "/dashboard/settings/integrations",
+        icon: BarChart3,
+    },
 ];
 
 export function DashboardSidebar() {

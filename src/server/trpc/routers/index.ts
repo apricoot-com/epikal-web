@@ -6,6 +6,7 @@ import { onboardingRouter } from "./onboarding";
 import { serviceRouter } from "./service";
 import { resourceRouter } from "./resource";
 import { subscriptionRouter } from "./subscription";
+import { analyticsRouter } from "./analytics";
 
 /**
  * Root router for all tRPC endpoints
@@ -27,6 +28,7 @@ export const appRouter = router({
     service: serviceRouter,
     resource: resourceRouter,
     subscription: subscriptionRouter,
+    analytics: analyticsRouter,
 });
 
 export type AppRouter = typeof appRouter;
