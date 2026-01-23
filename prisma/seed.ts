@@ -46,6 +46,8 @@ async function main() {
     await prisma.userCompany.deleteMany();
     await prisma.companyBranding.deleteMany();
     await prisma.location.deleteMany();
+    await prisma.booking.deleteMany();
+    await prisma.customer.deleteMany();
     await prisma.session.deleteMany();
     await prisma.account.deleteMany();
     await prisma.verification.deleteMany();
@@ -527,7 +529,95 @@ Ideal para *todo tipo de piel*. Recomendamos realizar este tratamiento una vez a
     });
 
     console.log(`   ✓ Template created and assigned: ${template.name}`);
+
     // =========================================================================
+    // CUSTOMERS & BOOKINGS (CRM)
+    // =========================================================================
+    console.log("👥 Creating customers and historical bookings...");
+
+    const dummyCustomers = [
+        { firstName: "Elena", lastName: "Rodríguez", email: "elena.rodriguez@example.com", phone: "+52 55 1111 2222" },
+        { firstName: "Carlos", lastName: "López", email: "carlos.lopez@example.com", phone: "+52 55 3333 4444" },
+        { firstName: "Ana", lastName: "Martínez", email: "ana.martinez@example.com", phone: "+52 55 5555 6666" },
+        { firstName: "Jorge", lastName: "Sánchez", email: "jorge.sanchez@example.com", phone: "+52 55 7777 8888" },
+        { firstName: "Lucía", lastName: "Fernández", email: "lucia.fernandez@example.com", phone: "+52 55 9999 0000" },
+        { firstName: "Miguel", lastName: "Gómez", email: "miguel.gomez@example.com", phone: "+52 55 1212 3434" },
+        { firstName: "Sofía", lastName: "Díaz", email: "sofia.diaz@example.com", phone: "+52 55 5656 7878" },
+        { firstName: "Pedro", lastName: "Ruiz", email: "pedro.ruiz@example.com", phone: "+52 55 9090 1212" },
+        { firstName: "Carmen", lastName: "Morales", email: "carmen.morales@example.com", phone: "+52 55 3434 5656" },
+        { firstName: "Raúl", lastName: "Castro", email: "raul.castro@example.com", phone: "+52 55 7878 9090" }
+    ];
+
+    const servicesList = [serviceFacial, serviceMassage];
+    const resourcesList = [profMaria, profLaura];
+
+    let totalBookings = 0;
+
+    for (const custData of dummyCustomers) {
+        // Create Customer
+        const customer = await prisma.customer.create({
+            data: {
+                companyId: company.id,
+                ...custData,
+                totalBookings: 0, // Will be updated by logic if we had triggers, but keeping simple
+                notes: Math.random() > 0.7 ? "Cliente frecuente, prefiere agua mineral." : null,
+                tags: Math.random() > 0.8 ? ["VIP"] : []
+            }
+        });
+
+        // Create 1-5 past bookings per customer to simulate history
+        const numBookings = Math.floor(Math.random() * 5) + 1;
+
+        for (let i = 0; i < numBookings; i++) {
+            // Random date in past 60 days
+            const daysAgo = Math.floor(Math.random() * 60) + 1;
+            const bookingDate = new Date();
+            bookingDate.setDate(bookingDate.getDate() - daysAgo);
+
+            // Random hour 10-18
+            const hour = 10 + Math.floor(Math.random() * 8);
+            bookingDate.setHours(hour, 0, 0, 0);
+
+            // Skip if weekend (simple approximation, not strictly enforcing availability here for seed speed)
+            const day = bookingDate.getDay();
+            if (day === 0 || day === 6) continue;
+
+            const service = servicesList[Math.floor(Math.random() * servicesList.length)];
+            const resource = resourcesList[Math.floor(Math.random() * resourcesList.length)];
+
+            const endTime = new Date(bookingDate.getTime() + service.duration * 60000);
+
+            await prisma.booking.create({
+                data: {
+                    companyId: company.id,
+                    customerId: customer.id,
+                    serviceId: service.id,
+                    resourceId: resource.id,
+                    startTime: bookingDate,
+                    endTime: endTime,
+                    status: "COMPLETED", // Past bookings are completed
+                    customerName: `${custData.firstName} ${custData.lastName}`,
+                    customerEmail: custData.email,
+                    customerPhone: custData.phone
+                }
+            });
+            totalBookings++;
+        }
+
+        // Update customer total bookings count
+        const actualCount = await prisma.booking.count({ where: { customerId: customer.id } });
+        await prisma.customer.update({
+            where: { id: customer.id },
+            data: {
+                totalBookings: actualCount,
+                lastBookingAt: new Date() // Approximation, or query max date
+            }
+        });
+    }
+    console.log(`   ✓ CRM Seeded: ${dummyCustomers.length} customers, ~${totalBookings} bookings`);
+
+    // =========================================================================
+
     console.log("\n" + "=".repeat(60));
     console.log("✅ Seed completed successfully!\n");
     console.log("📊 Summary:");

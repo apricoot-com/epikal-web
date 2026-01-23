@@ -103,6 +103,7 @@ model Company {
   analyticsEvents AnalyticsEvent[]
   dailyStats      DailyStats[]
   bookings        Booking[]
+  customers       Customer[]
   
   @@map("companies")
 }
@@ -529,7 +530,10 @@ model Booking {
   customerName  String
   customerEmail String
   customerPhone String?
-  userId        String?       // Si el cliente tiene cuenta
+  userId        String?       // If customer has account (Legacy/Direct link)
+  
+  customerId    String?       // CRM Link
+  customer      Customer?     @relation(fields: [customerId], references: [id])
   
   // Tiempo
   startTime     DateTime
@@ -550,5 +554,43 @@ model Booking {
   @@index([companyId])
   @@index([resourceId, startTime])
   @@map("bookings")
+}
+
+// =============================================================================
+// CRM & CUSTOMERS (Module 5)
+// =============================================================================
+
+model Customer {
+  id            String    @id @default(cuid())
+  companyId     String
+  
+  // Basic Info
+  firstName     String
+  lastName      String?
+  email         String
+  phone         String?
+  
+  // Link to Registered User (optional)
+  userId        String?
+  
+  // CRM Metadata
+  notes         String?   @db.Text
+  tags          String[]  // "VIP", "Frequent", "Late Payer"
+  
+  // Stats (Denormalized)
+  totalBookings Int       @default(0)
+  lastBookingAt DateTime?
+  
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  company       Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  bookings      Booking[]
+
+  @@unique([companyId, email])
+  @@index([companyId])
+  @@map("customers")
 }
 

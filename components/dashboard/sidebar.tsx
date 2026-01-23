@@ -61,7 +61,7 @@ const navItems = [
     },
     {
         title: "Clientes",
-        href: "/dashboard/clients",
+        href: "/dashboard/customers",
         icon: Users,
     },
     {
