@@ -56,7 +56,7 @@ const navItems = [
     },
     {
         title: "Agenda",
-        href: "/dashboard/schedule",
+        href: "/dashboard/calendar",
         icon: Calendar,
     },
     {

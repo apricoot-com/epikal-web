@@ -193,3 +193,80 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* CALENDAR OVERRIDES - Shadcn Theme Integration */
+.fc {
+  --fc-border-color: var(--border);
+  --fc-button-bg-color: transparent;
+  --fc-button-border-color: var(--border);
+  --fc-button-text-color: var(--foreground);
+  --fc-button-hover-bg-color: var(--accent);
+  --fc-button-hover-border-color: var(--border);
+  --fc-button-active-bg-color: var(--primary);
+  --fc-button-active-border-color: var(--primary);
+  --fc-button-active-text-color: var(--primary-foreground);
+
+  --fc-page-bg-color: var(--card);
+  --fc-neutral-bg-color: var(--secondary);
+  --fc-list-event-hover-bg-color: var(--accent);
+  --fc-today-bg-color: transparent;
+}
+
+/* Toolbar Buttons */
+.fc .fc-button {
+  @apply inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  border: 1px solid var(--border) !important;
+  box-shadow: none !important;
+  padding: 0.5rem 1rem !important;
+  height: 2.25rem !important;
+  /* h-9 */
+}
+
+.fc .fc-button:hover {
+  background-color: var(--accent) !important;
+  color: var(--accent-foreground) !important;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+
+/* Toolbar Title */
+.fc .fc-toolbar-title {
+  @apply text-lg font-semibold tracking-tight;
+}
+
+/* Grid & Spacing */
+.fc-timegrid-slot {
+  height: 3rem !important;
+  /* Make slots taller (Comfortable density) */
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: var(--border) !important;
+}
+
+/* Today Highlight */
+.fc-timegrid-col.fc-day-today {
+  background-color: var(--accent) !important;
+  opacity: 0.5;
+}
+
+/* Events */
+.fc-event {
+  border-radius: var(--radius-sm) !important;
+  padding: 2px 4px !important;
+  font-size: 0.8rem !important;
+  font-weight: 500 !important;
+  border: none !important;
+  background-color: var(--primary);
+}
+
+.fc-v-event {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}

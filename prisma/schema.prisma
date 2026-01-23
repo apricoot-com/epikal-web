@@ -102,6 +102,7 @@ model Company {
   // Module 6: Analytics
   analyticsEvents AnalyticsEvent[]
   dailyStats      DailyStats[]
+  bookings        Booking[]
   
   @@map("companies")
 }
@@ -231,6 +232,7 @@ model Service {
   resources       ServiceResource[]
   webPage         ServiceWebPage?
   analyticsEvents AnalyticsEvent[]
+  bookings        Booking[]
   
   @@map("services")
 }
@@ -254,6 +256,9 @@ model Resource {
   company         Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   location        Location?     @relation(fields: [locationId], references: [id], onDelete: SetNull)
   services        ServiceResource[]
+  availability    Availability[]
+  bookings        Booking[]
+  blockouts       Blockout[]
   
   @@map("resources")
 }
@@ -452,3 +457,98 @@ model DailyStats {
   @@index([companyId, date])
   @@map("daily_stats")
 }
+
+// =============================================================================
+// SCHEDULING (Module 3)
+// =============================================================================
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+/// Define el horario laboral estándar de un Recurso
+model Availability {
+  id          String    @id @default(cuid())
+  resourceId  String
+  dayOfWeek   DayOfWeek
+  startTime   String    // "09:00"
+  endTime     String    // "17:00"
+  isAvailable Boolean   @default(true) // Allows explicitly marking days as off
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  resource    Resource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  
+  @@unique([resourceId, dayOfWeek, startTime]) // Evita duplicados para el mismo slot
+  @@map("availabilities")
+}
+
+/// Excepciones al horario (Vacaciones, Almuerzo, etc)
+model Blockout {
+  id          String   @id @default(cuid())
+  resourceId  String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  resource    Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  
+  @@map("blockouts")
+}
+
+/// Cita agendada
+model Booking {
+  id            String        @id @default(cuid())
+  companyId     String
+  resourceId    String
+  serviceId     String
+  
+  // Cliente (puede ser usuario registrado o invitado)
+  customerName  String
+  customerEmail String
+  customerPhone String?
+  userId        String?       // Si el cliente tiene cuenta
+  
+  // Tiempo
+  startTime     DateTime
+  endTime       DateTime
+  
+  status        BookingStatus @default(CONFIRMED)
+  notes         String?
+  
+  // Timestamps
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Relations
+  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  resource      Resource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  service       Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  
+  @@index([companyId])
+  @@index([resourceId, startTime])
+  @@map("bookings")
+}
+
