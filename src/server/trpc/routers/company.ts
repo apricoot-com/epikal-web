@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, companyProcedure } from "../init";
+import { router, companyProcedure, publicProcedure } from "../init";
 import { TRPCError } from "@trpc/server";
 
 /**
@@ -133,4 +133,39 @@ export const companyRouter = router({
 
             return branding;
         }),
+
+    /**
+     * Get public company data for booking wizard
+     */
+    getPublicData: publicProcedure
+        .input(z.object({ slug: z.string() }))
+        .query(async ({ ctx, input }) => {
+            const company = await ctx.prisma.company.findUnique({
+                where: { slug: input.slug },
+                include: {
+                    branding: true,
+                    services: {
+                        where: { isPublic: true },
+                        include: {
+                            resources: {
+                                include: { resource: true }
+                            }
+                        }
+                    }
+                }
+            });
+
+            if (!company) {
+                throw new TRPCError({ code: "NOT_FOUND", message: "Company not found" });
+            }
+
+            // Return stripped down unique data
+            return {
+                id: company.id,
+                name: company.name,
+                slug: company.slug,
+                branding: company.branding,
+                services: company.services
+            };
+        })
 });

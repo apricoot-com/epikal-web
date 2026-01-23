@@ -179,18 +179,33 @@ When checking if a time slot is available:
 
 ## Booking Flows
 
-### Customer Booking (Public)
+### Customer Booking (Public Wizard)
 
-```
-1. Select Location (if enterprise with multiple)
-2. Select Service
-3. View available Professionals for that service
-4. Select Professional
-5. View available time slots
-6. (Pro) Select Resource if required
-7. Enter contact details (name, email, phone)
-8. Confirm → Appointment created
-```
+The booking flow is a multi-step wizard. Steps can be **skipped/pre-filled** based on context (URL params).
+
+**Standard Flow:**
+1.  **Select Service** (if not pre-selected)
+2.  **Select Professional** (Optional/Required based on config)
+    - *Logic:* Show professionals who perform the selected service at the current location.
+3.  **Select Time Slot**
+    - **UI Style:** List of available slots (Calendly-style), not a full monthly calendar.
+    - **View:** Grouped by Day (e.g., "Monday, Jan 24").
+    - **Navigation:** Next/Prev Week buttons.
+    - **Logic:** Show available slots merging Location + Professional availability.
+4.  **Enter Contact Info**
+    - Name, Email, Phone.
+5.  **Confirmation**
+
+**Context-Aware Pre-filling:**
+Steps are skipped if the data is provided in the URL or context:
+- `?serviceId=xyz` → Skips Step 1.
+- `?professionalId=abc` → Skips Step 2 (and filters services to only those this pro offers).
+- `?serviceId=xyz&professionalId=abc` → Starts directly at **Time Selection**.
+
+**UX Considerations:**
+- If only 1 service exists, auto-select it.
+- If only 1 professional exists, auto-select them.
+- "Any Professional" option: Logic picks the first available slot across all pros.
 
 ### Staff Booking
 

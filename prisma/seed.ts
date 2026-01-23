@@ -375,6 +375,41 @@ Ideal para *todo tipo de piel*. Recomendamos realizar este tratamiento una vez a
     console.log(`   ✓ Services created: ${serviceFacial.name}, ${serviceMassage.name}`);
 
     // =========================================================================
+    // AVAILABILITY
+    // =========================================================================
+    console.log("📅 Creating availability...");
+
+    const days = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"];
+
+    // Maria: 9am - 6pm
+    for (const day of days) {
+        await prisma.availability.create({
+            data: {
+                resourceId: profMaria.id,
+                dayOfWeek: day as any,
+                startTime: "09:00",
+                endTime: "18:00",
+                isAvailable: true
+            }
+        });
+    }
+
+    // Laura: 10am - 7pm
+    for (const day of days) {
+        await prisma.availability.create({
+            data: {
+                resourceId: profLaura.id,
+                dayOfWeek: day as any,
+                startTime: "10:00",
+                endTime: "19:00",
+                isAvailable: true
+            }
+        });
+    }
+
+    console.log(`   ✓ Availability created for Maria (9-18) and Laura (10-19) on Weekdays`);
+
+    // =========================================================================
     // TEMPLATES
     // =========================================================================
     console.log("📄 Creating default template...");
@@ -390,7 +425,105 @@ Ideal para *todo tipo de piel*. Recomendamos realizar este tratamiento una vez a
 
     await prisma.company.update({
         where: { id: company.id },
-        data: { siteTemplateId: template.id }
+        data: {
+            siteTemplateId: template.id,
+            siteSettings: {
+                colors: {
+                    primary: "#9333EA",
+                    secondary: "#F472B6"
+                },
+                contact: {
+                    phone: "+52 55 1234 5678",
+                    email: "contacto@clinica-aurora.com",
+                    address: "Av. Presidente Masaryk 123, Polanco"
+                },
+                pages: {
+                    home: {
+                        blocks: [
+                            {
+                                type: "hero",
+                                props: {
+                                    title: "Realza tu belleza natural",
+                                    subtitle: "Tratamientos estéticos personalizados con tecnología de vanguardia y especialistas certificados.",
+                                    ctaText: "Reserva tu Cita",
+                                    ctaLink: "./booking",
+                                    backgroundImage: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=2068",
+                                    alignment: "center"
+                                }
+                            },
+                            {
+                                type: "features",
+                                props: {
+                                    title: "¿Por qué elegirnos?",
+                                    description: "Nos dedicamos a cuidar de ti con los más altos estándares.",
+                                    columns: 3,
+                                    items: [
+                                        { title: "Expertos Certificados", description: "Nuestro equipo está formado por doctores y especialistas con años de experiencia." },
+                                        { title: "Tecnología Avanzada", description: "Utilizamos aparatos de última generación para garantizar resultados seguros." },
+                                        { title: "Atención Personalizada", description: "Cada tratamiento se adapta a las necesidades únicas de tu piel y cuerpo." }
+                                    ]
+                                }
+                            },
+                            {
+                                type: "services",
+                                props: {
+                                    title: "Nuestros Servicios",
+                                    showPrice: true
+                                }
+                            },
+                            {
+                                type: "testimonials",
+                                props: {
+                                    title: "Lo que dicen nuestros pacientes",
+                                    items: [
+                                        { text: "¡Increíble servicio! Mi piel nunca había lucido tan bien. La Dra. Sofía es una experta.", author: "Ana P.", role: "Paciente Regular" },
+                                        { text: "El masaje relajante fue justo lo que necesitaba. El ambiente es súper tranquilo.", author: "Carlos M.", role: "Cliente Nuevo" },
+                                        { text: "Me encanta la facilidad para agendar citas desde su página.", author: "Lucía R.", role: "Paciente" }
+                                    ]
+                                }
+                            },
+                            {
+                                type: "contact",
+                                props: {
+                                    title: "Visítanos",
+                                    subtitle: "Estamos ubicados en el corazón de Polanco."
+                                }
+                            }
+                        ]
+                    },
+                    "service-detail": {
+                        blocks: [
+                            {
+                                type: "hero",
+                                props: {
+                                    title: "${service.name}",
+                                    subtitle: "${service.shortDescription}",
+                                    ctaText: "Agendar este servicio",
+                                    ctaLink: "/sites/${company.slug}/booking?serviceId=${service.id}",
+                                    backgroundImage: "${service.image}",
+                                    alignment: "left"
+                                }
+                            },
+                            {
+                                type: "content",
+                                props: {
+                                    title: "Detalles del Tratamiento",
+                                    content: "${service.longDescription}",
+                                    alignment: "left"
+                                }
+                            },
+                            {
+                                type: "faq",
+                                props: {
+                                    title: "Preguntas Frecuentes",
+                                    items: "${service.faqs}"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
     });
 
     console.log(`   ✓ Template created and assigned: ${template.name}`);
