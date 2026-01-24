@@ -13,6 +13,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Plus, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardHeader } from '@/components/dashboard/header';
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetDescription,
+} from "@/components/ui/sheet";
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Mail, Phone, Calendar as CalendarIcon, User, Clock, Trash2, Edit, Copy, ExternalLink, PhoneCall } from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import Link from 'next/link';
 
 export default function CalendarView() {
     const { toast } = useToast();
@@ -24,6 +37,10 @@ export default function CalendarView() {
 
     // Filters
     const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
+
+    // Side Panel State
+    const [selectedEvent, setSelectedEvent] = useState<any>(null);
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
 
     // Fetch resources for filter
     const { data: resources } = trpc.resource.list.useQuery();
@@ -46,17 +63,14 @@ export default function CalendarView() {
     };
 
     const handleEventClick = (info: any) => {
-        // TODO: Open detail modal
-        toast({
-            title: info.event.title,
-            description: `Recurso: ${info.event.extendedProps.resourceId}`
-        });
+        setSelectedEvent(info.event);
+        setIsSheetOpen(true);
     };
 
     return (
         <>
             <DashboardHeader title="Agenda" />
-            <div className="flex flex-1 flex-col p-4 h-[calc(100vh-64px)]">
+            <div className="flex flex-1 flex-col p-8 h-[calc(100vh-64px)]">
                 <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center gap-4">
                         {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
@@ -111,6 +125,158 @@ export default function CalendarView() {
                     </CardContent>
                 </Card>
             </div>
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                <SheetContent className="sm:max-w-[450px] p-0 flex flex-col">
+                    {selectedEvent && (
+                        <>
+                            <SheetHeader className="p-6 border-b bg-muted/20">
+                                <Badge variant={selectedEvent.extendedProps.type === 'booking' ? 'default' : 'secondary'} className="w-fit mb-2">
+                                    {selectedEvent.extendedProps.type === 'booking' ? 'Cita' : 'Bloqueo'}
+                                </Badge>
+                                <SheetTitle className="text-xl">
+                                    {selectedEvent.title}
+                                </SheetTitle>
+                                <SheetDescription>
+                                    Detalles completos del evento en la agenda
+                                </SheetDescription>
+                            </SheetHeader>
+
+                            <div className="flex-1 overflow-y-auto">
+                                <div className="p-6 space-y-8">
+                                    {/* Time Info */}
+                                    <div className="flex items-start gap-4">
+                                        <div className="mt-1 bg-primary/10 p-2.5 rounded-xl">
+                                            <Clock className="h-5 w-5 text-primary" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold uppercase tracking-tight text-muted-foreground/70">Horario</p>
+                                            <p className="text-base font-medium mt-0.5">
+                                                {format(selectedEvent.start, "PPPP", { locale: es })}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground font-medium">
+                                                {format(selectedEvent.start, "p")} - {format(selectedEvent.end, "p")}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Booking Specific Info */}
+                                    {selectedEvent.extendedProps.type === 'booking' && (
+                                        <>
+                                            <div className="flex items-start gap-4">
+                                                <div className="mt-1 bg-primary/10 p-2.5 rounded-xl">
+                                                    <User className="h-5 w-5 text-primary" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-bold uppercase tracking-tight text-muted-foreground/70 mb-1">Cliente</p>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="min-w-0 flex-1">
+                                                            {selectedEvent.extendedProps.customerId ? (
+                                                                <Link
+                                                                    href={`/dashboard/customers/${selectedEvent.extendedProps.customerId}`}
+                                                                    className="text-base font-bold truncate leading-tight block text-primary hover:underline"
+                                                                >
+                                                                    {selectedEvent.extendedProps.customerName}
+                                                                </Link>
+                                                            ) : (
+                                                                <p className="text-base font-bold truncate leading-tight">{selectedEvent.extendedProps.customerName}</p>
+                                                            )}
+
+                                                            <div className="flex flex-col gap-0.5 mt-1">
+                                                                <div className="flex items-center justify-between group/contact">
+                                                                    <a href={`mailto:${selectedEvent.extendedProps.email}`} className="text-sm text-primary hover:underline truncate flex items-center gap-1.5 font-medium">
+                                                                        <Mail className="h-3 w-3" />
+                                                                        {selectedEvent.extendedProps.email}
+                                                                    </a>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-6 w-6 opacity-0 group-hover/contact:opacity-100 transition-opacity"
+                                                                        onClick={() => {
+                                                                            navigator.clipboard.writeText(selectedEvent.extendedProps.email);
+                                                                            toast({ title: "Copiado", description: "Correo copiado" });
+                                                                        }}
+                                                                    >
+                                                                        <Copy className="h-3 w-3" />
+                                                                    </Button>
+                                                                </div>
+
+                                                                {selectedEvent.extendedProps.phone && (
+                                                                    <div className="flex items-center justify-between group/contact">
+                                                                        <a href={`tel:${selectedEvent.extendedProps.phone}`} className="text-sm text-primary hover:underline truncate flex items-center gap-1.5 font-medium">
+                                                                            <PhoneCall className="h-3 w-3" />
+                                                                            {selectedEvent.extendedProps.phone}
+                                                                        </a>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="h-6 w-6 opacity-0 group-hover/contact:opacity-100 transition-opacity"
+                                                                            onClick={() => {
+                                                                                navigator.clipboard.writeText(selectedEvent.extendedProps.phone);
+                                                                                toast({ title: "Copiado", description: "Teléfono copiado" });
+                                                                            }}
+                                                                        >
+                                                                            <Copy className="h-3 w-3" />
+                                                                        </Button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-start gap-4">
+                                                <div className="mt-1 bg-primary/10 p-2.5 rounded-xl">
+                                                    <CalendarIcon className="h-5 w-5 text-primary" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold uppercase tracking-tight text-muted-foreground/70">Servicio</p>
+                                                    <p className="text-base font-medium mt-0.5">{selectedEvent.extendedProps.serviceName}</p>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {/* Resource Info */}
+                                    <div className="flex items-start gap-4">
+                                        <div className="mt-1 bg-primary/10 p-2.5 rounded-xl">
+                                            <User className="h-5 w-5 text-primary" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold uppercase tracking-tight text-muted-foreground/70">Profesional Asignado</p>
+                                            <p className="text-base font-medium mt-0.5">{selectedEvent.extendedProps.resourceName}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Status */}
+                                    {selectedEvent.extendedProps.status && (
+                                        <div className="flex items-start gap-4">
+                                            <div className="mt-1 bg-primary/10 p-2.5 rounded-xl">
+                                                <RefreshCw className="h-5 w-5 text-primary" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold uppercase tracking-tight text-muted-foreground/70">Estado de la Cita</p>
+                                                <Badge variant="outline" className="mt-1 font-bold px-3 py-1 uppercase text-[10px] tracking-widest">
+                                                    {selectedEvent.extendedProps.status}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="p-6 border-t bg-muted/5 mt-auto flex gap-3">
+                                <Button variant="outline" className="flex-1 gap-2 font-bold py-6 rounded-xl transition-all hover:bg-primary/5 hover:text-primary hover:border-primary/30">
+                                    <Edit className="h-4 w-4" /> Editar Evento
+                                </Button>
+                                <Button variant="destructive" className="flex-1 gap-2 font-bold py-6 rounded-xl transition-all shadow-lg shadow-destructive/10">
+                                    <Trash2 className="h-4 w-4" /> Eliminar
+                                </Button>
+                            </div>
+                        </>
+                    )}
+                </SheetContent>
+            </Sheet>
         </>
     );
 }

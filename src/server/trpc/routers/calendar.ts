@@ -56,7 +56,11 @@ export const calendarRouter = router({
                     status: b.status,
                     extendedProps: {
                         email: b.customerEmail,
-                        phone: b.customerPhone
+                        phone: b.customerPhone,
+                        serviceName: b.service.name,
+                        resourceName: b.resource.name,
+                        customerName: b.customerName,
+                        customerId: b.customerId
                     }
                 })),
                 ...blockouts.map(b => ({
@@ -66,7 +70,10 @@ export const calendarRouter = router({
                     end: b.endTime,
                     resourceId: b.resourceId,
                     type: 'blockout',
-                    color: '#9ca3af' // gray-400
+                    color: '#9ca3af',
+                    extendedProps: {
+                        resourceName: b.resource.name
+                    }
                 }))
             ];
         }),
