@@ -108,3 +108,146 @@ Action buttons should be anchored within their context.
 +------------------------------------------------------+
 ```
 
+---
+
+## � Page Header Patterns
+
+**Component: `DashboardHeader`**
+
+All dashboard pages should use the standardized `DashboardHeader` component for consistency.
+
+### Basic Usage (List Pages)
+
+```tsx
+<DashboardHeader title="Servicios" />
+```
+
+**Result:**
+- Sidebar toggle button
+- Separator
+- Page title
+
+### Detail/Edit Pages
+
+```tsx
+<DashboardHeader 
+    title="Editar: Profesional"
+    backHref="/dashboard/services/team"
+>
+    <Button onClick={handleSave}>Guardar cambios</Button>
+</DashboardHeader>
+```
+
+**Result:**
+- Sidebar toggle button
+- Separator
+- Back button (arrow)
+- Separator
+- Page title (flex-1, takes remaining space)
+- Action buttons (children)
+
+### Header Structure
+
+```
++----------------------------------------------------------------+
+| [☰] | [←] | Page Title                    [Action Buttons]   |
++----------------------------------------------------------------+
+```
+
+**Order (left to right):**
+1. Sidebar toggle (hamburger menu)
+2. Separator
+3. Back button (if `backHref` provided)
+4. Separator (if back button exists)
+5. Title (flex-1)
+6. Action buttons (children)
+
+### Props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `title` | `string?` | Page title |
+| `backHref` | `string?` | URL for back navigation (shows arrow button) |
+| `children` | `ReactNode?` | Action buttons or other controls |
+
+---
+
+## �🖱️ Card Interaction Pattern
+
+**Standard: Clickable Cards for Navigation**
+
+All list views (services, professionals, facilities, locations, customers, etc.) should follow this interaction pattern for consistency:
+
+### Card as Navigation Element
+
+Cards representing items in a list should be **fully clickable** and navigate to the item's detail/edit page.
+
+```tsx
+<Card
+    className="cursor-pointer transition-all hover:border-primary/50 hover:shadow-sm"
+    onClick={() => router.push(`/dashboard/items/${item.id}`)}
+>
+    {/* Card content */}
+</Card>
+```
+
+**Visual Feedback:**
+- `cursor-pointer` - Shows hand cursor on hover
+- `hover:border-primary/50` - Subtle border color change
+- `hover:shadow-sm` - Light shadow on hover
+- Title text color change: `group-hover:text-primary` (requires `group` class on Card)
+
+### Secondary Actions
+
+Action buttons within cards (delete, toggle visibility, etc.) must prevent navigation:
+
+```tsx
+<Button
+    onClick={(e) => {
+        e.stopPropagation(); // Prevent card click
+        handleAction();
+    }}
+>
+    Action
+</Button>
+```
+
+**For AlertDialogs:**
+```tsx
+<AlertDialogTrigger asChild>
+    <Button onClick={(e) => e.stopPropagation()}>
+        Delete
+    </Button>
+</AlertDialogTrigger>
+<AlertDialogContent onClick={(e) => e.stopPropagation()}>
+    {/* Dialog content */}
+</AlertDialogContent>
+```
+
+### Implementation Checklist
+
+When creating a list view:
+- [ ] Add `cursor-pointer` to Card
+- [ ] Add `onClick` handler that navigates to detail page
+- [ ] Add hover effects (`hover:border-primary/50`, `hover:shadow-sm`)
+- [ ] Add `group` class to Card for nested hover effects
+- [ ] Add `group-hover:text-primary` to title
+- [ ] Ensure all secondary action buttons use `e.stopPropagation()`
+- [ ] Test that clicking card navigates, but action buttons don't
+
+### Anti-patterns
+
+❌ **Don't:**
+- Use separate "Edit" buttons as the primary way to access detail pages
+- Make only the title clickable
+- Use hover effects that are too aggressive (large shadows, color shifts)
+- Forget `stopPropagation` on action buttons
+
+✅ **Do:**
+- Make the entire card clickable
+- Use subtle, professional hover effects
+- Provide clear visual feedback
+- Keep action buttons minimal and clearly separated
+
+---
+

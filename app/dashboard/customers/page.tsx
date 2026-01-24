@@ -5,24 +5,18 @@ import { DashboardHeader } from "@/components/dashboard/header";
 import { trpc } from "@/src/lib/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, User } from "lucide-react";
+import { Plus, Search, User, Mail, Phone, Calendar, Hash } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 
 export default function CustomersPage() {
+    const router = useRouter();
     const [search, setSearch] = useState("");
     const { data, isLoading } = trpc.customer.list.useQuery({
         search: search || undefined,
@@ -50,86 +44,84 @@ export default function CustomersPage() {
                 </div>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Listado de Clientes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Nombre</TableHead>
-                                <TableHead>Contacto</TableHead>
-                                <TableHead>Etiquetas</TableHead>
-                                <TableHead className="text-right">Citas</TableHead>
-                                <TableHead className="text-right">Última Visita</TableHead>
-                                <TableHead className="text-right">Acciones</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {isLoading ? (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="h-24 text-center">
-                                        Cargando clientes...
-                                    </TableCell>
-                                </TableRow>
-                            ) : data?.items.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="h-24 text-center">
-                                        No se encontraron clientes.
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                data?.items.map((customer) => (
-                                    <TableRow key={customer.id}>
-                                        <TableCell className="font-medium">
-                                            <div className="flex items-center gap-2">
-                                                <Avatar className="h-8 w-8">
-                                                    <AvatarFallback>
-                                                        {customer.firstName[0]}
-                                                        {customer.lastName?.[0]}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex flex-col">
-                                                    <span>
-                                                        {customer.firstName} {customer.lastName}
-                                                    </span>
-                                                </div>
+            <div className="flex-1">
+                {isLoading ? (
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <Card key={i} className="h-48 animate-pulse bg-muted/50" />
+                        ))}
+                    </div>
+                ) : data?.items.length === 0 ? (
+                    <Card className="flex flex-col items-center justify-center py-12">
+                        <User className="size-12 text-muted-foreground mb-4" />
+                        <CardTitle className="mb-2">No se encontraron clientes</CardTitle>
+                        <p className="text-muted-foreground text-center">
+                            Intenta ajustar tu búsqueda o crea un nuevo cliente.
+                        </p>
+                    </Card>
+                ) : (
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {data?.items.map((customer) => (
+                            <Card
+                                key={customer.id}
+                                className="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-sm"
+                                onClick={() => router.push(`/dashboard/customers/${customer.id}`)}
+                            >
+                                <CardHeader className="pb-3 px-4 pt-4">
+                                    <div className="flex items-start gap-3">
+                                        <Avatar className="h-10 w-10 border">
+                                            <AvatarFallback className="bg-primary/5 text-primary text-xs">
+                                                {customer.firstName[0]}
+                                                {customer.lastName?.[0]}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex flex-col min-w-0">
+                                            <CardTitle className="text-base truncate group-hover:text-primary transition-colors">
+                                                {customer.firstName} {customer.lastName}
+                                            </CardTitle>
+                                            <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+                                                <Mail className="size-3" />
+                                                {customer.email}
                                             </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex flex-col text-sm text-gray-500">
-                                                <span>{customer.email}</span>
-                                                <span>{customer.phone}</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex gap-1 flex-wrap">
-                                                {customer.tags.map(tag => (
-                                                    <Badge key={tag} variant="secondary" className="text-xs">
-                                                        {tag}
-                                                    </Badge>
-                                                ))}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            {customer.totalBookings}
-                                        </TableCell>
-                                        <TableCell className="text-right text-gray-500">
-                                            {customer.lastBookingAt ? formatDistanceToNow(new Date(customer.lastBookingAt), { addSuffix: true, locale: es }) : "Nunca"}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="sm" asChild>
-                                                <Link href={`/dashboard/customers/${customer.id}`}>Ver</Link>
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="px-4 pb-4 space-y-3">
+                                    {customer.phone && (
+                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                            <Phone className="size-3" />
+                                            <span>{customer.phone}</span>
+                                        </div>
+                                    )}
+
+                                    <div className="flex gap-1 flex-wrap">
+                                        {customer.tags.map(tag => (
+                                            <Badge key={tag} variant="secondary" className="text-[10px] py-0 px-1.5 font-normal">
+                                                {tag}
+                                            </Badge>
+                                        ))}
+                                    </div>
+
+                                    <div className="pt-2 flex items-center justify-between border-t border-muted text-[11px] text-muted-foreground">
+                                        <div className="flex items-center gap-1">
+                                            <Hash className="size-3" />
+                                            <span>{customer.totalBookings} citas</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Calendar className="size-3" />
+                                            <span>
+                                                {customer.lastBookingAt
+                                                    ? `Hace ${formatDistanceToNow(new Date(customer.lastBookingAt), { locale: es })}`
+                                                    : "Sin citas"}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { trpc } from "@/src/lib/trpc/client";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, User, Pencil, Trash2, MapPin } from "lucide-react";
+import Link from "next/link";
 
 type ResourceFormData = {
     name: string;
@@ -79,6 +81,7 @@ interface ResourceData {
 }
 
 export default function TeamPage() {
+    const router = useRouter();
     const { data: resources, isLoading, refetch } = trpc.resource.list.useQuery({
         includeInactive: true,
         type: "PROFESSIONAL"
@@ -345,35 +348,29 @@ export default function TeamPage() {
                         {resources?.map((resource: ResourceData) => (
                             <Card
                                 key={resource.id}
-                                className={`group ${resource.status === "INACTIVE" ? "opacity-50" : ""}`}
+                                className={`group cursor-pointer transition-all hover:border-primary/50 hover:shadow-sm ${resource.status === "INACTIVE" ? "opacity-50" : ""}`}
+                                onClick={() => router.push(`/dashboard/services/team/${resource.id}`)}
                             >
                                 <CardHeader className="pb-2">
                                     <div className="flex items-start justify-between">
                                         <div className="flex items-center gap-2">
                                             <User className="size-5 text-primary" />
-                                            <CardTitle className="text-lg">{resource.name}</CardTitle>
+                                            <CardTitle className="text-lg group-hover:text-primary transition-colors">{resource.name}</CardTitle>
                                         </div>
                                         {canEdit && (
-                                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="size-8"
-                                                    onClick={() => handleOpenEdit(resource)}
-                                                >
-                                                    <Pencil className="size-4" />
-                                                </Button>
+                                            <div className="flex gap-1">
                                                 <AlertDialog>
                                                     <AlertDialogTrigger asChild>
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="size-8 text-destructive hover:text-destructive"
+                                                            className="size-8 text-muted-foreground hover:text-destructive"
+                                                            onClick={(e) => e.stopPropagation()}
                                                         >
                                                             <Trash2 className="size-4" />
                                                         </Button>
                                                     </AlertDialogTrigger>
-                                                    <AlertDialogContent>
+                                                    <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                                                         <AlertDialogHeader>
                                                             <AlertDialogTitle>¿Desactivar profesional?</AlertDialogTitle>
                                                             <AlertDialogDescription>
@@ -426,7 +423,10 @@ export default function TeamPage() {
                                             variant="outline"
                                             size="sm"
                                             className="w-full mt-2"
-                                            onClick={() => handleOpenAssign(resource)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleOpenAssign(resource);
+                                            }}
                                         >
                                             Asignar servicios
                                         </Button>

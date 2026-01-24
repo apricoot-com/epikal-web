@@ -123,7 +123,7 @@ export default function ServicesPage() {
                         )}
                     </Card>
                 ) : (
-                    <div className="space-y-3">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {services?.map((service) => (
                             <Card
                                 key={service.id}
