@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 export default async function BookingPage(
     props: {
         params: Promise<{ site: string }>,
-        searchParams: Promise<{ serviceId?: string, resourceId?: string }>
+        searchParams: Promise<{ serviceId?: string, resourceId?: string, callbackUrl?: string }>
     }
 ) {
     const params = await props.params;
@@ -37,6 +37,7 @@ export default async function BookingPage(
                 companySlug={company.slug}
                 preselectedServiceId={searchParams.serviceId}
                 preselectedResourceId={searchParams.resourceId}
+                callbackUrl={searchParams.callbackUrl}
             />
         </div>
     );

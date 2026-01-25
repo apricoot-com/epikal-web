@@ -35,7 +35,11 @@ export function middleware(request: NextRequest) {
     if (!isMainDomain && !pathname.startsWith('/api') && !pathname.startsWith('/sites') && !pathname.startsWith('/_next')) {
         const siteRewritePath = `/sites/${hostname}${pathname}`;
         console.log(`[Middleware] REWRITE: ${fullHost}${pathname} -> ${siteRewritePath}`);
-        return NextResponse.rewrite(new URL(siteRewritePath, request.url));
+
+        // Clone the URL and update pathname to preserve query params
+        const url = request.nextUrl.clone();
+        url.pathname = siteRewritePath;
+        return NextResponse.rewrite(url);
     }
 
     // 2. Define Public Access Rules

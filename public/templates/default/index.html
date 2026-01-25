@@ -44,7 +44,7 @@
                 </div>
                 <!-- CTA -->
                 <div class="flex items-center">
-                    <a href="./booking"
+                    <a href="/booking" id="nav-booking-btn"
                         class="bg-primary hover:bg-opacity-90 text-white px-4 py-2 rounded-full text-sm font-bold transition-all shadow-lg hover:shadow-xl">
                         Reservar Cita
                     </a>
@@ -108,6 +108,12 @@
             // 2. Company Info
             document.getElementById('nav-brand').innerText = data.company.name;
             document.title = data.company.name;
+
+            // Set callbackUrl in navbar
+            const navBookingBtn = document.getElementById('nav-booking-btn');
+            if (navBookingBtn) {
+                navBookingBtn.href = `/booking?callbackUrl=${encodeURIComponent(window.location.pathname)}`;
+            }
 
             // Footer Info
             document.getElementById('footer-brand').innerText = data.company.name;
@@ -297,10 +303,9 @@
                                                                 <p class="text-xl font-semibold text-gray-900 group-hover:text-primary transition-colors">${service.name}</p>
                                                                 <p class="mt-3 text-base text-gray-500 line-clamp-3">${service.description}</p>
                                                             </a>
-                                                        </div>
                                                         <div class="mt-6 flex items-center justify-between">
                                                             ${props.showPrice !== false ? `<p class="text-lg font-bold text-primary">$${service.price}</p>` : '<div></div>'}
-                                                            <a href="/booking?serviceId=${service.id}" 
+                                                            <a href="/booking?serviceId=${service.id}&callbackUrl=${encodeURIComponent(window.location.pathname)}" 
                                                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-opacity-90 focus:outline-none transition-all">
                                                                 Reservar
                                                             </a>

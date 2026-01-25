@@ -15,11 +15,17 @@ interface BookingWizardProps {
     companySlug: string;
     preselectedServiceId?: string;
     preselectedResourceId?: string;
+    callbackUrl?: string;
 }
 
 type Step = 'service' | 'professional' | 'time' | 'details' | 'confirmation';
 
-export default function BookingWizard({ companySlug, preselectedServiceId, preselectedResourceId }: BookingWizardProps) {
+export default function BookingWizard({
+    companySlug,
+    preselectedServiceId,
+    preselectedResourceId,
+    callbackUrl
+}: BookingWizardProps) {
     const { toast } = useToast();
     const [step, setStep] = useState<Step>('service');
 
@@ -73,9 +79,7 @@ export default function BookingWizard({ companySlug, preselectedServiceId, prese
                     setSelectedService(s);
                     // Determine next step
                     if (preselectedResourceId) {
-                        // Logic to find resource... requires fetching structure or assuming ID is valid?
-                        // For now just move to time if service is set
-                        setStep('time'); // Skip pro selection for now or handle it better
+                        setStep('time');
                     } else {
                         setStep('professional');
                     }
@@ -282,8 +286,17 @@ export default function BookingWizard({ companySlug, preselectedServiceId, prese
                             <p className="text-muted-foreground">
                                 Hemos enviado un correo de confirmación a {form.email}.
                             </p>
-                            <Button className="mt-4" onClick={() => window.location.href = `/sites/${companySlug}`}>
-                                Volver al inicio
+                            <Button
+                                className="mt-4"
+                                onClick={() => {
+                                    if (callbackUrl) {
+                                        window.location.href = callbackUrl;
+                                    } else {
+                                        window.location.href = `/sites/${companySlug}`;
+                                    }
+                                }}
+                            >
+                                {callbackUrl ? "Regresar" : "Volver al inicio"}
                             </Button>
                         </div>
                     )}
