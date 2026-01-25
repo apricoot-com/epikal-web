@@ -48,31 +48,37 @@ const navItems = [
         title: "Dashboard",
         href: "/dashboard",
         icon: LayoutDashboard,
+        roles: ["SUPERADMIN", "OWNER", "ADMIN", "STAFF", "VIEWER"],
     },
     {
         title: "Servicios",
         href: "/dashboard/services",
         icon: Briefcase,
+        roles: ["SUPERADMIN", "OWNER", "ADMIN"],
     },
     {
         title: "Agenda",
         href: "/dashboard/calendar",
         icon: Calendar,
+        roles: ["SUPERADMIN", "OWNER", "ADMIN", "STAFF", "VIEWER"],
     },
     {
         title: "Clientes",
         href: "/dashboard/customers",
         icon: Users,
+        roles: ["SUPERADMIN", "OWNER", "ADMIN", "STAFF"],
     },
     {
         title: "Agente IA",
         href: "/dashboard/ai",
         icon: MessageSquare,
+        roles: ["SUPERADMIN", "OWNER", "ADMIN"],
     },
     {
         title: "Analytics",
         href: "/dashboard/analytics",
         icon: BarChart3,
+        roles: ["SUPERADMIN", "OWNER"],
     },
 ];
 
@@ -81,36 +87,43 @@ const settingsItems = [
         title: "Profesionales",
         href: "/dashboard/services/team",
         icon: Users,
+        roles: ["SUPERADMIN", "OWNER", "ADMIN"],
     },
     {
         title: "Instalaciones",
         href: "/dashboard/services/facilities",
         icon: Building2,
+        roles: ["SUPERADMIN", "OWNER", "ADMIN"],
     },
     {
         title: "Empresa",
         href: "/dashboard/company",
         icon: Building2,
+        roles: ["SUPERADMIN", "OWNER"],
     },
     {
         title: "Equipo",
         href: "/dashboard/company/team",
         icon: Users,
+        roles: ["SUPERADMIN", "OWNER"],
     },
     {
         title: "Ubicaciones",
         href: "/dashboard/company/locations",
         icon: Settings,
+        roles: ["SUPERADMIN", "OWNER"],
     },
     {
         title: "Sitio Web",
         href: "/dashboard/site",
         icon: Globe,
+        roles: ["SUPERADMIN", "OWNER"],
     },
     {
         title: "Integraciones",
         href: "/dashboard/settings/integrations",
         icon: BarChart3,
+        roles: ["SUPERADMIN", "OWNER"],
     },
 ];
 
@@ -148,9 +161,14 @@ export function DashboardSidebar() {
             .slice(0, 2);
     };
 
-    // Find active company
+    // Find active company and role
     const activeCompany = status?.companies?.find((c: any) => c.id === status.activeCompanyId);
+    const userRole = (activeCompany?.role || status?.companies?.[0]?.role || "STAFF") as any;
     const currentCompanyName = activeCompany?.name ?? status?.companies?.[0]?.name ?? "Empresa";
+
+    // Filter items based on role
+    const filteredNavItems = navItems.filter(item => item.roles.includes(userRole));
+    const filteredSettingsItems = settingsItems.filter(item => item.roles.includes(userRole));
 
     return (
         <Sidebar collapsible="icon">
@@ -212,7 +230,7 @@ export function DashboardSidebar() {
                     <SidebarGroupLabel>Menú Principal</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {navItems.map((item) => (
+                            {filteredNavItems.map((item) => (
                                 <SidebarMenuItem key={item.href}>
                                     <SidebarMenuButton
                                         asChild
@@ -234,7 +252,7 @@ export function DashboardSidebar() {
                     <SidebarGroupLabel>Administración</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {settingsItems.map((item) => (
+                            {filteredSettingsItems.map((item) => (
                                 <SidebarMenuItem key={item.href}>
                                     <SidebarMenuButton
                                         asChild

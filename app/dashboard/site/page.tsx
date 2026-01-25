@@ -27,6 +27,7 @@ import {
     ExternalLink
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { DashboardHeader } from "@/components/dashboard/header";
 
 export default function SiteEditorPage() {
     const router = useRouter();
@@ -39,8 +40,23 @@ export default function SiteEditorPage() {
         }
     });
 
-    if (isLoading) return <div className="p-8">Cargando dashboard...</div>;
-    if (!company) return <div className="p-8">No se encontró la empresa.</div>;
+    if (isLoading) {
+        return (
+            <>
+                <DashboardHeader title="Gestión del Sitio Web" />
+                <div className="p-8">Cargando configuración...</div>
+            </>
+        );
+    }
+
+    if (!company) {
+        return (
+            <>
+                <DashboardHeader title="Gestión del Sitio Web" />
+                <div className="p-8">No se encontró la empresa.</div>
+            </>
+        );
+    }
 
     const siteSettings = (company.siteSettings as any) || {};
 
@@ -103,117 +119,114 @@ export default function SiteEditorPage() {
     ];
 
     return (
-        <div className="flex-1 space-y-8 p-8 w-full">
-            {/* Header */}
-            <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-3xl font-bold tracking-tight">Gestión del Sitio Web</h2>
-                        <p className="text-muted-foreground">Administra las plantillas y configuración global de tu sitio.</p>
-                    </div>
-                    {company.siteTemplate && (
-                        <Button variant="outline" asChild>
-                            <a
-                                href={`http://${company.slug}.localhost:3000`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="gap-2"
-                            >
-                                <ExternalLink className="h-4 w-4" />
-                                Ver sitio en vivo
-                            </a>
-                        </Button>
-                    )}
-                </div>
-            </div>
+        <>
+            <DashboardHeader
+                title="Gestión del Sitio Web"
+            >
+                <Button variant="outline" size="sm" asChild>
+                    <a
+                        href={`http://${company.slug}.localhost:3000`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="gap-2"
+                    >
+                        <ExternalLink className="h-4 w-4" />
+                        <span>Ver sitio</span>
+                    </a>
+                </Button>
+            </DashboardHeader>
 
-            <Tabs defaultValue="templates" className="space-y-6">
-                <TabsList>
-                    <TabsTrigger value="templates">Plantillas</TabsTrigger>
-                    <TabsTrigger value="configuration">Configuración</TabsTrigger>
-                </TabsList>
+            <div className="flex-1 space-y-8 p-4 md:p-8 w-full">
 
-                <TabsContent value="templates" className="space-y-6">
-                    {/* Templates Grid */}
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {templates.map((template) => (
-                            <Card key={template.id} className="group hover:border-primary/50 transition-colors flex flex-col">
-                                <CardHeader>
-                                    <div className="flex items-start justify-between mb-2">
-                                        <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                                            <template.icon className="h-5 w-5" />
+
+                <Tabs defaultValue="templates" className="space-y-6">
+                    <TabsList>
+                        <TabsTrigger value="templates">Plantillas</TabsTrigger>
+                        <TabsTrigger value="configuration">Configuración</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="templates" className="space-y-6">
+                        {/* Templates Grid */}
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            {templates.map((template) => (
+                                <Card key={template.id} className="group hover:border-primary/50 transition-colors flex flex-col">
+                                    <CardHeader>
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                                <template.icon className="h-5 w-5" />
+                                            </div>
+                                            {template.badge && (
+                                                <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-wider">
+                                                    {template.badge}
+                                                </Badge>
+                                            )}
                                         </div>
-                                        {template.badge && (
-                                            <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-wider">
-                                                {template.badge}
-                                            </Badge>
-                                        )}
-                                    </div>
-                                    <CardTitle className="text-lg">{template.name}</CardTitle>
-                                    <CardDescription className="line-clamp-2">
-                                        {template.description}
+                                        <CardTitle className="text-lg">{template.name}</CardTitle>
+                                        <CardDescription className="line-clamp-2">
+                                            {template.description}
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="flex-1">
+                                    </CardContent>
+                                    <CardFooter className="pt-0">
+                                        <Button
+                                            className="w-full justify-between group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                                            variant="secondary"
+                                            onClick={() => router.push(`/dashboard/site/editor?page=${template.pageParam}`)}
+                                        >
+                                            Editar Plantilla
+                                            <ArrowRight className="h-4 w-4 ml-2 opacity-50 group-hover:opacity-100" />
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
+                            ))}
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="configuration">
+                        {/* Global Settings */}
+                        <div className="w-full">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Analítica</CardTitle>
+                                    <CardDescription>
+                                        Conecta Google Tag Manager y Facebook Pixel.
                                     </CardDescription>
                                 </CardHeader>
-                                <CardContent className="flex-1">
+                                <CardContent>
+                                    <form onSubmit={handleSaveGeneral} className="space-y-4">
+                                        <div className="grid gap-4 sm:grid-cols-2">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="gtmId">Google Tag Manager ID</Label>
+                                                <Input
+                                                    id="gtmId"
+                                                    name="gtmId"
+                                                    defaultValue={siteSettings.analytics?.googleTagManagerId}
+                                                    placeholder="GTM-XXXXXX"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="pixelId">Facebook Pixel ID</Label>
+                                                <Input
+                                                    id="pixelId"
+                                                    name="pixelId"
+                                                    defaultValue={siteSettings.analytics?.facebookPixelId}
+                                                    placeholder="1234567890"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-end pt-4">
+                                            <Button type="submit" disabled={updateSettingsMutation.isPending}>
+                                                {updateSettingsMutation.isPending ? "Guardando..." : "Guardar Configuración"}
+                                            </Button>
+                                        </div>
+                                    </form>
                                 </CardContent>
-                                <CardFooter className="pt-0">
-                                    <Button
-                                        className="w-full justify-between group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                                        variant="secondary"
-                                        onClick={() => router.push(`/dashboard/site/editor?page=${template.pageParam}`)}
-                                    >
-                                        Editar Plantilla
-                                        <ArrowRight className="h-4 w-4 ml-2 opacity-50 group-hover:opacity-100" />
-                                    </Button>
-                                </CardFooter>
                             </Card>
-                        ))}
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="configuration">
-                    {/* Global Settings */}
-                    <div className="w-full">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Analítica</CardTitle>
-                                <CardDescription>
-                                    Conecta Google Tag Manager y Facebook Pixel.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <form onSubmit={handleSaveGeneral} className="space-y-4">
-                                    <div className="grid gap-4 sm:grid-cols-2">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="gtmId">Google Tag Manager ID</Label>
-                                            <Input
-                                                id="gtmId"
-                                                name="gtmId"
-                                                defaultValue={siteSettings.analytics?.googleTagManagerId}
-                                                placeholder="GTM-XXXXXX"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="pixelId">Facebook Pixel ID</Label>
-                                            <Input
-                                                id="pixelId"
-                                                name="pixelId"
-                                                defaultValue={siteSettings.analytics?.facebookPixelId}
-                                                placeholder="1234567890"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="flex justify-end pt-4">
-                                        <Button type="submit" disabled={updateSettingsMutation.isPending}>
-                                            {updateSettingsMutation.isPending ? "Guardando..." : "Guardar Configuración"}
-                                        </Button>
-                                    </div>
-                                </form>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </TabsContent>
-            </Tabs>
-        </div>
+                        </div>
+                    </TabsContent>
+                </Tabs>
+            </div>
+        </>
     );
 }
