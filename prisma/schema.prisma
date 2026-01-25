@@ -216,6 +216,7 @@ model Service {
   id              String        @id @default(cuid())
   companyId       String
   name            String
+  slug            String
   description     String?
   duration        Int           // Duration in minutes
   price           Decimal       @db.Decimal(10, 2)
@@ -236,6 +237,7 @@ model Service {
   analyticsEvents AnalyticsEvent[]
   bookings        Booking[]
   
+  @@unique([companyId, slug])
   @@map("services")
 }
 
@@ -366,7 +368,6 @@ model Template {
 model ServiceWebPage {
   id                String   @id @default(cuid())
   serviceId         String   @unique
-  slug              String   @unique
   displayTitle      String?
   heroImage         String?
   content           String?  // Rich text description

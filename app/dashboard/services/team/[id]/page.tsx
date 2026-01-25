@@ -42,12 +42,11 @@ import { Save, Trash2, Clock, Calendar as CalendarIcon, Plus, X } from "lucide-r
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export default function ProfessionalEditPage() {
     const params = useParams();
     const router = useRouter();
-    const { toast } = useToast();
     const professionalId = params.id as string;
 
     const { data: professional, isLoading } = trpc.resource.get.useQuery({
@@ -62,25 +61,22 @@ export default function ProfessionalEditPage() {
     const addBlockout = trpc.resource.addBlockout.useMutation({
         onSuccess: () => {
             utils.resource.get.invalidate({ id: professionalId });
-            toast({ title: "Excepción añadida" });
+            toast.success("Excepción añadida");
             setNewBlockout({ description: "", startTime: "", endTime: "" });
         }
     });
     const removeBlockout = trpc.resource.removeBlockout.useMutation({
         onSuccess: () => {
             utils.resource.get.invalidate({ id: professionalId });
-            toast({ title: "Excepción eliminada" });
+            toast.success("Excepción eliminada");
         }
     });
     const utils = trpc.useUtils();
     const deleteResource = trpc.resource.delete.useMutation({
         onSuccess: () => {
-            toast({
-                title: "Profesional desactivado",
-                description: "El profesional ha sido desactivado.",
-            });
+            toast.success("Profesional desactivado");
             router.push("/dashboard/services/team");
-        },
+        }
     });
 
     const [formData, setFormData] = useState({
@@ -146,42 +142,31 @@ export default function ProfessionalEditPage() {
     }, [professional]);
 
     const handleSaveAll = async () => {
-        try {
-            await updateResource.mutateAsync({
-                id: professionalId,
-                name: formData.name,
-                description: formData.description || null,
-                locationId: formData.locationId === "none" ? null : formData.locationId || null,
-                status: formData.status,
-                image: formData.image || null,
-            });
+        await updateResource.mutateAsync({
+            id: professionalId,
+            name: formData.name,
+            description: formData.description || null,
+            locationId: formData.locationId === "none" ? null : formData.locationId || null,
+            status: formData.status,
+            image: formData.image || null,
+        });
 
-            await assignServices.mutateAsync({
-                resourceId: professionalId,
-                serviceIds: selectedServiceIds,
-            });
+        await assignServices.mutateAsync({
+            resourceId: professionalId,
+            serviceIds: selectedServiceIds,
+        });
 
-            await updateAvailability.mutateAsync({
-                resourceId: professionalId,
-                slots: availabilitySlots.map(({ dayOfWeek, startTime, endTime, isAvailable }) => ({
-                    dayOfWeek,
-                    startTime,
-                    endTime,
-                    isAvailable
-                }))
-            });
+        await updateAvailability.mutateAsync({
+            resourceId: professionalId,
+            slots: availabilitySlots.map(({ dayOfWeek, startTime, endTime, isAvailable }) => ({
+                dayOfWeek,
+                startTime,
+                endTime,
+                isAvailable
+            }))
+        });
 
-            toast({
-                title: "Cambios guardados",
-                description: "Todos los cambios han sido guardados correctamente.",
-            });
-        } catch (error: any) {
-            toast({
-                title: "Error",
-                description: error.message || "Ocurrió un error al guardar",
-                variant: "destructive",
-            });
-        }
+        toast.success("Todos los cambios han sido guardados");
     };
 
     const toggleService = (serviceId: string) => {

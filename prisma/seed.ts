@@ -334,13 +334,13 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
             data: {
                 companyId: company.id,
                 name: s.name,
+                slug: s.slug,
                 description: s.shortDescription,
                 duration: s.duration,
                 price: s.price,
                 isPublic: true,
                 webPage: {
                     create: {
-                        slug: s.slug,
                         displayTitle: s.name,
                         heroImage: s.image,
                         content: s.content.trim(),

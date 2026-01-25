@@ -96,7 +96,7 @@ export async function GET(
     } else if (pathSegments[0] === "services" && pathSegments[1]) {
         // Service Detail Page: /services/[slug]
         const serviceSlug = pathSegments[1];
-        const service = company.services.find((s: any) => s.webPage?.slug === serviceSlug);
+        const service = company.services.find((s: any) => s.slug === serviceSlug);
 
         if (service) {
             // Always use index.html as the universal shell
@@ -227,7 +227,7 @@ export async function GET(
             services: company.services.map((s: any) => ({
                 id: s.id,
                 name: s.name,
-                slug: s.webPage?.slug,
+                slug: s.slug,
                 description: s.description,
                 price: s.price,
                 image: s.webPage?.heroImage

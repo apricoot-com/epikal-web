@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { toast } from "sonner";
 import {
     Card,
     CardContent,
@@ -97,6 +98,7 @@ export default function TeamPage() {
 
     const createResource = trpc.resource.create.useMutation({
         onSuccess: () => {
+            toast.success("Profesional creado");
             refetch();
             setDialogOpen(false);
             setForm(emptyForm);
@@ -104,6 +106,7 @@ export default function TeamPage() {
     });
     const updateResource = trpc.resource.update.useMutation({
         onSuccess: () => {
+            toast.success("Profesional actualizado");
             refetch();
             setDialogOpen(false);
             setForm(emptyForm);
@@ -111,10 +114,16 @@ export default function TeamPage() {
         },
     });
     const deleteResource = trpc.resource.delete.useMutation({
-        onSuccess: () => refetch(),
+        onSuccess: () => {
+            toast.success("Profesional desactivado");
+            refetch();
+        },
     });
     const assignServices = trpc.resource.assignServices.useMutation({
-        onSuccess: () => refetch(),
+        onSuccess: () => {
+            toast.success("Servicios asignados");
+            refetch();
+        },
     });
 
     const [dialogOpen, setDialogOpen] = useState(false);

@@ -9,6 +9,8 @@ import type { AppRouter } from "@/src/server/trpc/routers";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner"; // Assuming sonner is used, or replace with console/alert if uncertain
 
+import { Copy } from "lucide-react";
+
 /**
  * tRPC React hooks
  */
@@ -26,6 +28,39 @@ function getBaseUrl() {
 export function TRPCProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
 
+    const handleErrorToast = (error: any, fallbackMessage: string) => {
+        // Check if it's a TRPC error with UNAUTHORIZED code
+        if (error?.data?.code === "UNAUTHORIZED") {
+            router.push("/login");
+            return;
+        }
+
+        const message = error.message || fallbackMessage;
+
+        toast.error(message, {
+            description: (
+                <div className="flex justify-start mt-0.5">
+                    <button
+                        onClick={() => {
+                            const errorDetails = JSON.stringify({
+                                message: error.message,
+                                code: error.data?.code,
+                                path: error.data?.path,
+                                stack: error.data?.stack,
+                            }, null, 2);
+                            navigator.clipboard.writeText(errorDetails);
+                            toast.success("Copiado", { duration: 1000 });
+                        }}
+                        className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground/30 hover:text-foreground"
+                        title="Copiar detalles técnicos"
+                    >
+                        <Copy className="size-3" />
+                    </button>
+                </div>
+            )
+        });
+    };
+
     const [queryClient] = useState(
         () =>
             new QueryClient({
@@ -37,22 +72,10 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
                     },
                 },
                 queryCache: new QueryCache({
-                    onError: (error: any) => {
-                        // Check if it's a TRPC error with UNAUTHORIZED code
-                        if (error?.data?.code === "UNAUTHORIZED") {
-                            // Redirect to login
-                            router.push("/login");
-                        }
-                    },
+                    onError: (error: any) => handleErrorToast(error, "Ocurrió un error inesperado"),
                 }),
                 mutationCache: new MutationCache({
-                    onError: (error: any) => {
-                        // Check if it's a TRPC error with UNAUTHORIZED code
-                        if (error?.data?.code === "UNAUTHORIZED") {
-                            // Redirect to login
-                            router.push("/login");
-                        }
-                    }
+                    onError: (error: any) => handleErrorToast(error, "Error al realizar la operación"),
                 })
             })
     );

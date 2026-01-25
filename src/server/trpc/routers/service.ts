@@ -65,7 +65,6 @@ export const serviceRouter = router({
                     webPage: true,
                 },
             });
-
             if (!service) {
                 throw new TRPCError({
                     code: "NOT_FOUND",
@@ -87,6 +86,7 @@ export const serviceRouter = router({
         .input(
             z.object({
                 name: z.string().min(1).max(100),
+                slug: z.string().min(1).max(100).optional(),
                 description: z.string().max(2000).optional(),
                 duration: z.number().int().min(5).max(480),
                 price: z.number().min(0),
@@ -99,6 +99,10 @@ export const serviceRouter = router({
         .mutation(async ({ ctx, input }) => {
             const { resourceIds, ...data } = input;
 
+            // Simple slugify helper inside for fallback
+            const slugify = (text: string) => text.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-');
+            const finalSlug = data.slug || slugify(data.name);
+
             // Get max sortOrder
             const maxOrder = await ctx.prisma.service.aggregate({
                 where: { companyId: ctx.company.id },
@@ -108,9 +112,14 @@ export const serviceRouter = router({
             const service = await ctx.prisma.service.create({
                 data: {
                     companyId: ctx.company.id,
-                    ...data,
+                    name: data.name,
+                    slug: finalSlug,
+                    description: data.description,
+                    duration: data.duration,
                     price: data.price,
+                    allowsDeposit: data.allowsDeposit,
                     depositAmount: data.depositAmount ?? null,
+                    isPublic: data.isPublic,
                     sortOrder: (maxOrder._max.sortOrder ?? 0) + 1,
                 },
             });
@@ -140,6 +149,7 @@ export const serviceRouter = router({
             z.object({
                 id: z.string(),
                 name: z.string().min(1).max(100).optional(),
+                slug: z.string().min(1).max(100).optional(),
                 description: z.string().max(2000).optional().nullable(),
                 duration: z.number().int().min(5).max(480).optional(),
                 price: z.number().min(0).optional(),
@@ -216,7 +226,6 @@ export const serviceRouter = router({
         .input(
             z.object({
                 serviceId: z.string(),
-                slug: z.string().min(1).max(100),
                 displayTitle: z.string().optional(),
                 heroImage: z.string().optional().or(z.literal("")),
                 content: z.string().optional(),

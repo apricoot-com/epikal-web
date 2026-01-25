@@ -77,10 +77,9 @@ export default function SiteEditorPage() {
     // --- 2. Save Logic ---
     const updateCompany = trpc.company.update.useMutation({
         onSuccess: () => {
-            toast.success("Page saved successfully");
+            toast.success("Página guardada correctamente");
             utils.company.get.invalidate();
         },
-        onError: (err) => toast.error("Error saving: " + err.message)
     });
 
     const handleSave = () => {

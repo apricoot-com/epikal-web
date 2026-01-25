@@ -17,7 +17,7 @@ async function main() {
     for (const s of services) {
         console.log("---------------------------------------------------");
         console.log(`Service: ${s.name}`);
-        console.log(`Slug: ${s.webPage?.slug}`);
+        console.log(`Slug: ${s.slug}`);
         const faqs = s.webPage?.faqs;
         if (faqs && Array.isArray(faqs) && faqs.length > 0) {
             console.log(`✅ FAQs Found (${faqs.length}):`);

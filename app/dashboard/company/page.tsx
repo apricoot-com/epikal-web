@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { ImageUpload } from "@/components/ui/image-upload";
 import Image from "next/image";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 import {
     Card,
     CardContent,
@@ -100,6 +101,7 @@ export default function CompanySettingsPage() {
     const { data: locations, refetch: refetchLocations } = trpc.location.list.useQuery();
     const createLocation = trpc.location.create.useMutation({
         onSuccess: () => {
+            toast.success("Ubicación creada");
             refetchLocations();
             setLocationsDialogOpen(false);
             setLocationForm(emptyLocationForm);
@@ -107,6 +109,7 @@ export default function CompanySettingsPage() {
     });
     const updateLocation = trpc.location.update.useMutation({
         onSuccess: () => {
+            toast.success("Ubicación actualizada");
             refetchLocations();
             setLocationsDialogOpen(false);
             setLocationForm(emptyLocationForm);
@@ -114,7 +117,10 @@ export default function CompanySettingsPage() {
         },
     });
     const deleteLocation = trpc.location.delete.useMutation({
-        onSuccess: () => refetchLocations(),
+        onSuccess: () => {
+            toast.success("Ubicación eliminada");
+            refetchLocations();
+        },
     });
 
     const [locationsDialogOpen, setLocationsDialogOpen] = useState(false);
@@ -151,6 +157,7 @@ export default function CompanySettingsPage() {
             name,
             legalName: legalName || null,
         });
+        toast.success("Información general guardada");
     };
 
     // Handle social settings save
@@ -164,6 +171,7 @@ export default function CompanySettingsPage() {
                 tiktok: socialUrls.tiktok || null,
             },
         });
+        toast.success("Redes sociales actualizadas");
     };
 
     // Handle branding save
@@ -173,6 +181,7 @@ export default function CompanySettingsPage() {
             secondaryColor,
             logoUrl: logoUrl || null,
         });
+        toast.success("Identidad visual actualizada");
     };
 
     // Locations Handlers

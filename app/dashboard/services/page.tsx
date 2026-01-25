@@ -37,14 +37,14 @@ export default function ServicesPage() {
     const updateService = trpc.service.update.useMutation({
         onSuccess: () => {
             refetch();
-            toast.success("Service updated");
+            toast.success("Servicio actualizado");
         },
     });
 
     const deleteService = trpc.service.delete.useMutation({
         onSuccess: () => {
             refetch();
-            toast.success("Service deactivated");
+            toast.success("Servicio desactivado");
         },
     });
 

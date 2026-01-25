@@ -42,6 +42,7 @@ export default function ServiceEditorPage() {
 
     // Core Service Data State
     const [name, setName] = useState("");
+    const [slug, setSlug] = useState("");
     const [description, setDescription] = useState("");
 
     // Web / SEO State
@@ -65,6 +66,7 @@ export default function ServiceEditorPage() {
         if (service) {
             // Basic
             setName(service.name);
+            setSlug(service.slug);
             setDescription(service.description || "");
             setPrice(service.price);
             setDuration(service.duration);
@@ -87,10 +89,10 @@ export default function ServiceEditorPage() {
 
     const createService = trpc.service.create.useMutation({
         onSuccess: (data) => {
-            // Always update web details to ensure slug, image, content, and FAQs are saved
+            toast.success("Servicio creado correctamente");
+            // Always update web details to ensure image, content, and FAQs are saved
             updateWebDetails.mutate({
                 serviceId: data.id,
-                slug: slugify(data.name), // Auto-generate slug
                 displayTitle: data.name,
                 heroImage,
                 content,
@@ -101,15 +103,14 @@ export default function ServiceEditorPage() {
                 faqs: faqs
             });
         },
-        onError: (err) => toast.error("Error al crear servicio: " + err.message)
     });
 
     const updateService = trpc.service.update.useMutation({
         onSuccess: () => {
+            toast.success("Información básica actualizada");
             // After basic update, update web details
             updateWebDetails.mutate({
                 serviceId,
-                slug: slugify(name), // Auto-update slug
                 displayTitle: name,
                 heroImage,
                 content,
@@ -120,25 +121,24 @@ export default function ServiceEditorPage() {
                 faqs: faqs
             });
         },
-        onError: (err) => toast.error("Error al guardar servicios: " + err.message)
     });
 
     const updateWebDetails = trpc.service.updateWebDetails.useMutation({
         onSuccess: () => {
-            toast.success("Servicio guardado exitosamente");
+            toast.success("Detalles web actualizados");
             utils.service.get.invalidate({ id: serviceId });
             utils.service.list.invalidate();
             if (isNew) {
                 router.push(`/dashboard/services/${serviceId}`);
             }
         },
-        onError: (err) => toast.error("Error al guardar detalles web: " + err.message)
     });
 
     const handleSave = () => {
         if (isNew) {
             createService.mutate({
                 name,
+                slug: slug || slugify(name),
                 description,
                 price,
                 duration,
@@ -151,6 +151,7 @@ export default function ServiceEditorPage() {
             updateService.mutate({
                 id: serviceId,
                 name,
+                slug,
                 description,
                 price,
                 duration,
@@ -224,13 +225,40 @@ export default function ServiceEditorPage() {
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                <div className="space-y-2">
-                                    <Label>Nombre del Servicio</Label>
-                                    <Input
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                        placeholder="Ej. Masaje de Tejido Profundo"
-                                    />
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label>Nombre del Servicio</Label>
+                                        <Input
+                                            value={name}
+                                            onChange={(e) => {
+                                                setName(e.target.value);
+                                                // Auto-generate slug only if it's new and empty
+                                                if (isNew && !slug) {
+                                                    setSlug(slugify(e.target.value));
+                                                }
+                                            }}
+                                            placeholder="Ej. Masaje de Tejido Profundo"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label>Enlace Público (Slug)</Label>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-6 text-[10px] px-2"
+                                                onClick={() => setSlug(slugify(name))}
+                                            >
+                                                Sugerir
+                                            </Button>
+                                        </div>
+                                        <Input
+                                            value={slug}
+                                            onChange={(e) => setSlug(slugify(e.target.value))}
+                                            placeholder="ej-masaje-tejido-profundo"
+                                            className="font-mono text-sm"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="space-y-2">
