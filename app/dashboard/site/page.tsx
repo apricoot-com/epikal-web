@@ -18,14 +18,28 @@ import { trpc } from "@/src/lib/trpc/client";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import {
     LayoutTemplate,
     Home,
     MessageSquare,
     Contact,
     Settings,
     ArrowRight,
-    ExternalLink
+    ExternalLink,
+    BarChart3,
+    Tag,
+    Facebook,
+    Pencil
 } from "lucide-react";
+import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { DashboardHeader } from "@/components/dashboard/header";
 
@@ -39,6 +53,61 @@ export default function SiteEditorPage() {
             refetch();
         }
     });
+
+    const utils = trpc.useUtils();
+    const [gtmId, setGtmId] = useState('');
+    const [fbPixelId, setFbPixelId] = useState('');
+    const [fbToken, setFbToken] = useState('');
+
+    const [gtmDialogOpen, setGtmDialogOpen] = useState(false);
+    const [fbDialogOpen, setFbDialogOpen] = useState(false);
+
+    // Initialize form values when company data loads
+    useEffect(() => {
+        if (company) {
+            setGtmId(company.gtmContainerId || '');
+            setFbPixelId(company.fbPixelId || '');
+        }
+    }, [company]);
+
+    const updateGTM = trpc.analytics.updateGTM.useMutation({
+        onSuccess: () => {
+            toast.success("Google Tag Manager actualizado");
+            utils.company.get.invalidate();
+        },
+        onError: (error) => {
+            toast.error("Error al actualizar GTM: " + error.message);
+        }
+    });
+
+    const updateFB = trpc.analytics.updateFacebookPixel.useMutation({
+        onSuccess: () => {
+            toast.success("Facebook Pixel actualizado");
+            utils.company.get.invalidate();
+            setFbToken(''); // Clear token after saving
+        },
+        onError: (error) => {
+            toast.error("Error al actualizar Facebook Pixel: " + error.message);
+        }
+    });
+
+    const handleSaveGTM = async () => {
+        // Validate GTM ID format
+        if (gtmId && !/^GTM-[A-Z0-9]+$/.test(gtmId)) {
+            toast.error("Formato de GTM ID inválido. Debe ser GTM-XXXXXX");
+            return;
+        }
+        await updateGTM.mutateAsync({ gtmContainerId: gtmId || null });
+        setGtmDialogOpen(false);
+    };
+
+    const handleSaveFB = async () => {
+        await updateFB.mutateAsync({
+            fbPixelId: fbPixelId || null,
+            fbAccessToken: fbToken || null
+        });
+        setFbDialogOpen(false);
+    };
 
     if (isLoading) {
         return (
@@ -183,46 +252,165 @@ export default function SiteEditorPage() {
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="configuration">
-                        {/* Global Settings */}
-                        <div className="w-full">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Analítica</CardTitle>
-                                    <CardDescription>
-                                        Conecta Google Tag Manager y Facebook Pixel.
-                                    </CardDescription>
+                    <TabsContent value="configuration" className="space-y-6">
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            {/* Basic Analytics Card */}
+                            <Card className="group relative overflow-hidden transition-all hover:border-primary/50">
+                                <CardHeader className="pb-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg text-green-600 dark:text-green-400">
+                                            <BarChart3 className="h-5 w-5" />
+                                        </div>
+                                        <Badge variant="outline" className="bg-green-100/50 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200">
+                                            ✓ Activo
+                                        </Badge>
+                                    </div>
+                                    <CardTitle className="text-lg">Analiticas Epikal</CardTitle>
+                                    <CardDescription>Estadísticas básicas de visitas y agendamientos siempre activas.</CardDescription>
                                 </CardHeader>
-                                <CardContent>
-                                    <form onSubmit={handleSaveGeneral} className="space-y-4">
-                                        <div className="grid gap-4 sm:grid-cols-2">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="gtmId">Google Tag Manager ID</Label>
-                                                <Input
-                                                    id="gtmId"
-                                                    name="gtmId"
-                                                    defaultValue={siteSettings.analytics?.googleTagManagerId}
-                                                    placeholder="GTM-XXXXXX"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="pixelId">Facebook Pixel ID</Label>
-                                                <Input
-                                                    id="pixelId"
-                                                    name="pixelId"
-                                                    defaultValue={siteSettings.analytics?.facebookPixelId}
-                                                    placeholder="1234567890"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-end pt-4">
-                                            <Button type="submit" disabled={updateSettingsMutation.isPending}>
-                                                {updateSettingsMutation.isPending ? "Guardando..." : "Guardar Configuración"}
-                                            </Button>
-                                        </div>
-                                    </form>
-                                </CardContent>
                             </Card>
+
+                            {/* GTM Card */}
+                            <Card className="group relative overflow-hidden transition-all hover:border-primary/50">
+                                <CardHeader className="pb-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-400">
+                                            <Tag className="h-5 w-5" />
+                                        </div>
+                                        {company?.gtmContainerId ? (
+                                            <Badge variant="outline" className="border-blue-200 text-blue-700">Configurado</Badge>
+                                        ) : (
+                                            <Badge variant="secondary">No configurado</Badge>
+                                        )}
+                                    </div>
+                                    <CardTitle className="text-lg">Google Tag Manager</CardTitle>
+                                    <CardDescription>Para tracking avanzado con GA4 y eventos personalizados.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="pb-4">
+                                    <div className="text-sm font-mono text-muted-foreground truncate">
+                                        {company?.gtmContainerId || "Sin ID asignado"}
+                                    </div>
+                                </CardContent>
+                                <CardFooter className="pt-0">
+                                    <Dialog open={gtmDialogOpen} onOpenChange={setGtmDialogOpen}>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" size="sm" className="w-full gap-2">
+                                                <Pencil className="h-3.5 w-3.5" />
+                                                Configurar
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Configurar Google Tag Manager</DialogTitle>
+                                                <DialogDescription>
+                                                    Ingresa tu Container ID para activar el rastreo avanzado.
+                                                </DialogDescription>
+                                            </DialogHeader>
+                                            <div className="space-y-4 py-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="gtm-id">Container ID</Label>
+                                                    <Input
+                                                        id="gtm-id"
+                                                        placeholder="GTM-XXXXXX"
+                                                        value={gtmId}
+                                                        onChange={(e) => setGtmId(e.target.value.toUpperCase())}
+                                                    />
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Formato: GTM-XXXXXX
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <DialogFooter>
+                                                <Button onClick={handleSaveGTM} disabled={updateGTM.isPending}>
+                                                    {updateGTM.isPending ? "Guardando..." : "Guardar cambios"}
+                                                </Button>
+                                            </DialogFooter>
+                                        </DialogContent>
+                                    </Dialog>
+                                </CardFooter>
+                            </Card>
+
+                            {/* Facebook Pixel Card */}
+                            <Card className="group relative overflow-hidden transition-all hover:border-primary/50">
+                                <CardHeader className="pb-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg text-indigo-600 dark:text-indigo-400">
+                                            <Facebook className="h-5 w-5" />
+                                        </div>
+                                        {company?.fbPixelId ? (
+                                            <Badge variant="outline" className="border-indigo-200 text-indigo-700">Configurado</Badge>
+                                        ) : (
+                                            <Badge variant="secondary">No configurado</Badge>
+                                        )}
+                                    </div>
+                                    <CardTitle className="text-lg">Meta Pixel & CAPI</CardTitle>
+                                    <CardDescription>Rastrea conversiones y eventos directamente desde el servidor.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="pb-4">
+                                    <div className="text-sm font-mono text-muted-foreground truncate">
+                                        {company?.fbPixelId || "Sin Pixel ID"}
+                                    </div>
+                                </CardContent>
+                                <CardFooter className="pt-0">
+                                    <Dialog open={fbDialogOpen} onOpenChange={setFbDialogOpen}>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" size="sm" className="w-full gap-2">
+                                                <Pencil className="h-3.5 w-3.5" />
+                                                Configurar
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Configurar Meta Pixel & CAPI</DialogTitle>
+                                                <DialogDescription>
+                                                    Configura tu Pixel ID y Access Token para la API de Conversiones.
+                                                </DialogDescription>
+                                            </DialogHeader>
+                                            <div className="space-y-4 py-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="fb-pixel">Pixel ID</Label>
+                                                    <Input
+                                                        id="fb-pixel"
+                                                        placeholder="123456789012345"
+                                                        value={fbPixelId}
+                                                        onChange={(e) => setFbPixelId(e.target.value)}
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="fb-token">Access Token (Conversiones API)</Label>
+                                                    <Input
+                                                        id="fb-token"
+                                                        type="password"
+                                                        placeholder="EAAxxxxxxxxxx"
+                                                        value={fbToken}
+                                                        onChange={(e) => setFbToken(e.target.value)}
+                                                    />
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Recomendado para evitar bloqueos de navegador.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <DialogFooter>
+                                                <Button onClick={handleSaveFB} disabled={updateFB.isPending}>
+                                                    {updateFB.isPending ? "Guardando..." : "Guardar cambios"}
+                                                </Button>
+                                            </DialogFooter>
+                                        </DialogContent>
+                                    </Dialog>
+                                </CardFooter>
+                            </Card>
+                        </div>
+
+                        {/* Help Banner */}
+                        <div className="p-4 bg-slate-50 dark:bg-slate-900/10 border border-dashed rounded-lg">
+                            <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                                <Settings className="h-4 w-4 text-muted-foreground" />
+                                Acerca de las integraciones
+                            </h3>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                                Estas integraciones permiten que tu sitio web envíe datos directamente a tus plataformas de marketing.
+                                Epikal Analytics siempre está activo para darte las métricas del dashboard sin necesidad de configuración externa.
+                            </p>
                         </div>
                     </TabsContent>
                 </Tabs>

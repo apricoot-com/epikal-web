@@ -108,21 +108,9 @@ const settingsItems = [
         roles: ["SUPERADMIN", "OWNER"],
     },
     {
-        title: "Ubicaciones",
-        href: "/dashboard/company/locations",
-        icon: Settings,
-        roles: ["SUPERADMIN", "OWNER"],
-    },
-    {
         title: "Sitio Web",
         href: "/dashboard/site",
         icon: Globe,
-        roles: ["SUPERADMIN", "OWNER"],
-    },
-    {
-        title: "Integraciones",
-        href: "/dashboard/settings/integrations",
-        icon: BarChart3,
         roles: ["SUPERADMIN", "OWNER"],
     },
 ];
