@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { z } from "zod";
 import {
     DropdownMenu,
@@ -98,6 +99,25 @@ export function BlockPropsForm({ block, onChange }: BlockPropsFormProps) {
         );
 
         if (typeName === "ZodString") {
+            const isImage = key.toLowerCase().includes('image') ||
+                key.toLowerCase().includes('logo') ||
+                key.toLowerCase().includes('icon') ||
+                key.toLowerCase().includes('avatar');
+
+            if (isImage) {
+                return (
+                    <div key={key} className="space-y-2">
+                        {renderLabelWithVariables()}
+                        <ImageUpload
+                            value={value}
+                            onChange={(url) => onChange(block.id, { ...block.props, [key]: url })}
+                            onRemove={() => onChange(block.id, { ...block.props, [key]: "" })}
+                            folder="templates"
+                        />
+                    </div>
+                );
+            }
+
             if (key === 'content' || key === 'description' || key === 'answer') {
                 return (
                     <div key={key} className="space-y-2">

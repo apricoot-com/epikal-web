@@ -73,7 +73,7 @@ export const companyRouter = router({
 
             const updated = await ctx.prisma.company.update({
                 where: { id: ctx.company.id },
-                data: input,
+                data: input as any,
             });
 
             return updated;
@@ -97,7 +97,7 @@ export const companyRouter = router({
     updateBranding: companyProcedure
         .input(
             z.object({
-                logoUrl: z.string().url().optional().nullable(),
+                logoUrl: z.string().optional().nullable(),
                 primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
                 secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
                 brandTone: z.string().max(100).optional().nullable(),

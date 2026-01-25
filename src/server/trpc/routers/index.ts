@@ -10,6 +10,7 @@ import { analyticsRouter } from "./analytics";
 import { bookingRouter } from "./booking";
 import { calendarRouter } from "./calendar";
 import { customerRouter } from "./customer";
+import { storageRouter } from "./storage";
 
 /**
  * Root router for all tRPC endpoints
@@ -35,6 +36,7 @@ export const appRouter = router({
     booking: bookingRouter,
     calendar: calendarRouter,
     customer: customerRouter,
+    storage: storageRouter,
 });
 
 export type AppRouter = typeof appRouter;

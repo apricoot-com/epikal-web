@@ -16,6 +16,7 @@ import { ArrowLeft, Save, Loader2, GripVertical, Trash2, DollarSign, Clock, Plus
 import { toast } from "sonner";
 import { z } from "zod";
 import { MarkdownEditor } from "@/components/editor/markdown-editor";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 // Simple slugify helper
 function slugify(text: string) {
@@ -233,19 +234,15 @@ export default function ServiceEditorPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label component-id="image-url-label">URL de Imagen</Label>
-                                    <Input
+                                    <Label>Imagen del Servicio</Label>
+                                    <ImageUpload
                                         value={heroImage}
-                                        onChange={(e) => setHeroImage(e.target.value)}
-                                        placeholder="https://..."
+                                        onChange={(url) => setHeroImage(url)}
+                                        onRemove={() => setHeroImage("")}
+                                        folder="services"
+                                        description="Esta imagen aparecerá en la página principal y en el detalle del servicio."
                                     />
                                 </div>
-
-                                {heroImage && (
-                                    <div className="aspect-video w-full md:w-1/2 rounded-lg bg-muted border overflow-hidden relative">
-                                        <img src={heroImage} alt="Vista previa" className="w-full h-full object-cover" />
-                                    </div>
-                                )}
 
                                 <div className="space-y-2">
                                     <Label>Descripción Corta</Label>

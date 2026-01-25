@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ui/image-upload";
+import Image from "next/image";
 import {
     Card,
     CardContent,
@@ -86,6 +88,7 @@ export default function ProfessionalEditPage() {
         description: "",
         locationId: "",
         status: "ACTIVE" as "ACTIVE" | "INACTIVE",
+        image: "",
     });
 
     const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
@@ -114,14 +117,16 @@ export default function ProfessionalEditPage() {
 
     useEffect(() => {
         if (professional) {
+            const prof = professional as any;
             setFormData({
-                name: professional.name,
-                description: professional.description || "",
-                locationId: professional.locationId || "none",
-                status: professional.status,
+                name: prof.name,
+                description: prof.description || "",
+                locationId: prof.locationId || "none",
+                status: prof.status,
+                image: prof.image || "",
             });
             setSelectedServiceIds(
-                professional.services.map((s: any) => s.service.id)
+                prof.services.map((s: any) => s.service.id)
             );
 
             // Fix: Ensure availabilitySlots always contains all 7 days
@@ -148,6 +153,7 @@ export default function ProfessionalEditPage() {
                 description: formData.description || null,
                 locationId: formData.locationId === "none" ? null : formData.locationId || null,
                 status: formData.status,
+                image: formData.image || null,
             });
 
             await assignServices.mutateAsync({
@@ -260,6 +266,16 @@ export default function ProfessionalEditPage() {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
+                                    <div className="space-y-4">
+                                        <Label>Foto de perfil</Label>
+                                        <ImageUpload
+                                            value={formData.image}
+                                            onChange={(url) => setFormData({ ...formData, image: url })}
+                                            onRemove={() => setFormData({ ...formData, image: "" })}
+                                            folder="profiles"
+                                        />
+                                    </div>
+
                                     <div className="space-y-2">
                                         <Label htmlFor="name">Nombre *</Label>
                                         <Input

@@ -218,7 +218,7 @@ export const serviceRouter = router({
                 serviceId: z.string(),
                 slug: z.string().min(1).max(100),
                 displayTitle: z.string().optional(),
-                heroImage: z.string().url().optional().or(z.literal("")),
+                heroImage: z.string().optional().or(z.literal("")),
                 content: z.string().optional(),
                 blocks: z.array(z.any()).optional(), // SiteBlock[]
                 seo: z.object({

@@ -98,6 +98,7 @@ export const resourceRouter = router({
                 description: z.string().max(500).optional(),
                 locationId: z.string().optional(),
                 serviceIds: z.array(z.string()).optional(),
+                image: z.string().optional(),
             })
         )
         .mutation(async ({ ctx, input }) => {
@@ -134,6 +135,7 @@ export const resourceRouter = router({
                 description: z.string().max(500).optional().nullable(),
                 locationId: z.string().optional().nullable(),
                 status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
+                image: z.string().optional().nullable(),
             })
         )
         .mutation(async ({ ctx, input }) => {

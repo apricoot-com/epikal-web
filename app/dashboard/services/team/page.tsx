@@ -7,6 +7,7 @@ import { trpc } from "@/src/lib/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
     Card,
     CardContent,
@@ -45,17 +46,20 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, User, Pencil, Trash2, MapPin } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 type ResourceFormData = {
     name: string;
     description: string;
     locationId: string;
+    image: string;
 };
 
 const emptyForm: ResourceFormData = {
     name: "",
     description: "",
     locationId: "",
+    image: "",
 };
 
 // Types for tRPC data
@@ -78,6 +82,7 @@ interface ResourceData {
     status: "ACTIVE" | "INACTIVE";
     location: LocationData | null;
     services: { service: ServiceData }[];
+    image: string | null;
 }
 
 export default function TeamPage() {
@@ -132,12 +137,14 @@ export default function TeamPage() {
         name: string;
         description: string | null;
         locationId: string | null;
+        image: string | null;
     }) => {
         setEditingId(resource.id);
         setForm({
             name: resource.name,
             description: resource.description || "",
             locationId: resource.locationId || "",
+            image: resource.image || "",
         });
         setDialogOpen(true);
     };
@@ -159,6 +166,7 @@ export default function TeamPage() {
                 name: form.name,
                 description: form.description || null,
                 locationId: form.locationId || null,
+                image: form.image || null,
             });
         } else {
             await createResource.mutateAsync({
@@ -208,8 +216,8 @@ export default function TeamPage() {
             <div className="flex flex-1 flex-col p-4">
                 <div className="flex items-center justify-between mb-4">
                     <p className="text-muted-foreground">
-                        {resources?.filter((r: ResourceData) => r.status === "ACTIVE").length || 0} profesional
-                        {resources?.filter((r: ResourceData) => r.status === "ACTIVE").length !== 1 ? "es" : ""} activ{resources?.filter((r: ResourceData) => r.status === "ACTIVE").length !== 1 ? "os" : "o"}
+                        {resources?.filter((r: any) => r.status === "ACTIVE").length || 0} profesional
+                        {resources?.filter((r: any) => r.status === "ACTIVE").length !== 1 ? "es" : ""} activ{resources?.filter((r: any) => r.status === "ACTIVE").length !== 1 ? "os" : "o"}
                     </p>
                     {canEdit && (
                         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -232,6 +240,15 @@ export default function TeamPage() {
                                         </DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-4 py-4">
+                                        <div className="space-y-2 mb-4">
+                                            <Label>Foto de perfil</Label>
+                                            <ImageUpload
+                                                value={form.image}
+                                                onChange={(url) => setForm({ ...form, image: url })}
+                                                onRemove={() => setForm({ ...form, image: "" })}
+                                                folder="profiles"
+                                            />
+                                        </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="name">Nombre *</Label>
                                             <Input
@@ -345,7 +362,7 @@ export default function TeamPage() {
                     </Card>
                 ) : (
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {resources?.map((resource: ResourceData) => (
+                        {resources?.map((resource: any) => (
                             <Card
                                 key={resource.id}
                                 className={`group cursor-pointer transition-all hover:border-primary/50 hover:shadow-sm ${resource.status === "INACTIVE" ? "opacity-50" : ""}`}
@@ -353,8 +370,23 @@ export default function TeamPage() {
                             >
                                 <CardHeader className="pb-2">
                                     <div className="flex items-start justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <User className="size-5 text-primary" />
+                                        <div className="flex items-center gap-3">
+                                            {resource.image ? (
+                                                <div className="relative size-10 rounded-full overflow-hidden border">
+                                                    <Image
+                                                        src={resource.image}
+                                                        alt={resource.name}
+                                                        fill
+                                                        className="object-cover"
+                                                        sizes="40px"
+                                                        unoptimized={resource.image.startsWith("/")}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                                    <User className="size-5" />
+                                                </div>
+                                            )}
                                             <CardTitle className="text-lg group-hover:text-primary transition-colors">{resource.name}</CardTitle>
                                         </div>
                                         {canEdit && (

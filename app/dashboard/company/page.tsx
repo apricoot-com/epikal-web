@@ -5,6 +5,8 @@ import { DashboardHeader } from "@/components/dashboard/header";
 import { trpc } from "@/src/lib/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ImageUpload } from "@/components/ui/image-upload";
+import Image from "next/image";
 import { Label } from "@/components/ui/label";
 import {
     Card,
@@ -20,6 +22,7 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import {
     Plus,
     MapPin,
@@ -83,6 +86,7 @@ export default function CompanySettingsPage() {
     const [legalName, setLegalName] = useState("");
     const [primaryColor, setPrimaryColor] = useState("#3B82F6");
     const [secondaryColor, setSecondaryColor] = useState("#10B981");
+    const [logoUrl, setLogoUrl] = useState("");
 
     const [socialUrls, setSocialUrls] = useState({
         facebook: "",
@@ -128,6 +132,7 @@ export default function CompanySettingsPage() {
             setLegalName(company.legalName || "");
             setPrimaryColor(company.branding?.primaryColor || "#3B82F6");
             setSecondaryColor(company.branding?.secondaryColor || "#10B981");
+            setLogoUrl(company.branding?.logoUrl || "");
 
             const savedSocial = (company.socialUrls as any) || {};
             setSocialUrls({
@@ -166,6 +171,7 @@ export default function CompanySettingsPage() {
         await updateBranding.mutateAsync({
             primaryColor,
             secondaryColor,
+            logoUrl: logoUrl || null,
         });
     };
 
@@ -507,8 +513,21 @@ export default function CompanySettingsPage() {
                                     Define los colores y estilo visual de tu negocio
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <CardContent className="space-y-6">
+                                <div className="space-y-4">
+                                    <Label>Logotipo de la empresa</Label>
+                                    <ImageUpload
+                                        value={logoUrl}
+                                        onChange={(url) => setLogoUrl(url)}
+                                        onRemove={() => setLogoUrl("")}
+                                        folder="branding"
+                                        description="Se usará en emails, facturas y tu sitio web."
+                                    />
+                                </div>
+
+                                <Separator />
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <Label htmlFor="primaryColor">Color primario</Label>
                                         <div className="flex gap-2">

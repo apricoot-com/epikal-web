@@ -249,6 +249,7 @@ model Resource {
   description     String?
   status          ServiceStatus @default(ACTIVE)
   calendarId      String?       // External calendar ID (Google Calendar)
+  image           String?       // Profile image URL
   
   // Timestamps
   createdAt       DateTime      @default(now())
