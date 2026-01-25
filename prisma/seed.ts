@@ -476,11 +476,11 @@ Ideal para *todo tipo de piel*. Recomendamos realizar este tratamiento una vez a
                             {
                                 type: "testimonials",
                                 props: {
-                                    title: "Lo que dicen nuestros pacientes",
+                                    title: "Lo que dicen nuestros clientes",
                                     items: [
-                                        { text: "¡Increíble servicio! Mi piel nunca había lucido tan bien. La Dra. Sofía es una experta.", author: "Ana P.", role: "Paciente Regular" },
+                                        { text: "¡Increíble servicio! Mi piel nunca había lucido tan bien. La Dra. Sofía es una experta.", author: "Ana P.", role: "Cliente Regular" },
                                         { text: "El masaje relajante fue justo lo que necesitaba. El ambiente es súper tranquilo.", author: "Carlos M.", role: "Cliente Nuevo" },
-                                        { text: "Me encanta la facilidad para agendar citas desde su página.", author: "Lucía R.", role: "Paciente" }
+                                        { text: "Me encanta la facilidad para agendar citas desde su página.", author: "Lucía R.", role: "Cliente" }
                                     ]
                                 }
                             },

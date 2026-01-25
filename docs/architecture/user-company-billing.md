@@ -208,3 +208,4 @@ Track and handle:
 ## Related Documents
 
 - [Calendar & Scheduling Architecture](./calendar-scheduling.md) - Appointments, professionals, working hours
+- [i18n & Terminology Architecture](./i18n-terminology.md) - Multi-language and custom business terms

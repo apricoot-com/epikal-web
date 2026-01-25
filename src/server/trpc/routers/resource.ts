@@ -65,6 +65,15 @@ export const resourceRouter = router({
                             service: true,
                         },
                     },
+                    availability: {
+                        orderBy: { dayOfWeek: 'asc' }
+                    },
+                    blockouts: {
+                        where: {
+                            endTime: { gte: new Date() } // Only future or current blockouts
+                        },
+                        orderBy: { startTime: 'asc' }
+                    }
                 },
             });
 
@@ -247,6 +256,127 @@ export const resourceRouter = router({
                         resourceId: input.resourceId,
                     },
                 },
+            });
+
+            return { success: true };
+        }),
+
+    /**
+     * Get availability for a resource
+     */
+    getAvailability: companyProcedure
+        .input(z.object({ resourceId: z.string() }))
+        .query(async ({ ctx, input }) => {
+            return await ctx.prisma.availability.findMany({
+                where: { resourceId: input.resourceId },
+                orderBy: { dayOfWeek: 'asc' }
+            });
+        }),
+
+    /**
+     * Update availability for a resource (full replace)
+     */
+    updateAvailability: companyProcedure
+        .input(
+            z.object({
+                resourceId: z.string(),
+                slots: z.array(z.object({
+                    dayOfWeek: z.enum(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]),
+                    startTime: z.string(),
+                    endTime: z.string(),
+                    isAvailable: z.boolean().default(true)
+                }))
+            })
+        )
+        .mutation(async ({ ctx, input }) => {
+            // Verify resource belongs to company
+            const resource = await ctx.prisma.resource.findFirst({
+                where: { id: input.resourceId, companyId: ctx.company.id },
+            });
+
+            if (!resource) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Recurso no encontrado",
+                });
+            }
+
+            // Transaction to replace all slots
+            return await ctx.prisma.$transaction(async (tx) => {
+                // 1. Delete all current slots
+                await tx.availability.deleteMany({
+                    where: { resourceId: input.resourceId }
+                });
+
+                // 2. Create new slots
+                if (input.slots.length > 0) {
+                    await tx.availability.createMany({
+                        data: input.slots.map(slot => ({
+                            resourceId: input.resourceId,
+                            ...slot
+                        }))
+                    });
+                }
+
+                return { success: true };
+            });
+        }),
+
+    /**
+     * Add a blockout for a resource
+     */
+    addBlockout: companyProcedure
+        .input(z.object({
+            resourceId: z.string(),
+            description: z.string().optional(),
+            startTime: z.date(),
+            endTime: z.date()
+        }))
+        .mutation(async ({ ctx, input }) => {
+            // Verify resource belongs to company
+            const resource = await ctx.prisma.resource.findFirst({
+                where: { id: input.resourceId, companyId: ctx.company.id },
+            });
+
+            if (!resource) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Recurso no encontrado",
+                });
+            }
+
+            return await ctx.prisma.blockout.create({
+                data: {
+                    resourceId: input.resourceId,
+                    description: input.description,
+                    startTime: input.startTime,
+                    endTime: input.endTime
+                }
+            });
+        }),
+
+    /**
+     * Remove a blockout
+     */
+    removeBlockout: companyProcedure
+        .input(z.object({ id: z.string() }))
+        .mutation(async ({ ctx, input }) => {
+            const blockout = await ctx.prisma.blockout.findFirst({
+                where: {
+                    id: input.id,
+                    resource: { companyId: ctx.company.id }
+                }
+            });
+
+            if (!blockout) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Bloqueo no encontrado",
+                });
+            }
+
+            await ctx.prisma.blockout.delete({
+                where: { id: input.id }
             });
 
             return { success: true };

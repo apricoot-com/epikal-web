@@ -26,6 +26,7 @@ import { Mail, Phone, Calendar as CalendarIcon, User, Clock, Trash2, Edit, Copy,
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
+import { CheckCircle, XCircle, Undo } from 'lucide-react';
 
 export default function CalendarView() {
     const { toast } = useToast();
@@ -41,6 +42,18 @@ export default function CalendarView() {
     // Side Panel State
     const [selectedEvent, setSelectedEvent] = useState<any>(null);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+    const updateStatus = trpc.booking.updateStatus.useMutation({
+        onSuccess: () => {
+            toast({ title: "Estado actualizado", description: "La cita ha sido actualizada correctamente." });
+            refetch();
+            setIsSheetOpen(false);
+        }
+    });
+
+    const isStarted = selectedEvent ? (selectedEvent.start ? new Date(selectedEvent.start) <= new Date() : false) : false;
+    const isBooking = selectedEvent?.extendedProps?.type === 'booking';
+    const status = selectedEvent?.extendedProps?.status;
 
     // Fetch resources for filter
     const { data: resources } = trpc.resource.list.useQuery();
@@ -119,6 +132,7 @@ export default function CalendarView() {
                             slotMinTime="08:00:00"
                             slotMaxTime="20:00:00"
                             height="100%"
+                            eventClassNames="cursor-pointer"
                             // expandRows removed for natural scrolling
                             stickyHeaderDates
                         />
@@ -265,13 +279,38 @@ export default function CalendarView() {
                                 </div>
                             </div>
 
-                            <div className="p-6 border-t bg-muted/5 mt-auto flex gap-3">
-                                <Button variant="outline" className="flex-1 gap-2 font-bold py-6 rounded-xl transition-all hover:bg-primary/5 hover:text-primary hover:border-primary/30">
-                                    <Edit className="h-4 w-4" /> Editar Evento
-                                </Button>
-                                <Button variant="destructive" className="flex-1 gap-2 font-bold py-6 rounded-xl transition-all shadow-lg shadow-destructive/10">
-                                    <Trash2 className="h-4 w-4" /> Eliminar
-                                </Button>
+                            <div className="p-6 border-t bg-muted/5 mt-auto space-y-3">
+                                {isBooking && isStarted && status !== 'COMPLETED' && status !== 'NO_SHOW' && (
+                                    <div className="grid grid-cols-2 gap-3 mb-3 pb-3 border-b border-muted">
+                                        <Button
+                                            variant="default"
+                                            className="bg-green-600 hover:bg-green-700 text-white font-bold h-12 rounded-xl flex items-center gap-2"
+                                            onClick={() => updateStatus.mutate({ id: selectedEvent.id, status: 'COMPLETED' })}
+                                            disabled={updateStatus.isPending}
+                                        >
+                                            <CheckCircle className="h-5 w-5" />
+                                            Asistió
+                                        </Button>
+                                        <Button
+                                            variant="secondary"
+                                            className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200 font-bold h-12 rounded-xl flex items-center gap-2"
+                                            onClick={() => updateStatus.mutate({ id: selectedEvent.id, status: 'NO_SHOW' })}
+                                            disabled={updateStatus.isPending}
+                                        >
+                                            <XCircle className="h-5 w-5" />
+                                            No asistió
+                                        </Button>
+                                    </div>
+                                )}
+
+                                <div className="flex gap-3">
+                                    <Button variant="outline" className="flex-1 gap-2 font-bold py-6 rounded-xl transition-all hover:bg-primary/5 hover:text-primary hover:border-primary/30">
+                                        <Edit className="h-4 w-4" /> Editar Evento
+                                    </Button>
+                                    <Button variant="destructive" className="flex-1 gap-2 font-bold py-6 rounded-xl transition-all shadow-lg shadow-destructive/10">
+                                        <Trash2 className="h-4 w-4" /> Eliminar
+                                    </Button>
+                                </div>
                             </div>
                         </>
                     )}
