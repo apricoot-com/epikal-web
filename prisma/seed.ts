@@ -2,33 +2,11 @@ import "dotenv/config";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
-import crypto from "crypto";
 import { auth } from "../src/lib/auth";
-
-async function hashPassword(password: string) {
-    // Basic Scrypt hash compliant with many auth systems
-    // Format: salt:key
-    const salt = crypto.randomBytes(16).toString("hex");
-    const key = (await new Promise<Buffer>((resolve, reject) => {
-        crypto.scrypt(password, salt, 64, (err, derivedKey) => {
-            if (err) reject(err);
-            else resolve(derivedKey);
-        });
-    })).toString("hex");
-    return `${salt}:${key}`;
-}
 
 /**
  * Seed script for Epikal database
- * 
- * Run with: npx ts-node --esm prisma/seed.ts
- * Or via npm: npm run db:seed
- * 
- * This script creates a demo aesthetics clinic with:
- * - Company (tenant)
- * - Admin user
- * - Branding
- * - Locations
+ * Refined version for full system testing
  */
 
 const pool = new Pool({
@@ -39,9 +17,9 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-    console.log("🌱 Starting database seed...\n");
+    console.log("🌱 Starting full database seed...\n");
 
-    // Clean existing data (for development)
+    // Clean existing data
     console.log("🧹 Cleaning existing data...");
     await prisma.userCompany.deleteMany();
     await prisma.companyBranding.deleteMany();
@@ -51,582 +29,257 @@ async function main() {
     await prisma.session.deleteMany();
     await prisma.account.deleteMany();
     await prisma.verification.deleteMany();
+    await prisma.availability.deleteMany();
+    await prisma.blockout.deleteMany();
+    await prisma.serviceResource.deleteMany();
+    await prisma.serviceWebPage.deleteMany();
+    await prisma.service.deleteMany();
+    await prisma.resource.deleteMany();
     await prisma.user.deleteMany();
     await prisma.company.deleteMany();
 
     // =========================================================================
-    // COMPANY: Clínica Estética Aurora
+    // 1. PROJECT ADMIN COMPANY (System Level)
     // =========================================================================
-    console.log("🏢 Creating company: Clínica Estética Aurora...");
+    console.log("🚀 Creating System HQ...");
+    const systemCompany = await prisma.company.create({
+        data: {
+            name: "Epikal Headquarters",
+            slug: "system",
+            status: "ACTIVE",
+            language: "es",
+            currency: "USD",
+            timezone: "UTC",
+        },
+    });
 
+    // =========================================================================
+    // 2. DEMO CLINIC COMPANY (Tenant Level)
+    // =========================================================================
+    console.log("🏢 Creating demo company: Clínica Aurora...");
     const company = await prisma.company.create({
         data: {
-            name: "Clínica Estética Aurora",
+            name: "Clínica Aurora",
             legalName: "Aurora Estética S.A. de C.V.",
             slug: "clinica-aurora",
-            customDomain: null,
             status: "ACTIVE",
             language: "es",
             currency: "MXN",
             timezone: "America/Mexico_City",
-            socialUrls: {
-                facebook: "https://facebook.com/clinicaaurora",
-                instagram: "https://instagram.com/clinicaaurora",
-                twitter: "https://x.com/clinicaaurora",
-                linkedin: "https://linkedin.com/company/clinicaaurora",
-                tiktok: "https://tiktok.com/@clinicaaurora"
+        },
+    });
+
+    // =========================================================================
+    // 3. USERS (4 Levels)
+    // =========================================================================
+    console.log("👤 Creating user accounts...");
+
+    const usersData = [
+        { email: "superadmin@epikal.com", name: "Super Admin", role: "SUPERADMIN", companyId: systemCompany.id },
+        { email: "admin@clinica-aurora.com", name: "Dra. Clínica Admin", role: "OWNER", companyId: company.id },
+        { email: "pro1@clinica-aurora.com", name: "María Profesional", role: "STAFF", companyId: company.id },
+        { email: "pro2@clinica-aurora.com", name: "Laura Profesional", role: "STAFF", companyId: company.id },
+    ];
+
+    for (const u of usersData) {
+        await auth.api.signUpEmail({
+            body: {
+                email: u.email,
+                password: "password123",
+                name: u.name,
             }
-        },
-    });
+        });
 
-    console.log(`   ✓ Company created: ${company.name} (${company.id})`);
+        const createdUser = await prisma.user.findUnique({ where: { email: u.email } });
+        if (createdUser) {
+            await prisma.user.update({
+                where: { id: createdUser.id },
+                data: { emailVerified: true }
+            });
+
+            await prisma.userCompany.create({
+                data: {
+                    userId: createdUser.id,
+                    companyId: u.companyId,
+                    role: u.role as any,
+                    status: "ACTIVE",
+                },
+            });
+            console.log(`   ✓ Created ${u.role}: ${u.name}`);
+        }
+    }
 
     // =========================================================================
-    // BRANDING
+    // 4. LOCATIONS & RESOURCES
     // =========================================================================
-    console.log("🎨 Creating branding...");
+    console.log("📍 Setting up clinic infrastructure...");
 
-    const branding = await prisma.companyBranding.create({
+    const location = await prisma.location.create({
         data: {
             companyId: company.id,
-            logoUrl: null, // To be uploaded later
-            primaryColor: "#9333EA",    // Purple
-            secondaryColor: "#F472B6",  // Pink
-            brandTone: "profesional y cercano",
-            brandKeywords: [
-                "belleza",
-                "rejuvenecimiento",
-                "bienestar",
-                "cuidado personal",
-                "resultados naturales",
-            ],
-            brandRestrictions: [
-                "cirugía invasiva",
-                "resultados garantizados",
-                "precios bajos",
-            ],
-        },
-    });
-
-    console.log(`   ✓ Branding created (${branding.id})`);
-
-    // =========================================================================
-    // LOCATIONS
-    // =========================================================================
-    console.log("📍 Creating locations...");
-
-    const locationPolanco = await prisma.location.create({
-        data: {
-            companyId: company.id,
-            name: "Aurora Polanco",
-            address: "Av. Presidente Masaryk 123, Polanco V Sección",
-            city: "Ciudad de México",
+            name: "Sede Central Polanco",
+            address: "Av. Masaryk 123",
+            city: "CDMX",
             country: "México",
-            phone: "+52 55 1234 5678",
-            email: "polanco@clinica-aurora.com",
         },
     });
 
-    const locationSantaFe = await prisma.location.create({
+    const resource1 = await prisma.resource.create({
         data: {
             companyId: company.id,
-            name: "Aurora Santa Fe",
-            address: "Centro Comercial Santa Fe, Local 456",
-            city: "Ciudad de México",
-            country: "México",
-            phone: "+52 55 8765 4321",
-            email: "santafe@clinica-aurora.com",
-        },
-    });
-
-    console.log(`   ✓ Location created: ${locationPolanco.name}`);
-    console.log(`   ✓ Location created: ${locationSantaFe.name}`);
-
-    // =========================================================================
-    // ADMIN USER
-    // =========================================================================
-    // =========================================================================
-    // ADMIN USER (Use Auth API for proper hashing)
-    // =========================================================================
-    console.log("👤 Creating admin user...");
-
-    // We import auth dynamically or use a workaround if ESM troubles occur,
-    // but assuming standard usage:
-    // Actually, in a seed script running with tsx, we might not have the full server context 
-    // (headers, request) that auth.api expects, but typically signUpEmail works without it
-    // or mocks it. 
-    // However, if that fails, we fallback to the known Scrypt hash which IS the Better Auth default.
-    // The previous hash failed because maybe Better Auth V1 uses Argon2?
-    // Let's force a trusted hash format if we can't use the API.
-
-    // WAIT! Better Auth documentation says it uses Scrypt by default.
-    // Maybe the salt separator is different or parameters are different.
-
-    // Let's try to use the API directly.
-    // Importing auth from src/lib/auth might fail due to @ alias in tsx without tsconfig path resolution.
-    // We need to assume tsx handles it or use relative path if needed.
-    // Let's try importing relative.
-
-    // Since we are inside prisma/seed.ts, ../src/lib/auth should work.
-
-    // But wait, `auth` relies on database adapter which relies on `prisma` client.
-    // It should work.
-
-    // NOTE: We will keep the hashPassword function as a fallback or if we decide to stick to manual.
-    // But clearly manual failed. 
-    // Let's try to simulate the user creation via a helper that uses better-auth/api 
-    // but actually, we can just use the internal `auth.api.signUpEmail` if we can import `auth`.
-
-    // Replacing manual creation with:
-
-    const adminUserRes = await auth.api.signUpEmail({
-        body: {
-            email: "sofia@clinica-aurora.com",
-            password: "password123",
-            name: "Dra. Sofía Mendoza",
-        },
-        asResponse: true // Try to get full response or object
-    });
-
-    // signUpEmail returns the created user session/user object usually.
-    // But since it's an API call wrapper, it might return a response object.
-    // Let's assume we can fetch the user by email after creation to link it.
-
-    // WAIT: `auth.api` is not available on the client instance, but on the server instance `auth`.
-    // We need to import `auth` from `../src/lib/auth`.
-
-    const adminUser = await prisma.user.findUnique({ where: { email: "sofia@clinica-aurora.com" } });
-    if (!adminUser) throw new Error("Admin user creation failed via Auth API");
-
-    console.log(`   ✓ User created: ${adminUser.name} (${adminUser.email})`);
-
-    // =========================================================================
-    // USER-COMPANY MEMBERSHIP (Owner)
-    // =========================================================================
-    console.log("🔗 Creating user-company membership...");
-
-    const membership = await prisma.userCompany.create({
-        data: {
-            userId: adminUser.id,
-            companyId: company.id,
-            role: "OWNER",
-            status: "ACTIVE",
-        },
-    });
-
-    console.log(`   ✓ Membership created: ${adminUser.name} as OWNER`);
-
-    // =========================================================================
-    // STAFF USER
-    // =========================================================================
-    console.log("👤 Creating staff user...");
-
-    await auth.api.signUpEmail({
-        body: {
-            email: "maria@clinica-aurora.com",
-            password: "password123",
-            name: "María García",
-        }
-    });
-
-    const staffUser = await prisma.user.findUnique({ where: { email: "maria@clinica-aurora.com" } });
-    if (!staffUser) throw new Error("Staff user creation failed via Auth API");
-
-    await prisma.user.update({
-        where: { id: staffUser.id },
-        data: { emailVerified: true }
-    });
-    // Manually verify admin too
-    await prisma.user.update({
-        where: { id: adminUser.id },
-        data: { emailVerified: true }
-    });
-
-    await prisma.userCompany.create({
-        data: {
-            userId: staffUser.id,
-            companyId: company.id,
-            role: "STAFF",
-            status: "ACTIVE",
-        },
-    });
-
-    // =========================================================================
-    // RESOURCES (Professionals & Facilities)
-    // =========================================================================
-    console.log("👩‍⚕️ Creating resources...");
-
-    const profMaria = await prisma.resource.create({
-        data: {
-            companyId: company.id,
-            locationId: locationPolanco.id,
+            locationId: location.id,
             type: "PROFESSIONAL",
-            name: "María García", // Reuse user logic ideally, but simplest to double entry for now
+            name: "María Profesional",
             status: "ACTIVE",
         }
     });
 
-    const profLaura = await prisma.resource.create({
+    const resource2 = await prisma.resource.create({
         data: {
             companyId: company.id,
-            locationId: locationPolanco.id,
+            locationId: location.id,
             type: "PROFESSIONAL",
-            name: "Dra. Laura Torres",
+            name: "Laura Profesional",
             status: "ACTIVE",
         }
     });
 
-    const roomFacial = await prisma.resource.create({
-        data: {
-            companyId: company.id,
-            locationId: locationPolanco.id,
-            type: "PHYSICAL",
-            name: "Cabina de Faciales",
-            status: "ACTIVE",
-        }
-    });
-
-    console.log(`   ✓ Resources created: 2 Professionals, 1 Physical`);
-
     // =========================================================================
-    // SERVICES
+    // 5. SERVICES & AVAILABILITY
     // =========================================================================
-    console.log("💆‍♀️ Creating services...");
+    console.log("💆‍♀️ Setting up services...");
 
-    const serviceFacial = await prisma.service.create({
+    const service = await prisma.service.create({
         data: {
             companyId: company.id,
             name: "Limpieza Facial Profunda",
-            description: "Tratamiento completo para renovar tu piel",
             duration: 60,
             price: 850.00,
             isPublic: true,
-            status: "ACTIVE",
-            webPage: {
-                create: {
-                    slug: "facial-profundo",
-                    displayTitle: "Limpieza Facial Premium",
-                    heroImage: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&q=80&w=2070",
-                    content: `
-### Tu piel merece lo mejor
-
-Nuestro facial profundo es un tratamiento de **60 minutos** diseñado para purificar, hidratar y revitalizar la piel de tu rostro.
-
-#### ¿Qué incluye?
-*   **Doble limpieza**: Eliminamos impurezas superficiales.
-*   **Vapor ozono**: Abre los poros para una extracción efectiva.
-*   **Extracción manual**: Cuidadosa y detallada.
-*   **Alta frecuencia**: Acción bactericida y calmante.
-*   **Mascarilla hidratante**: Personalizada según tu tipo de piel.
-*   **Masaje relajante**: Facial y craneal para desconectar.
-
-Ideal para *todo tipo de piel*. Recomendamos realizar este tratamiento una vez al mes para mantener resultados óptimos.
-`,
-                    faqs: [
-                        {
-                            question: "¿Duele la extracción?",
-                            answer: "Puede ser ligeramente molesta pero no dolorosa. Nuestras esteticistas son muy cuidadosas."
-                        },
-                        {
-                            question: "¿Puedo maquillarme después?",
-                            answer: "Recomendamos esperar al menos 12 horas para dejar respirar tu piel."
-                        },
-                        {
-                            question: "¿Con qué frecuencia debo hacérmelo?",
-                            answer: "Para mejores resultados, recomendamos una vez al mes."
-                        }
-                    ]
-                }
-            },
             resources: {
                 create: [
-                    { resource: { connect: { id: profMaria.id } } },
-                    { resource: { connect: { id: roomFacial.id } } }
+                    { resource: { connect: { id: resource1.id } } },
+                    { resource: { connect: { id: resource2.id } } }
                 ]
             }
-        },
-        include: { webPage: true }
+        }
     });
 
-    const serviceMassage = await prisma.service.create({
-        data: {
-            companyId: company.id,
-            name: "Masaje Relajante",
-            description: "Masaje de cuerpo completo con aromaterapia",
-            duration: 50,
-            price: 1200.00,
-            isPublic: true,
-            status: "ACTIVE",
-            webPage: {
-                create: {
-                    slug: "masaje-relajante",
-                    displayTitle: "Masaje Relajante Holístico",
-                    heroImage: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&q=80&w=2070",
-                    content: "Relaja tus sentidos con nuestra técnica exclusiva...",
-                }
-            },
-            resources: {
-                create: [
-                    { resource: { connect: { id: profLaura.id } } }
-                ]
-            }
-        },
-        include: { webPage: true }
-    });
-
-    console.log(`   ✓ Services created: ${serviceFacial.name}, ${serviceMassage.name}`);
-
-    // =========================================================================
-    // AVAILABILITY
-    // =========================================================================
-    console.log("📅 Creating availability...");
-
+    // Standard availability (M-F, 9-18)
     const days = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"];
-
-    // Maria: 9am - 6pm
-    for (const day of days) {
-        await prisma.availability.create({
-            data: {
-                resourceId: profMaria.id,
-                dayOfWeek: day as any,
-                startTime: "09:00",
-                endTime: "18:00",
-                isAvailable: true
-            }
-        });
-    }
-
-    // Laura: 10am - 7pm
-    for (const day of days) {
-        await prisma.availability.create({
-            data: {
-                resourceId: profLaura.id,
-                dayOfWeek: day as any,
-                startTime: "10:00",
-                endTime: "19:00",
-                isAvailable: true
-            }
-        });
-    }
-
-    console.log(`   ✓ Availability created for Maria (9-18) and Laura (10-19) on Weekdays`);
-
-    // =========================================================================
-    // TEMPLATES
-    // =========================================================================
-    console.log("📄 Creating default template...");
-
-    const template = await prisma.template.create({
-        data: {
-            name: "Default Minimal",
-            description: "A simple testing template",
-            storagePath: "default",
-            isPublic: true,
-        }
-    });
-
-    await prisma.company.update({
-        where: { id: company.id },
-        data: {
-            siteTemplateId: template.id,
-            siteSettings: {
-                colors: {
-                    primary: "#9333EA",
-                    secondary: "#F472B6"
-                },
-                contact: {
-                    phone: "+52 55 1234 5678",
-                    email: "contacto@clinica-aurora.com",
-                    address: "Av. Presidente Masaryk 123, Polanco"
-                },
-                pages: {
-                    home: {
-                        blocks: [
-                            {
-                                type: "hero",
-                                props: {
-                                    title: "Realza tu belleza natural",
-                                    subtitle: "Tratamientos estéticos personalizados con tecnología de vanguardia y especialistas certificados.",
-                                    ctaText: "Reserva tu Cita",
-                                    ctaLink: "./booking",
-                                    backgroundImage: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=2068",
-                                    alignment: "center"
-                                }
-                            },
-                            {
-                                type: "features",
-                                props: {
-                                    title: "¿Por qué elegirnos?",
-                                    description: "Nos dedicamos a cuidar de ti con los más altos estándares.",
-                                    columns: 3,
-                                    items: [
-                                        { title: "Expertos Certificados", description: "Nuestro equipo está formado por doctores y especialistas con años de experiencia." },
-                                        { title: "Tecnología Avanzada", description: "Utilizamos aparatos de última generación para garantizar resultados seguros." },
-                                        { title: "Atención Personalizada", description: "Cada tratamiento se adapta a las necesidades únicas de tu piel y cuerpo." }
-                                    ]
-                                }
-                            },
-                            {
-                                type: "services",
-                                props: {
-                                    title: "Nuestros Servicios",
-                                    showPrice: true
-                                }
-                            },
-                            {
-                                type: "testimonials",
-                                props: {
-                                    title: "Lo que dicen nuestros clientes",
-                                    items: [
-                                        { text: "¡Increíble servicio! Mi piel nunca había lucido tan bien. La Dra. Sofía es una experta.", author: "Ana P.", role: "Cliente Regular" },
-                                        { text: "El masaje relajante fue justo lo que necesitaba. El ambiente es súper tranquilo.", author: "Carlos M.", role: "Cliente Nuevo" },
-                                        { text: "Me encanta la facilidad para agendar citas desde su página.", author: "Lucía R.", role: "Cliente" }
-                                    ]
-                                }
-                            },
-                            {
-                                type: "contact",
-                                props: {
-                                    title: "Visítanos",
-                                    subtitle: "Estamos ubicados en el corazón de Polanco."
-                                }
-                            }
-                        ]
-                    },
-                    "service-detail": {
-                        blocks: [
-                            {
-                                type: "hero",
-                                props: {
-                                    title: "${service.name}",
-                                    subtitle: "${service.shortDescription}",
-                                    ctaText: "Agendar este servicio",
-                                    ctaLink: "/sites/${company.slug}/booking?serviceId=${service.id}",
-                                    backgroundImage: "${service.image}",
-                                    alignment: "left"
-                                }
-                            },
-                            {
-                                type: "content",
-                                props: {
-                                    title: "Detalles del Tratamiento",
-                                    content: "${service.longDescription}",
-                                    alignment: "left"
-                                }
-                            },
-                            {
-                                type: "faq",
-                                props: {
-                                    title: "Preguntas Frecuentes",
-                                    items: "${service.faqs}"
-                                }
-                            }
-                        ]
-                    }
-                }
-            }
-        }
-    });
-
-    console.log(`   ✓ Template created and assigned: ${template.name}`);
-
-    // =========================================================================
-    // CUSTOMERS & BOOKINGS (CRM)
-    // =========================================================================
-    console.log("👥 Creating customers and historical bookings...");
-
-    const dummyCustomers = [
-        { firstName: "Elena", lastName: "Rodríguez", email: "elena.rodriguez@example.com", phone: "+52 55 1111 2222" },
-        { firstName: "Carlos", lastName: "López", email: "carlos.lopez@example.com", phone: "+52 55 3333 4444" },
-        { firstName: "Ana", lastName: "Martínez", email: "ana.martinez@example.com", phone: "+52 55 5555 6666" },
-        { firstName: "Jorge", lastName: "Sánchez", email: "jorge.sanchez@example.com", phone: "+52 55 7777 8888" },
-        { firstName: "Lucía", lastName: "Fernández", email: "lucia.fernandez@example.com", phone: "+52 55 9999 0000" },
-        { firstName: "Miguel", lastName: "Gómez", email: "miguel.gomez@example.com", phone: "+52 55 1212 3434" },
-        { firstName: "Sofía", lastName: "Díaz", email: "sofia.diaz@example.com", phone: "+52 55 5656 7878" },
-        { firstName: "Pedro", lastName: "Ruiz", email: "pedro.ruiz@example.com", phone: "+52 55 9090 1212" },
-        { firstName: "Carmen", lastName: "Morales", email: "carmen.morales@example.com", phone: "+52 55 3434 5656" },
-        { firstName: "Raúl", lastName: "Castro", email: "raul.castro@example.com", phone: "+52 55 7878 9090" }
-    ];
-
-    const servicesList = [serviceFacial, serviceMassage];
-    const resourcesList = [profMaria, profLaura];
-
-    let totalBookings = 0;
-
-    for (const custData of dummyCustomers) {
-        // Create Customer
-        const customer = await prisma.customer.create({
-            data: {
-                companyId: company.id,
-                ...custData,
-                totalBookings: 0, // Will be updated by logic if we had triggers, but keeping simple
-                notes: Math.random() > 0.7 ? "Cliente frecuente, prefiere agua mineral." : null,
-                tags: Math.random() > 0.8 ? ["VIP"] : []
-            }
-        });
-
-        // Create 1-5 past bookings per customer to simulate history
-        const numBookings = Math.floor(Math.random() * 5) + 1;
-
-        for (let i = 0; i < numBookings; i++) {
-            // Random date in past 60 days
-            const daysAgo = Math.floor(Math.random() * 60) + 1;
-            const bookingDate = new Date();
-            bookingDate.setDate(bookingDate.getDate() - daysAgo);
-
-            // Random hour 10-18
-            const hour = 10 + Math.floor(Math.random() * 8);
-            bookingDate.setHours(hour, 0, 0, 0);
-
-            // Skip if weekend (simple approximation, not strictly enforcing availability here for seed speed)
-            const day = bookingDate.getDay();
-            if (day === 0 || day === 6) continue;
-
-            const service = servicesList[Math.floor(Math.random() * servicesList.length)];
-            const resource = resourcesList[Math.floor(Math.random() * resourcesList.length)];
-
-            const endTime = new Date(bookingDate.getTime() + service.duration * 60000);
-
-            await prisma.booking.create({
+    for (const rId of [resource1.id, resource2.id]) {
+        for (const day of days) {
+            await prisma.availability.create({
                 data: {
-                    companyId: company.id,
-                    customerId: customer.id,
-                    serviceId: service.id,
-                    resourceId: resource.id,
-                    startTime: bookingDate,
-                    endTime: endTime,
-                    status: "COMPLETED", // Past bookings are completed
-                    customerName: `${custData.firstName} ${custData.lastName}`,
-                    customerEmail: custData.email,
-                    customerPhone: custData.phone
+                    resourceId: rId,
+                    dayOfWeek: day as any,
+                    startTime: "09:00",
+                    endTime: "18:00",
+                    isAvailable: true
                 }
             });
-            totalBookings++;
         }
-
-        // Update customer total bookings count
-        const actualCount = await prisma.booking.count({ where: { customerId: customer.id } });
-        await prisma.customer.update({
-            where: { id: customer.id },
-            data: {
-                totalBookings: actualCount,
-                lastBookingAt: new Date() // Approximation, or query max date
-            }
-        });
     }
-    console.log(`   ✓ CRM Seeded: ${dummyCustomers.length} customers, ~${totalBookings} bookings`);
 
     // =========================================================================
+    // 6. CUSTOMERS & MULTI-STATE BOOKINGS
+    // =========================================================================
+    console.log("📅 Generating multi-state bookings for testing...");
+
+    const customer = await prisma.customer.create({
+        data: {
+            companyId: company.id,
+            firstName: "Juan",
+            lastName: "Pruebas",
+            email: "juan@pruebas.com",
+            phone: "+52 55 0000 0000",
+        }
+    });
+
+    const now = new Date();
+
+    // 1. Past & Completed
+    const pastDate = new Date(now);
+    pastDate.setDate(now.getDate() - 1);
+    pastDate.setHours(10, 0, 0, 0);
+
+    await prisma.booking.create({
+        data: {
+            companyId: company.id,
+            resourceId: resource1.id,
+            serviceId: service.id,
+            customerId: customer.id,
+            startTime: pastDate,
+            endTime: new Date(pastDate.getTime() + 3600000),
+            status: "COMPLETED",
+            customerName: "Juan Pruebas",
+            customerEmail: "juan@pruebas.com"
+        }
+    });
+
+    // 2. Past & Confirmed (Should show "Asistió" buttons)
+    const pendingDate = new Date(now);
+    pendingDate.setHours(now.getHours() - 1, 0, 0, 0); // Started 1 hour ago
+
+    await prisma.booking.create({
+        data: {
+            companyId: company.id,
+            resourceId: resource1.id,
+            serviceId: service.id,
+            customerId: customer.id,
+            startTime: pendingDate,
+            endTime: new Date(pendingDate.getTime() + 3600000),
+            status: "CONFIRMED",
+            customerName: "Juan Pruebas",
+            customerEmail: "juan@pruebas.com"
+        }
+    });
+
+    // 3. Past & No Show
+    const noShowDate = new Date(now);
+    noShowDate.setDate(now.getDate() - 2);
+    noShowDate.setHours(14, 0, 0, 0);
+
+    await prisma.booking.create({
+        data: {
+            companyId: company.id,
+            resourceId: resource2.id,
+            serviceId: service.id,
+            customerId: customer.id,
+            startTime: noShowDate,
+            endTime: new Date(noShowDate.getTime() + 3600000),
+            status: "NO_SHOW",
+            customerName: "Juan Pruebas",
+            customerEmail: "juan@pruebas.com"
+        }
+    });
+
+    // 4. Future & Confirmed
+    const futureDate = new Date(now);
+    futureDate.setDate(now.getDate() + 1);
+    futureDate.setHours(11, 0, 0, 0);
+
+    await prisma.booking.create({
+        data: {
+            companyId: company.id,
+            resourceId: resource2.id,
+            serviceId: service.id,
+            customerId: customer.id,
+            startTime: futureDate,
+            endTime: new Date(futureDate.getTime() + 3600000),
+            status: "CONFIRMED",
+            customerName: "Juan Pruebas",
+            customerEmail: "juan@pruebas.com"
+        }
+    });
 
     console.log("\n" + "=".repeat(60));
-    console.log("✅ Seed completed successfully!\n");
-    console.log("📊 Summary:");
-    console.log(`   • Companies: 1`);
-    console.log(`   • Users: 2`);
-    console.log(`   • Locations: 2`);
-    console.log("\n🔑 Test credentials:");
-    console.log(`   Email: sofia@clinica-aurora.com`);
-    console.log(`   (No password set - use Better Auth flow)`);
+    console.log("✅ Refined Seed completed successfully!\n");
+    console.log("🔑 Test Credentials (password: password123):");
+    console.log(`   - Super Admin: superadmin@epikal.com`);
+    console.log(`   - Clinic Admin: admin@clinica-aurora.com`);
+    console.log(`   - Professional 1: pro1@clinica-aurora.com`);
+    console.log(`   - Professional 2: pro2@clinica-aurora.com`);
     console.log("=".repeat(60) + "\n");
 }
 

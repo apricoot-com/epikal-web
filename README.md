@@ -30,8 +30,10 @@ Populates the database with a test company, users, services, resources, and temp
 npx tsx scripts/build-templates.ts
 
 # Seed Database
-npx prisma db seed
+npm run db:seed
 ```
+
+Para más detalles sobre los roles, credenciales de prueba y configuración del entorno de desarrollo, consulta [docs/setup-seed.md](file:///Users/roman/Workspace/apricoot/epikal-web/docs/setup-seed.md).
 
 ### 4. Run Development Server
 ```bash
@@ -42,14 +44,9 @@ npm run dev
 
 ## 🔑 Demo Credentials
 
-After seeding, you can log in with:
+Consulta el listado completo de roles y usuarios de prueba en [docs/setup-seed.md](file:///Users/roman/Workspace/apricoot/epikal-web/docs/setup-seed.md).
 
-| Role | Email | Password |
-|------|-------|----------|
-| **Admin (Owner)** | `sofia@clinica-aurora.com` | `password123` |
-| **Staff** | `maria@clinica-aurora.com` | `password123` |
-
-> The seed script automatically creates these accounts. If you need to reset them, just run `npx prisma db seed` again.
+> El script de semilla limpia los datos existentes para asegurar un estado consistente. Si necesitas restablecerlos, simplemente ejecuta `npm run db:seed`.
 
 ---
 
