@@ -3,9 +3,13 @@ import BookingWizard from '@/src/components/site/booking/BookingWizard';
 import { notFound } from 'next/navigation';
 
 export default async function BookingPage(
-    props: { params: Promise<{ site: string }> }
+    props: {
+        params: Promise<{ site: string }>,
+        searchParams: Promise<{ serviceId?: string, resourceId?: string }>
+    }
 ) {
     const params = await props.params;
+    const searchParams = await props.searchParams;
     const domain = decodeURIComponent(params.site);
 
     // Resolve Company (Logic copied from route.ts for consistency)
@@ -29,7 +33,11 @@ export default async function BookingPage(
 
     return (
         <div className="min-h-screen bg-slate-50 py-12">
-            <BookingWizard companySlug={company.slug} />
+            <BookingWizard
+                companySlug={company.slug}
+                preselectedServiceId={searchParams.serviceId}
+                preselectedResourceId={searchParams.resourceId}
+            />
         </div>
     );
 }

@@ -394,7 +394,7 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
                                     title: "Bienvenida a Clínica Aurora",
                                     subtitle: "Tu santuario de belleza y cuidado personal en la CDMX. Descubre tratamientos diseñados para resaltar tu mejor versión.",
                                     ctaText: "Agendar Cita Ahora",
-                                    ctaLink: "./booking",
+                                    ctaLink: "/booking",
                                     backgroundImage: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=2068",
                                     alignment: "center"
                                 }
@@ -452,7 +452,7 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
                                     title: "${service.name}",
                                     subtitle: "Tratamiento especializado de ${service.duration} minutos por $${service.price}",
                                     ctaText: "Reservar este servicio",
-                                    ctaLink: "/sites/${company.slug}/booking?serviceId=${service.id}",
+                                    ctaLink: "/booking?serviceId=${service.id}",
                                     backgroundImage: "${service.image}",
                                     alignment: "left"
                                 }

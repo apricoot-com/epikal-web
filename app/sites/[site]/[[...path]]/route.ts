@@ -158,12 +158,14 @@ export async function GET(
         // Flatten context for easier access? Or just manual mapping
         const replacements: Record<string, string> = {
             '${company.name}': company.name,
+            '${company.slug}': company.slug,
             '${company.phone}': siteSettings.contact?.phone || "",
             '${company.email}': siteSettings.contact?.email || "",
             '${company.address}': siteSettings.contact?.address || "",
         };
 
         if (context.type === 'service-detail' && context.data) {
+            replacements['${service.id}'] = context.data.id;
             replacements['${service.name}'] = context.data.name;
             replacements['${service.description}'] = context.data.description;
             replacements['${service.shortDescription}'] = context.data.description;
@@ -223,6 +225,7 @@ export async function GET(
                 logo: branding.logoUrl,
             },
             services: company.services.map((s: any) => ({
+                id: s.id,
                 name: s.name,
                 slug: s.webPage?.slug,
                 description: s.description,
