@@ -48,6 +48,36 @@ export const resourceRouter = router({
         }),
 
     /**
+     * Get the resource linked to the current user
+     */
+    getMe: companyProcedure.query(async ({ ctx }) => {
+        const resource = await ctx.prisma.resource.findFirst({
+            where: {
+                userId: ctx.user.id,
+                companyId: ctx.company.id,
+            },
+            include: {
+                location: true,
+                services: {
+                    include: {
+                        service: true,
+                    },
+                },
+                availability: {
+                    orderBy: { dayOfWeek: "asc" },
+                },
+                blockouts: {
+                    where: {
+                        endTime: { gte: new Date() },
+                    },
+                    orderBy: { startTime: "asc" },
+                },
+            },
+        });
+        return resource;
+    }),
+
+    /**
      * Get a single resource by ID
      */
     get: companyProcedure
@@ -99,6 +129,7 @@ export const resourceRouter = router({
                 locationId: z.string().optional(),
                 serviceIds: z.array(z.string()).optional(),
                 image: z.string().optional(),
+                userId: z.string().optional(),
             })
         )
         .mutation(async ({ ctx, input }) => {
@@ -136,6 +167,7 @@ export const resourceRouter = router({
                 locationId: z.string().optional().nullable(),
                 status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
                 image: z.string().optional().nullable(),
+                userId: z.string().optional().nullable(),
             })
         )
         .mutation(async ({ ctx, input }) => {

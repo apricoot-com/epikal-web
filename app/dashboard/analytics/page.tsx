@@ -21,6 +21,7 @@ import {
 import { format, subDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from "sonner";
+import { truncate } from "@/lib/utils";
 
 export default function AnalyticsPage() {
     const { data: overview, isLoading: overviewLoading } =
@@ -46,7 +47,7 @@ export default function AnalyticsPage() {
             refetchSources();
         },
         onError: (error) => {
-            toast.error("Error al agregar datos: " + error.message);
+            toast.error(truncate("Error al agregar datos: " + error.message));
         }
     });
 

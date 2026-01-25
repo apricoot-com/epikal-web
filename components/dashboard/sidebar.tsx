@@ -16,6 +16,7 @@ import {
     Plus,
     Check,
     Globe,
+    User,
 } from "lucide-react";
 
 import {
@@ -79,6 +80,12 @@ const navItems = [
         href: "/dashboard/analytics",
         icon: BarChart3,
         roles: ["SUPERADMIN", "OWNER"],
+    },
+    {
+        title: "Mi Perfil",
+        href: "/dashboard/profile",
+        icon: User,
+        roles: ["STAFF", "OWNER", "ADMIN"],
     },
 ];
 
@@ -214,49 +221,53 @@ export function DashboardSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <SidebarGroup>
-                    <SidebarGroupLabel>Menú Principal</SidebarGroupLabel>
-                    <SidebarGroupContent>
-                        <SidebarMenu>
-                            {filteredNavItems.map((item) => (
-                                <SidebarMenuItem key={item.href}>
-                                    <SidebarMenuButton
-                                        asChild
-                                        isActive={pathname === item.href}
-                                        tooltip={item.title}
-                                    >
-                                        <Link href={item.href}>
-                                            <item.icon />
-                                            <span>{item.title}</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ))}
-                        </SidebarMenu>
-                    </SidebarGroupContent>
-                </SidebarGroup>
+                {filteredNavItems.length > 0 && (
+                    <SidebarGroup>
+                        <SidebarGroupLabel>Menú Principal</SidebarGroupLabel>
+                        <SidebarGroupContent>
+                            <SidebarMenu>
+                                {filteredNavItems.map((item) => (
+                                    <SidebarMenuItem key={item.href}>
+                                        <SidebarMenuButton
+                                            asChild
+                                            isActive={pathname === item.href}
+                                            tooltip={item.title}
+                                        >
+                                            <Link href={item.href}>
+                                                <item.icon />
+                                                <span>{item.title}</span>
+                                            </Link>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                ))}
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                )}
 
-                <SidebarGroup>
-                    <SidebarGroupLabel>Administración</SidebarGroupLabel>
-                    <SidebarGroupContent>
-                        <SidebarMenu>
-                            {filteredSettingsItems.map((item) => (
-                                <SidebarMenuItem key={item.href}>
-                                    <SidebarMenuButton
-                                        asChild
-                                        isActive={pathname === item.href}
-                                        tooltip={item.title}
-                                    >
-                                        <Link href={item.href}>
-                                            <item.icon />
-                                            <span>{item.title}</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ))}
-                        </SidebarMenu>
-                    </SidebarGroupContent>
-                </SidebarGroup>
+                {filteredSettingsItems.length > 0 && (
+                    <SidebarGroup>
+                        <SidebarGroupLabel>Administración</SidebarGroupLabel>
+                        <SidebarGroupContent>
+                            <SidebarMenu>
+                                {filteredSettingsItems.map((item) => (
+                                    <SidebarMenuItem key={item.href}>
+                                        <SidebarMenuButton
+                                            asChild
+                                            isActive={pathname === item.href}
+                                            tooltip={item.title}
+                                        >
+                                            <Link href={item.href}>
+                                                <item.icon />
+                                                <span>{item.title}</span>
+                                            </Link>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                ))}
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                )}
             </SidebarContent>
 
             <SidebarFooter className="border-t border-sidebar-border">

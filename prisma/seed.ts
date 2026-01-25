@@ -156,10 +156,12 @@ async function main() {
         },
     });
 
+    const userPro1 = await prisma.user.findUnique({ where: { email: "pro1@clinica-aurora.com" } });
     const resource1 = await prisma.resource.create({
         data: {
             companyId: company.id,
             locationId: location.id,
+            userId: userPro1?.id,
             type: "PROFESSIONAL",
             name: "María García",
             description: "Especialista en limpiezas y masajes.",
@@ -167,10 +169,12 @@ async function main() {
         }
     });
 
+    const userPro2 = await prisma.user.findUnique({ where: { email: "pro2@clinica-aurora.com" } });
     const resource2 = await prisma.resource.create({
         data: {
             companyId: company.id,
             locationId: location.id,
+            userId: userPro2?.id,
             type: "PROFESSIONAL",
             name: "Dra. Laura Torres",
             description: "Médico estético especializada en inyectables.",

@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner"; // Assuming sonner is used, or replace with console/alert if uncertain
 
 import { Copy } from "lucide-react";
+import { truncate } from "@/lib/utils";
 
 /**
  * tRPC React hooks
@@ -36,8 +37,9 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
         }
 
         const message = error.message || fallbackMessage;
+        const displayMessage = truncate(message, 120);
 
-        toast.error(message, {
+        toast.error(displayMessage, {
             description: (
                 <div className="flex justify-start mt-0.5">
                     <button

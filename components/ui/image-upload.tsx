@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/src/lib/trpc/client";
 import { toast } from "sonner";
+import { truncate } from "@/lib/utils";
 import { Upload, X, Loader2, ImageIcon, Pencil } from "lucide-react";
 import Image from "next/image";
 
@@ -35,7 +36,7 @@ export function ImageUpload({
         },
         onError: (error) => {
             setIsUploading(false);
-            toast.error(error.message || "Error al subir la imagen");
+            toast.error(truncate(error.message || "Error al subir la imagen"));
         }
     });
 

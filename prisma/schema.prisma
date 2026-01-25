@@ -126,6 +126,7 @@ model User {
   memberships   UserCompany[]
   sessions      Session[]
   accounts      Account[]
+  resources     Resource[]
   
   @@map("users")
 }
@@ -245,6 +246,7 @@ model Service {
 model Resource {
   id              String        @id @default(cuid())
   companyId       String
+  userId          String?
   locationId      String?
   type            ResourceType
   name            String
@@ -259,12 +261,14 @@ model Resource {
   
   // Relations
   company         Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
   location        Location?     @relation(fields: [locationId], references: [id], onDelete: SetNull)
   services        ServiceResource[]
   availability    Availability[]
   bookings        Booking[]
   blockouts       Blockout[]
   
+  @@unique([companyId, userId])
   @@map("resources")
 }
 

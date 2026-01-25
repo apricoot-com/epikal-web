@@ -54,6 +54,7 @@ export default function ProfessionalEditPage() {
     });
     const { data: locations } = trpc.location.list.useQuery();
     const { data: services } = trpc.service.list.useQuery();
+    const { data: teamMembers } = trpc.team.list.useQuery();
 
     const updateResource = trpc.resource.update.useMutation();
     const assignServices = trpc.resource.assignServices.useMutation();
@@ -85,6 +86,7 @@ export default function ProfessionalEditPage() {
         locationId: "",
         status: "ACTIVE" as "ACTIVE" | "INACTIVE",
         image: "",
+        userId: "",
     });
 
     const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
@@ -120,6 +122,7 @@ export default function ProfessionalEditPage() {
                 locationId: prof.locationId || "none",
                 status: prof.status,
                 image: prof.image || "",
+                userId: prof.userId || "none",
             });
             setSelectedServiceIds(
                 prof.services.map((s: any) => s.service.id)
@@ -149,6 +152,7 @@ export default function ProfessionalEditPage() {
             locationId: formData.locationId === "none" ? null : formData.locationId || null,
             status: formData.status,
             image: formData.image || null,
+            userId: formData.userId === "none" ? null : formData.userId || null,
         });
 
         await assignServices.mutateAsync({
@@ -309,46 +313,83 @@ export default function ProfessionalEditPage() {
                                 </CardContent>
                             </Card>
 
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Ubicación</CardTitle>
-                                    <CardDescription>
-                                        Ubicación principal donde trabaja
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label>Ubicación Principal</Label>
-                                        <Select
-                                            value={formData.locationId}
-                                            onValueChange={(v) =>
-                                                setFormData({ ...formData, locationId: v })
-                                            }
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Selecciona ubicación" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="none">Sin ubicación fija</SelectItem>
-                                                {locations?.map((loc: any) => (
-                                                    <SelectItem key={loc.id} value={loc.id}>
-                                                        {loc.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    {professional.location && (
-                                        <div className="p-3 bg-muted rounded-md border text-sm">
-                                            <p className="font-medium">Ubicación actual:</p>
-                                            <p className="text-muted-foreground">
-                                                {professional.location.name}
-                                            </p>
+                            <div className="space-y-4">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Ubicación</CardTitle>
+                                        <CardDescription>
+                                            Ubicación principal donde trabaja
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label>Ubicación Principal</Label>
+                                            <Select
+                                                value={formData.locationId}
+                                                onValueChange={(v) =>
+                                                    setFormData({ ...formData, locationId: v })
+                                                }
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecciona ubicación" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="none">Sin ubicación fija</SelectItem>
+                                                    {locations?.map((loc: any) => (
+                                                        <SelectItem key={loc.id} value={loc.id}>
+                                                            {loc.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
-                                    )}
-                                </CardContent>
-                            </Card>
+
+                                        {professional.location && (
+                                            <div className="p-3 bg-muted rounded-md border text-sm">
+                                                <p className="font-medium">Ubicación actual:</p>
+                                                <p className="text-muted-foreground">
+                                                    {professional.location.name}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Vincular Usuario</CardTitle>
+                                        <CardDescription>
+                                            Vincule este profesional con un usuario registrado para permitirle gestionar su propio perfil.
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label>Usuario del Equipo</Label>
+                                            <Select
+                                                value={formData.userId}
+                                                onValueChange={(v) =>
+                                                    setFormData({ ...formData, userId: v })
+                                                }
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecciona un usuario" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="none">No vinculado</SelectItem>
+                                                    {teamMembers?.map((member: any) => (
+                                                        <SelectItem key={member.user.id} value={member.user.id}>
+                                                            {member.user.name} ({member.user.email})
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">
+                                            El usuario seleccionado podrá ver el menú &quot;Mi Perfil&quot; y cambiar su disponibilidad.
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            </div>
                         </div>
 
                         <Card>

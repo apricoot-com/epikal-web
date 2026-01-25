@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/src/lib/trpc/client";
 import { toast } from "sonner";
+import { truncate } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import {
     Dialog,
@@ -76,7 +77,7 @@ export default function SiteEditorPage() {
             utils.company.get.invalidate();
         },
         onError: (error) => {
-            toast.error("Error al actualizar GTM: " + error.message);
+            toast.error(truncate("Error al actualizar GTM: " + error.message));
         }
     });
 
@@ -87,7 +88,7 @@ export default function SiteEditorPage() {
             setFbToken(''); // Clear token after saving
         },
         onError: (error) => {
-            toast.error("Error al actualizar Facebook Pixel: " + error.message);
+            toast.error(truncate("Error al actualizar Facebook Pixel: " + error.message));
         }
     });
 
