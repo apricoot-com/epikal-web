@@ -6,6 +6,11 @@ interface SendEmailOptions {
     to: string;
     template: TemplateName;
     data: Record<string, any>;
+    attachments?: {
+        filename: string;
+        content: string | Buffer;
+        contentType?: string;
+    }[];
 }
 
 export class EmailService {
@@ -15,7 +20,7 @@ export class EmailService {
     /**
      * Send an email using a predefined template
      */
-    static async send({ to, template, data }: SendEmailOptions) {
+    static async send({ to, template, data, attachments }: SendEmailOptions) {
         try {
             const templateDef = EmailTemplates[template];
             if (!templateDef) {
@@ -51,7 +56,8 @@ export class EmailService {
                 to,
                 subject,
                 html: finalHtml,
-                text: this.stripHtml(bodyHtml) // Basic fallback
+                text: this.stripHtml(bodyHtml), // Basic fallback
+                attachments
             });
 
             console.log(`Email sent: ${info.messageId} (Template: ${template})`);

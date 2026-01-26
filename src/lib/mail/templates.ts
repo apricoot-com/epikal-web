@@ -69,12 +69,34 @@ export const BOOKING_CONFIRMATION = `
 `;
 
 /**
+ * Booking Success Template (Confirmed)
+ */
+export const BOOKING_SUCCESS = `
+    <h1>¡Tu cita está confirmada!</h1>
+    <p>Hola <strong>{{customerName}}</strong>,</p>
+    <p>Tu cita en <strong>{{companyName}}</strong> ha sido agendada con éxito.</p>
+    
+    <div class="info-box">
+        <p class="info-item"><strong>Servicio:</strong> {{serviceName}}</p>
+        <p class="info-item"><strong>Fecha:</strong> {{formattedDate}}</p>
+    </div>
+    
+    <p>Hemos adjuntado una invitación de calendario a este correo para que puedas agregarla fácilmente a tu agenda.</p>
+    
+    <p>¡Te esperamos!</p>
+`;
+
+/**
  * Registry of templates
  */
 export const EmailTemplates = {
     BOOKING_CONFIRMATION: {
         subject: 'Confirma tu cita en {{companyName}}',
         body: BOOKING_CONFIRMATION
+    },
+    BOOKING_SUCCESS: {
+        subject: '¡Cita confirmada! {{serviceName}} en {{companyName}}',
+        body: BOOKING_SUCCESS
     }
 } as const;
 

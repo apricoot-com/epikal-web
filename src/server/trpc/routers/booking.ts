@@ -4,7 +4,7 @@
 import { z } from 'zod';
 import { router, publicProcedure, companyProcedure } from '../init';
 import { getAvailableSlots } from '@/src/lib/scheduling/availability';
-import { sendBookingConfirmationEmail } from '@/src/lib/mail/mailer';
+import { sendBookingConfirmationEmail, sendBookingSuccessEmail } from '@/src/lib/mail/mailer';
 import { TRPCError } from '@trpc/server';
 import crypto from 'crypto';
 
@@ -132,6 +132,18 @@ export const bookingRouter = router({
                     companyLogo: company.branding?.logoUrl,
                     brandingColor: company.branding?.primaryColor
                 });
+            } else if (!requiresConfirmation) {
+                // Direct booking: Send success email immediately
+                await sendBookingSuccessEmail({
+                    customerEmail: input.customer.email,
+                    customerName: input.customer.name,
+                    companyName: company.name,
+                    serviceName: service.name,
+                    startTime: new Date(input.startTime),
+                    durationInMinutes: service.duration,
+                    companyLogo: company.branding?.logoUrl,
+                    brandingColor: company.branding?.primaryColor
+                });
             }
 
             return {
@@ -151,7 +163,12 @@ export const bookingRouter = router({
         .mutation(async ({ ctx, input }) => {
             const booking = await ctx.prisma.booking.findUnique({
                 where: { confirmationToken: input.token },
-                include: { company: true }
+                include: {
+                    company: {
+                        include: { branding: true }
+                    },
+                    service: true
+                }
             });
 
             if (!booking) {
@@ -165,12 +182,25 @@ export const bookingRouter = router({
                 return { success: true, message: "La cita ya está confirmada o procesada." };
             }
 
+            // Update status
             await ctx.prisma.booking.update({
                 where: { id: booking.id },
                 data: {
                     status: 'CONFIRMED',
                     confirmationToken: null // Clear token after use
                 }
+            });
+
+            // Trigger Success Email
+            await sendBookingSuccessEmail({
+                customerEmail: booking.customerEmail,
+                customerName: booking.customerName,
+                companyName: booking.company.name,
+                serviceName: booking.service.name,
+                startTime: booking.startTime,
+                durationInMinutes: booking.service.duration,
+                companyLogo: booking.company.branding?.logoUrl,
+                brandingColor: booking.company.branding?.primaryColor
             });
 
             return {
