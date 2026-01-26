@@ -3,6 +3,8 @@ import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import { auth } from "../src/lib/auth";
+import { randomUUID } from "crypto";
+import { addDays, subDays, startOfHour, setHours } from "date-fns";
 
 /**
  * Seed script for Epikal database
@@ -484,6 +486,110 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
             } as any
         }
     });
+
+    // =========================================================================
+    // 9. REMINDERS & NOTIFICATIONS
+    // =========================================================================
+    console.log("⏰ Configuring reminders...");
+    await prisma.reminderConfig.createMany({
+        data: [
+            {
+                companyId: company.id,
+                channel: "EMAIL",
+                timeValue: 1,
+                timeUnit: "DAYS",
+                isActive: true
+            },
+            {
+                companyId: company.id,
+                channel: "EMAIL",
+                timeValue: 2,
+                timeUnit: "HOURS",
+                isActive: true
+            }
+        ]
+    });
+
+    // =========================================================================
+    // 10. DUMMY CUSTOMERS & BOOKINGS
+    // =========================================================================
+    console.log("📅 Generating random bookings...");
+
+    const dummyCustomers = [
+        { name: "Ana P.", email: "ana.customer@example.com" },
+        { name: "Carlos M.", email: "carlos.customer@example.com" },
+        { name: "Lucía R.", email: "lucia.customer@example.com" },
+        { name: "Miguel T.", email: "miguel.customer@example.com" },
+        { name: "Sofia L.", email: "sofia.customer@example.com" }
+    ];
+
+    const createdCustomers = [];
+    for (const c of dummyCustomers) {
+        const cust = await prisma.customer.create({
+            data: {
+                companyId: company.id,
+                firstName: c.name.split(" ")[0],
+                lastName: c.name.split(" ")[1],
+                email: c.email,
+                totalBookings: 0
+            }
+        });
+        createdCustomers.push(cust);
+    }
+
+    const statuses = ["CONFIRMED", "COMPLETED", "CANCELLED", "NO_SHOW", "PENDING"];
+    const now = new Date();
+    const serviceIds = await prisma.service.findMany({ where: { companyId: company.id } });
+    const resources = [resource1, resource2];
+
+    // Generate ~20 bookings
+    for (let i = 0; i < 20; i++) {
+        // Random Day: -7 to +7 days
+        const dayOffset = Math.floor(Math.random() * 15) - 7;
+        const dateBase = addDays(now, dayOffset);
+
+        // Random Hour: 9 to 17
+        const hour = Math.floor(Math.random() * 9) + 9;
+        const startTime = setHours(startOfHour(dateBase), hour);
+
+        // Random Service
+        const service = serviceIds[Math.floor(Math.random() * serviceIds.length)];
+        // Resolve Service duration to set endTime
+        // (We need to fetch service details or assume stored in array above, better to fetch)
+        // Optimization: We fetched IDs above, let's just pick one and fetch full or careful matching.
+        // Actually serviceIds contains the objects if we didn't use select. prisma.service.findMany() returns objects.
+        const duration = service.duration;
+        const endTime = new Date(startTime.getTime() + duration * 60000);
+
+        // Random Resource (linked to service ideally, but for seed we can be loose or check)
+        // resource1 does basic stuff, resource2 does medical.
+        // Let's just pick random for simplicity of seed unless strict check needed.
+        // Prisma schema allows any resource if no strict validation in seed.
+        const resource = resources[Math.floor(Math.random() * resources.length)];
+
+        // Random Customer
+        const customer = createdCustomers[Math.floor(Math.random() * createdCustomers.length)];
+
+        // Random Status
+        const status = statuses[Math.floor(Math.random() * statuses.length)];
+
+        await prisma.booking.create({
+            data: {
+                companyId: company.id,
+                serviceId: service.id,
+                resourceId: resource.id,
+                customerId: customer.id,
+                customerName: customer.firstName + " " + (customer.lastName || ""),
+                customerEmail: customer.email,
+                startTime: startTime,
+                endTime: endTime,
+                status: status as any,
+                rescheduleToken: randomUUID(),
+                cancellationToken: randomUUID(),
+                confirmationToken: status === "PENDING" ? randomUUID() : null
+            }
+        });
+    }
 
     console.log("\n" + "=".repeat(60));
     console.log("✅ Rich Seed completed successfully!");
