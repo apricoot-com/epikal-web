@@ -300,10 +300,10 @@ body {
   border-color: var(--border) !important;
 }
 
-/* Today Highlight */
+/* Today Highlight - Restored using color-mix to avoid stacking context issues */
 .fc-timegrid-col.fc-day-today {
-  background-color: var(--accent) !important;
-  opacity: 0.5;
+  background-color: color-mix(in srgb, var(--accent), transparent 10%) !important;
+  /* opacity: 0.5; - REMOVED: causes stacking context issues that block clicks */
 }
 
 /* Events */
