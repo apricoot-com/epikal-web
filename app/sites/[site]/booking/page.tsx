@@ -32,7 +32,7 @@ export default async function BookingPage(
     if (!company) return notFound();
 
     return (
-        <div className="min-h-screen bg-slate-50 py-12">
+        <div className="light min-h-screen bg-slate-50 py-12">
             <BookingWizard
                 companySlug={company.slug}
                 preselectedServiceId={searchParams.serviceId}
