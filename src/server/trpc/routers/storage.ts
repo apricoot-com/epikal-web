@@ -35,6 +35,14 @@ export const storageRouter = router({
             const contentType = matches[1];
             const buffer = Buffer.from(matches[2], 'base64');
 
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/gif'];
+            if (!allowedTypes.includes(contentType)) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: `Tipo de archivo no permitido: ${contentType}. Use JPG, PNG, GIF, WebP o SVG.`,
+                });
+            }
+
             // Generate a unique filename to avoid collisions
             const hash = crypto.randomBytes(8).toString('hex');
             const sanitizedFilename = input.filename.replace(/[^a-zA-Z0-9.-]/g, '_');

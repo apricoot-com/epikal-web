@@ -61,6 +61,7 @@ model Company {
   name          String        // Nombre comercial
   legalName     String?       // Razón social
   slug          String        @unique // Subdominio
+  description   String?       // Acerca de
   customDomain  String?       @unique // Dominio personalizado
   status        CompanyStatus @default(ACTIVE)
   

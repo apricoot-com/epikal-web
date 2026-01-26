@@ -132,9 +132,9 @@ export function ImageUpload({
 
                 {!value && !isUploading && (
                     <div className="flex-1 text-sm text-muted-foreground">
-                        Sube una imagen JPG, PNG o WebP.
+                        Sube tu logo en SVG, PNG, JPG o WebP.
                         <br />
-                        Máximo 5MB per archivo.
+                        Recomendado: SVG o PNG transparente.
                     </div>
                 )}
             </div>
