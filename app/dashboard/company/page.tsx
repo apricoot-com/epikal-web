@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { trpc } from "@/src/lib/trpc/client";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -88,6 +89,7 @@ export default function CompanySettingsPage() {
     const [primaryColor, setPrimaryColor] = useState("#3B82F6");
     const [secondaryColor, setSecondaryColor] = useState("#10B981");
     const [logoUrl, setLogoUrl] = useState("");
+    const [requiresConfirmation, setRequiresConfirmation] = useState(false);
 
     const [socialUrls, setSocialUrls] = useState({
         facebook: "",
@@ -139,6 +141,7 @@ export default function CompanySettingsPage() {
             setPrimaryColor(company.branding?.primaryColor || "#3B82F6");
             setSecondaryColor(company.branding?.secondaryColor || "#10B981");
             setLogoUrl(company.branding?.logoUrl || "");
+            setRequiresConfirmation(company.requiresBookingConfirmation || false);
 
             const savedSocial = (company.socialUrls as any) || {};
             setSocialUrls({
@@ -151,11 +154,19 @@ export default function CompanySettingsPage() {
         }
     };
 
+    // Initialize form when company data is loaded
+    useEffect(() => {
+        if (company) {
+            initForm();
+        }
+    }, [company]);
+
     // Handle general settings save
     const handleSaveGeneral = async () => {
         await updateCompany.mutateAsync({
             name,
             legalName: legalName || null,
+            requiresBookingConfirmation: requiresConfirmation,
         });
         toast.success("Información general guardada");
     };
@@ -305,6 +316,24 @@ export default function CompanySettingsPage() {
                                         <Input value={company?.language || ""} disabled />
                                     </div>
                                 </div>
+
+                                <Separator className="my-6" />
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
+                                        <div className="space-y-0.5">
+                                            <Label className="text-base">Confirmación de Agendamiento</Label>
+                                            <p className="text-sm text-muted-foreground">
+                                                Las citas nuevas quedarán pendientes hasta que el cliente las confirme vía email.
+                                            </p>
+                                        </div>
+                                        <Switch
+                                            checked={requiresConfirmation}
+                                            onCheckedChange={setRequiresConfirmation}
+                                            disabled={!canEdit}
+                                        />
+                                    </div>
+                                </div>
+
                                 {canEdit && (
                                     <Button
                                         onClick={handleSaveGeneral}

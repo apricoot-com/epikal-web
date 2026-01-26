@@ -1,6 +1,12 @@
+/**
+ * Booking Router (Updated to ensure Prisma schema synchronization)
+ */
 import { z } from 'zod';
 import { router, publicProcedure, companyProcedure } from '../init';
 import { getAvailableSlots } from '@/src/lib/scheduling/availability';
+import { sendBookingConfirmationEmail } from '@/src/lib/mail/mailer';
+import { TRPCError } from '@trpc/server';
+import crypto from 'crypto';
 
 export const bookingRouter = router({
     /**
@@ -45,7 +51,8 @@ export const bookingRouter = router({
         .mutation(async ({ ctx, input }) => {
             // 1. Resolve Company
             const company = await ctx.prisma.company.findFirst({
-                where: { OR: [{ slug: input.siteId }, { customDomain: input.siteId }] }
+                where: { OR: [{ slug: input.siteId }, { customDomain: input.siteId }] },
+                include: { branding: true }
             });
 
             if (!company) throw new Error("Company not found");
@@ -83,6 +90,9 @@ export const bookingRouter = router({
                 }
             });
 
+            const requiresConfirmation = company.requiresBookingConfirmation;
+            const confirmationToken = requiresConfirmation ? crypto.randomUUID() : null;
+
             // 3. Create Booking
             const booking = await ctx.prisma.booking.create({
                 data: {
@@ -91,6 +101,8 @@ export const bookingRouter = router({
                     resourceId: input.resourceId,
                     startTime: new Date(input.startTime),
                     endTime: endTime,
+                    status: requiresConfirmation ? 'PENDING' : 'CONFIRMED',
+                    confirmationToken: confirmationToken,
                     // Legacy fields
                     customerName: input.customer.name,
                     customerEmail: input.customer.email,
@@ -100,7 +112,67 @@ export const bookingRouter = router({
                 }
             });
 
-            return { success: true, bookingId: booking.id };
+            // 4. Send Confirmation Email if needed
+            if (requiresConfirmation && confirmationToken) {
+                const host = process.env.BETTER_AUTH_URL ? new URL(process.env.BETTER_AUTH_URL).origin : "http://localhost:3000";
+                const confirmationUrl = `${host}/sites/${company.slug}/confirm-booking?token=${confirmationToken}`;
+
+                await sendBookingConfirmationEmail({
+                    customerEmail: input.customer.email,
+                    customerName: input.customer.name,
+                    companyName: company.name,
+                    serviceName: service.name,
+                    startTime: new Date(input.startTime),
+                    confirmationUrl,
+                    companyLogo: company.branding?.logoUrl,
+                    brandingColor: company.branding?.primaryColor
+                });
+            }
+
+            return {
+                success: true,
+                bookingId: booking.id,
+                status: booking.status
+            };
+        }),
+
+    /**
+     * Public: Confirm a booking via token
+     */
+    confirmByToken: publicProcedure
+        .input(z.object({
+            token: z.string().min(1)
+        }))
+        .mutation(async ({ ctx, input }) => {
+            const booking = await ctx.prisma.booking.findUnique({
+                where: { confirmationToken: input.token },
+                include: { company: true }
+            });
+
+            if (!booking) {
+                throw new TRPCError({
+                    code: 'NOT_FOUND',
+                    message: 'Token de confirmación inválido o expirado.'
+                });
+            }
+
+            if (booking.status !== 'PENDING') {
+                return { success: true, message: "La cita ya está confirmada o procesada." };
+            }
+
+            await ctx.prisma.booking.update({
+                where: { id: booking.id },
+                data: {
+                    status: 'CONFIRMED',
+                    confirmationToken: null // Clear token after use
+                }
+            });
+
+            return {
+                success: true,
+                companyName: booking.company.name,
+                startTime: booking.startTime
+            };
         }),
 
     /**

@@ -43,6 +43,7 @@ export const companyRouter = router({
                 language: z.string().length(2).optional(),
                 siteTemplateId: z.string().optional(),
                 siteSettings: z.record(z.string(), z.unknown()).optional(), // Allow flexible JSON input
+                requiresBookingConfirmation: z.boolean().optional(),
                 socialUrls: z
                     .object({
                         facebook: z.string().optional().nullable(),

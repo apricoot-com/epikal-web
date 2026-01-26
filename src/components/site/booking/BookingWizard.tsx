@@ -279,12 +279,20 @@ export default function BookingWizard({
                     {/* STEP 5: CONFIRMATION */}
                     {step === 'confirmation' && (
                         <div className="text-center py-8 space-y-4">
-                            <div className="mx-auto h-16 w-16 bg-green-100 rounded-full flex items-center justify-center">
-                                <Check className="h-8 w-8 text-green-600" />
+                            <div className={`mx-auto h-16 w-16 ${createBooking.data?.status === 'PENDING' ? 'bg-amber-100' : 'bg-green-100'} rounded-full flex items-center justify-center`}>
+                                {createBooking.data?.status === 'PENDING' ? (
+                                    <Clock className="h-8 w-8 text-amber-600" />
+                                ) : (
+                                    <Check className="h-8 w-8 text-green-600" />
+                                )}
                             </div>
-                            <h3 className="text-xl font-bold">¡Cita Agendada!</h3>
+                            <h3 className="text-xl font-bold">
+                                {createBooking.data?.status === 'PENDING' ? '¡Ya casi terminamos!' : '¡Cita Agendada!'}
+                            </h3>
                             <p className="text-muted-foreground">
-                                Hemos enviado un correo de confirmación a {form.email}.
+                                {createBooking.data?.status === 'PENDING'
+                                    ? `Hemos enviado un link de confirmación a ${form.email}. Debes hacer click en él para asegurar tu cita.`
+                                    : `Hemos enviado un correo de confirmación a ${form.email}.`}
                             </p>
                             <Button
                                 className="mt-4"

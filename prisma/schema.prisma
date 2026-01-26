@@ -69,8 +69,10 @@ model Company {
   currency      String        @default("USD")
   timezone      String        @default("America/Mexico_City")
   
-  // Custom Settings
   socialUrls    Json?         // { facebook, instagram, twitter, linkedin, tiktok }
+
+  // Module 3: Scheduling Settings
+  requiresBookingConfirmation Boolean @default(false)
 
   // Module 4: Subscription & Billing
   subscriptionTier    SubscriptionTier    @default(FREE)
@@ -548,6 +550,7 @@ model Booking {
   
   status        BookingStatus @default(CONFIRMED)
   notes         String?
+  confirmationToken String? @unique
   
   // Timestamps
   createdAt     DateTime      @default(now())

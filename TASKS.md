@@ -18,5 +18,6 @@
 - [ ] Multiples recordatorios de agendamiento y confirmación de asistencia (Whatsapp, Email, SMS)
 - [ ] 
  
- 
+
+
 
