@@ -12,6 +12,7 @@ export async function sendBookingConfirmationEmail({
     startTime,
     confirmationUrl,
     rescheduleUrl,
+    cancelUrl,
     companyLogo,
     brandingColor,
 }: {
@@ -22,6 +23,7 @@ export async function sendBookingConfirmationEmail({
     startTime: Date;
     confirmationUrl: string;
     rescheduleUrl?: string;
+    cancelUrl?: string;
     companyLogo?: string | null;
     brandingColor?: string | null;
 }) {
@@ -40,6 +42,7 @@ export async function sendBookingConfirmationEmail({
             formattedDate,
             confirmationUrl,
             rescheduleUrl,
+            cancelUrl,
             companyLogo,
             brandingColor,
         }

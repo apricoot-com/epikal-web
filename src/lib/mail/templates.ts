@@ -66,9 +66,13 @@ export const BOOKING_CONFIRMATION = `
     </div>
 
     {{#if rescheduleUrl}}
-    <div style="text-align: center; margin-top: 10px;">
-        <p style="font-size: 14px; color: #64748b;">¿Necesitas cambiar la fecha?</p>
-        <a href="{{rescheduleUrl}}" style="color: {{brandingColor}}; font-weight: bold; text-decoration: none;">Reagendar mi Cita</a>
+    <div style="text-align: center; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+        <p style="font-size: 14px; color: #64748b;">¿Necesitas hacer cambios?</p>
+        <div style="display: flex; gap: 15px; justify-content: center; align-items: center;">
+            <a href="{{rescheduleUrl}}" style="color: {{brandingColor}}; font-weight: bold; text-decoration: none;">Reagendar</a>
+            <span style="color: #cbd5e1;">|</span>
+            <a href="{{cancelUrl}}" style="color: #ef4444; font-weight: bold; text-decoration: none; font-size: 14px;">Cancelar Cita</a>
+        </div>
     </div>
     {{/if}}
     
@@ -92,8 +96,12 @@ export const BOOKING_SUCCESS = `
     
     {{#if rescheduleUrl}}
     <div style="text-align: center; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
-        <p style="font-size: 14px; color: #64748b;">¿Necesitas cambiar la fecha?</p>
-        <a href="{{rescheduleUrl}}" style="color: {{brandingColor}}; font-weight: bold; text-decoration: none;">Reagendar mi Cita</a>
+        <p style="font-size: 14px; color: #64748b;">¿Necesitas hacer cambios?</p>
+        <div style="display: flex; gap: 15px; justify-content: center; align-items: center;">
+            <a href="{{rescheduleUrl}}" style="color: {{brandingColor}}; font-weight: bold; text-decoration: none;">Reagendar</a>
+            <span style="color: #cbd5e1;">|</span>
+            <a href="{{cancelUrl}}" style="color: #ef4444; font-weight: bold; text-decoration: none; font-size: 14px;">Cancelar Cita</a>
+        </div>
     </div>
     {{/if}}
     
@@ -117,8 +125,12 @@ export const BOOKING_RESCHEDULED = `
     
     {{#if rescheduleUrl}}
     <div style="text-align: center; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
-        <p style="font-size: 14px; color: #64748b;">¿Necesitas cambiar la fecha nuevamente?</p>
-        <a href="{{rescheduleUrl}}" style="color: {{brandingColor}}; font-weight: bold; text-decoration: none;">Reagendar mi Cita</a>
+        <p style="font-size: 14px; color: #64748b;">¿Necesitas hacer cambios?</p>
+        <div style="display: flex; gap: 15px; justify-content: center; align-items: center;">
+            <a href="{{rescheduleUrl}}" style="color: {{brandingColor}}; font-weight: bold; text-decoration: none;">Reagendar</a>
+            <span style="color: #cbd5e1;">|</span>
+            <a href="{{cancelUrl}}" style="color: #ef4444; font-weight: bold; text-decoration: none; font-size: 14px;">Cancelar Cita</a>
+        </div>
     </div>
     {{/if}}
     

@@ -93,6 +93,7 @@ export const bookingRouter = router({
             const requiresConfirmation = company.requiresBookingConfirmation;
             const confirmationToken = requiresConfirmation ? crypto.randomUUID() : null;
             const rescheduleToken = crypto.randomUUID();
+            const cancellationToken = crypto.randomUUID();
 
             // 3. Create Booking
             const booking = await ctx.prisma.booking.create({
@@ -105,6 +106,7 @@ export const bookingRouter = router({
                     status: requiresConfirmation ? 'PENDING' : 'CONFIRMED',
                     confirmationToken: confirmationToken,
                     rescheduleToken: rescheduleToken,
+                    cancellationToken: cancellationToken,
                     // Legacy fields
                     customerName: input.customer.name,
                     customerEmail: input.customer.email,
@@ -121,14 +123,7 @@ export const bookingRouter = router({
 
             // 5. Send Confirmation/Success Email
             if (requiresConfirmation && confirmationToken) {
-                // Determine the correct host for the link
-                const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost:3000';
-                const siteHost = company.customDomain || `${company.slug}.${rootDomain}`;
-
-                // Construct URL (using http for local dev, should be https in prod with actual domains)
-                const protocol = siteHost.includes('localhost') ? 'http' : 'https';
                 const confirmationUrl = `${protocol}://${siteHost}/confirm-booking?token=${confirmationToken}`;
-                const rescheduleUrl = `${protocol}://${siteHost}/reschedule?token=${rescheduleToken}`;
 
                 await sendBookingConfirmationEmail({
                     customerEmail: input.customer.email,
@@ -138,12 +133,14 @@ export const bookingRouter = router({
                     startTime: new Date(input.startTime),
                     confirmationUrl,
                     rescheduleUrl,
+                    cancelUrl,
                     companyLogo: company.branding?.logoUrl,
                     brandingColor: company.branding?.primaryColor
                 });
             } else if (!requiresConfirmation) {
                 // Direct booking: Send success email immediately
                 const rescheduleUrl = `${protocol}://${siteHost}/reschedule?token=${rescheduleToken}`;
+                const cancelUrl = `${protocol}://${siteHost}/cancel?token=${cancellationToken}`;
 
                 await sendBookingSuccessEmail({
                     customerEmail: input.customer.email,
@@ -153,6 +150,7 @@ export const bookingRouter = router({
                     startTime: new Date(input.startTime),
                     durationInMinutes: service.duration,
                     rescheduleUrl,
+                    cancelUrl,
                     companyLogo: company.branding?.logoUrl,
                     brandingColor: company.branding?.primaryColor
                 });
@@ -259,6 +257,70 @@ export const bookingRouter = router({
         }),
 
     /**
+     * Public: Get booking details by cancellation token
+     */
+    getByCancelToken: publicProcedure
+        .input(z.object({
+            token: z.string().min(1)
+        }))
+        .query(async ({ ctx, input }) => {
+            const booking = await ctx.prisma.booking.findUnique({
+                where: { cancellationToken: input.token },
+                include: {
+                    company: {
+                        include: { branding: true }
+                    },
+                    service: true
+                }
+            });
+
+            if (!booking) {
+                throw new TRPCError({
+                    code: 'NOT_FOUND',
+                    message: 'Token de cancelación inválido o expirado.'
+                });
+            }
+
+            return booking;
+        }),
+
+    /**
+     * Public: Cancel a booking via token
+     */
+    cancelByToken: publicProcedure
+        .input(z.object({
+            token: z.string().min(1)
+        }))
+        .mutation(async ({ ctx, input }) => {
+            const booking = await ctx.prisma.booking.findUnique({
+                where: { cancellationToken: input.token },
+                include: { company: true }
+            });
+
+            if (!booking) {
+                throw new TRPCError({
+                    code: 'NOT_FOUND',
+                    message: 'Token inválido.'
+                });
+            }
+
+            if (booking.status === 'CANCELLED') {
+                return { success: true, message: "La cita ya fue cancelada." };
+            }
+
+            await ctx.prisma.booking.update({
+                where: { id: booking.id },
+                data: {
+                    status: 'CANCELLED'
+                }
+            });
+
+            // Notify Resource (TODO: Add professional notification)
+
+            return { success: true };
+        }),
+
+    /**
      * Public: Reschedule a booking
      */
     reschedule: publicProcedure
@@ -329,6 +391,7 @@ export const bookingRouter = router({
 
             return updatedBooking;
         }),
+
 
     /**
      * Dashboard: Update booking status (confirm, cancel, complete, no-show)

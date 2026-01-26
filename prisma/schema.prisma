@@ -552,6 +552,7 @@ model Booking {
   notes         String?
   confirmationToken String? @unique
   rescheduleToken   String? @unique
+  cancellationToken String? @unique
   
   // Timestamps
   createdAt     DateTime      @default(now())
