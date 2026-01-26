@@ -17,6 +17,8 @@ import {
     Check,
     Globe,
     User,
+    Shield,
+    CalendarClock,
 } from "lucide-react";
 
 import {
@@ -87,6 +89,12 @@ const navItems = [
         icon: User,
         roles: ["STAFF", "OWNER", "ADMIN"],
     },
+    {
+        title: "Super Admin",
+        href: "/dashboard/superadmin/companies",
+        icon: Shield,
+        roles: ["SUPERADMIN"],
+    },
 ];
 
 const settingsItems = [
@@ -120,6 +128,12 @@ const settingsItems = [
         icon: Globe,
         roles: ["SUPERADMIN", "OWNER"],
     },
+    {
+        title: "Agendamiento",
+        href: "/dashboard/booking-settings",
+        icon: CalendarClock,
+        roles: ["SUPERADMIN", "OWNER", "ADMIN"],
+    },
 ];
 
 export function DashboardSidebar() {
@@ -127,6 +141,7 @@ export function DashboardSidebar() {
     const router = useRouter();
     const { data: session, isPending: sessionPending } = useSession();
     const { data: status, refetch: refetchStatus } = trpc.onboarding.getStatus.useQuery();
+    const isSuperadmin = status?.isSuperadmin || false;
     const setActiveCompany = trpc.onboarding.setActiveCompany.useMutation({
         onSuccess: (company) => {
             document.cookie = `activeCompanyId=${company.id}; path=/; max-age=${60 * 60 * 24 * 365}`;
@@ -162,8 +177,16 @@ export function DashboardSidebar() {
     const currentCompanyName = activeCompany?.name ?? status?.companies?.[0]?.name ?? "Empresa";
 
     // Filter items based on role
-    const filteredNavItems = navItems.filter(item => item.roles.includes(userRole));
-    const filteredSettingsItems = settingsItems.filter(item => item.roles.includes(userRole));
+    const filteredNavItems = navItems.filter(item => {
+        // If isSuperadmin flag is true, show items that allow SUPERADMIN
+        if (isSuperadmin && item.roles.includes("SUPERADMIN")) return true;
+        // Otherwise check user role
+        return item.roles.includes(userRole);
+    });
+    const filteredSettingsItems = settingsItems.filter(item => {
+        if (isSuperadmin && item.roles.includes("SUPERADMIN")) return true;
+        return item.roles.includes(userRole);
+    });
 
     return (
         <Sidebar collapsible="icon">

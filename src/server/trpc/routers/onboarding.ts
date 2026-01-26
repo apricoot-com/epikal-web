@@ -49,6 +49,7 @@ export const onboardingRouter = router({
             companies,
             canCreateCompany: !hasProblematicCompany,
             activeCompanyId: ctx.company?.id ?? null,
+            isSuperadmin: ctx.isSuperadmin,
         };
     }),
 

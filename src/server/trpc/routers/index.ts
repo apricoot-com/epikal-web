@@ -12,6 +12,8 @@ import { calendarRouter } from "./calendar";
 import { customerRouter } from "./customer";
 import { storageRouter } from "./storage";
 import { reminderRouter } from "./reminder";
+import { superadminRouter } from "./superadmin";
+
 
 /**
  * Root router for all tRPC endpoints
@@ -34,6 +36,8 @@ export const appRouter = router({
     resource: resourceRouter,
     subscription: subscriptionRouter,
     analytics: analyticsRouter,
+    superadmin: superadminRouter,
+
     booking: bookingRouter,
     calendar: calendarRouter,
     customer: customerRouter,

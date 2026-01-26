@@ -92,6 +92,7 @@ export async function GET(req: Request) {
                             ? `${protocol}://${siteHost}/confirm-booking?token=${booking.confirmationToken}`
                             : undefined;
 
+
                         await sendBookingReminderEmail({
                             to: customerEmail,
                             customerName: customerName,
