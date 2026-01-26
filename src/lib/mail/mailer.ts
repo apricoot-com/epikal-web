@@ -203,3 +203,54 @@ export async function sendBookingRescheduledEmail({
         attachments
     });
 }
+
+/**
+ * Send Booking Reminder
+ */
+export async function sendBookingReminderEmail({
+    to,
+    customerName,
+    companyName,
+    serviceName,
+    date,
+    providerName,
+    confirmUrl,
+    rescheduleUrl,
+    cancelUrl,
+    companyLogo,
+    brandingColor
+}: {
+    to: string;
+    customerName: string;
+    companyName: string;
+    serviceName: string;
+    date: Date;
+    providerName: string;
+    confirmUrl?: string;
+    rescheduleUrl?: string;
+    cancelUrl?: string;
+    companyLogo?: string | null;
+    brandingColor?: string | null;
+}) {
+    const formattedDate = new Intl.DateTimeFormat('es-CO', {
+        dateStyle: 'full',
+        timeStyle: 'short'
+    }).format(date);
+
+    return EmailService.send({
+        to,
+        template: 'BOOKING_REMINDER',
+        data: {
+            customerName,
+            companyName,
+            serviceName,
+            providerName,
+            formattedDate,
+            confirmUrl,
+            rescheduleUrl,
+            cancelUrl,
+            companyLogo,
+            brandingColor
+        }
+    });
+}

@@ -95,6 +95,7 @@ model Company {
   locations     Location[]
   services      Service[]
   resources     Resource[]
+  reminderConfigs ReminderConfig[]
   
   // Module 3: Web Pages
   siteTemplateId String?
@@ -562,6 +563,8 @@ model Booking {
   company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   resource      Resource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
   service       Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  reminderLogs  BookingReminderLog[]
+  
   
   @@index([companyId])
   @@index([resourceId, startTime])
@@ -606,3 +609,59 @@ model Customer {
   @@map("customers")
 }
 
+
+// =============================================================================
+// REMINDERS & NOTIFICATIONS (Module 3.3)
+// =============================================================================
+
+enum ReminderChannel {
+  EMAIL
+  WHATSAPP
+  SMS
+}
+
+enum TimeUnit {
+  MINUTES
+  HOURS
+  DAYS
+}
+
+enum ReminderLogStatus {
+  SUCCESS
+  FAILED
+  PENDING
+}
+
+model ReminderConfig {
+  id        String          @id @default(cuid())
+  companyId String
+  channel   ReminderChannel @default(EMAIL)
+  timeValue Int             // e.g. 24
+  timeUnit  TimeUnit        // e.g. HOURS
+  isActive  Boolean         @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company   Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  logs      BookingReminderLog[]
+
+  @@map("reminder_configs")
+}
+
+model BookingReminderLog {
+  id              String            @id @default(cuid())
+  bookingId       String
+  reminderConfigId String
+
+  sentAt          DateTime          @default(now())
+  channel         ReminderChannel
+  status          ReminderLogStatus @default(SUCCESS)
+  error           String? 
+
+  booking         Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  reminderConfig  ReminderConfig @relation(fields: [reminderConfigId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@map("booking_reminder_logs")
+}

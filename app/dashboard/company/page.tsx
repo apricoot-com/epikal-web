@@ -54,7 +54,15 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { useSearchParams, useRouter } from "next/navigation";
+import { Bell, Clock, Play } from "lucide-react";
 
 type LocationFormData = {
     name: string;
@@ -128,6 +136,42 @@ export default function CompanySettingsPage() {
     const [locationsDialogOpen, setLocationsDialogOpen] = useState(false);
     const [editingLocationId, setEditingLocationId] = useState<string | null>(null);
     const [locationForm, setLocationForm] = useState<LocationFormData>(emptyLocationForm);
+
+    // Reminders State
+    const { data: reminders, refetch: refetchReminders } = trpc.reminder.list.useQuery();
+    const createReminder = trpc.reminder.create.useMutation({
+        onSuccess: () => {
+            toast.success("Recordatorio creado");
+            refetchReminders();
+            setReminderDialogOpen(false);
+            setReminderForm({ channel: "EMAIL", timeValue: 24, timeUnit: "HOURS" });
+        }
+    });
+    const deleteReminder = trpc.reminder.delete.useMutation({
+        onSuccess: () => {
+            toast.success("Recordatorio eliminado");
+            refetchReminders();
+        }
+    });
+    const toggleReminder = trpc.reminder.toggle.useMutation({
+        onSuccess: () => refetchReminders()
+    });
+
+    const [reminderDialogOpen, setReminderDialogOpen] = useState(false);
+    const [reminderForm, setReminderForm] = useState<{
+        channel: "EMAIL" | "WHATSAPP" | "SMS";
+        timeValue: number;
+        timeUnit: "MINUTES" | "HOURS" | "DAYS";
+    }>({
+        channel: "EMAIL",
+        timeValue: 24,
+        timeUnit: "HOURS"
+    });
+
+    const handleCreateReminder = async () => {
+        await createReminder.mutateAsync(reminderForm);
+    };
+
 
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -227,6 +271,27 @@ export default function CompanySettingsPage() {
         }
     };
 
+    const handleTestRun = async () => {
+        if (!confirm("Esto forzará el envío de recordatorios para citas próximas. ¿Continuar?")) return;
+
+        const toastId = toast.loading("Ejecutando cron de recordatorios...");
+        try {
+            const res = await fetch('/api/cron/reminders');
+            const data = await res.json();
+
+            toast.dismiss(toastId);
+            if (data.success) {
+                toast.success(`Ejecutado correctamente. Enviados: ${data.processed}`);
+            } else {
+                toast.error(`Error: ${data.error}`);
+            }
+        } catch (err) {
+            toast.dismiss(toastId);
+            toast.error("Error al conectar con el endpoint");
+            console.error(err);
+        }
+    };
+
     const canEdit = myRole === "OWNER" || myRole === "ADMIN";
 
     if (isLoading) {
@@ -254,6 +319,8 @@ export default function CompanySettingsPage() {
                         <TabsTrigger value="locations">Ubicaciones</TabsTrigger>
                         <TabsTrigger value="branding">Marca</TabsTrigger>
                         <TabsTrigger value="social">Redes</TabsTrigger>
+                        <TabsTrigger value="reminders">Recordatorios</TabsTrigger>
+
                     </TabsList>
 
                     <TabsContent value="general" className="mt-4">
@@ -715,8 +782,130 @@ export default function CompanySettingsPage() {
                             </CardContent>
                         </Card>
                     </TabsContent>
+
+
+                    <TabsContent value="reminders" className="mt-4">
+                        <div className="flex items-center justify-between mb-4 px-1">
+                            <p className="text-sm text-muted-foreground">
+                                {reminders?.length || 0} recordatorio{reminders?.length !== 1 ? "s" : ""}
+                            </p>
+                            {canEdit && (
+                                <div className="flex gap-2">
+                                    <Button size="sm" variant="outline" className="gap-2" onClick={handleTestRun}>
+                                        <Play className="size-4" />
+                                        <span className="hidden sm:inline">Probar Envío</span>
+                                    </Button>
+                                    <Dialog open={reminderDialogOpen} onOpenChange={setReminderDialogOpen}>
+                                        <DialogTrigger asChild>
+                                            <Button size="sm" className="gap-2">
+                                                <Plus className="size-4" />
+                                                <span>Nuevo recordatorio</span>
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Nuevo recordatorio</DialogTitle>
+                                                <DialogDescription>
+                                                    Configura alertas automáticas para tus citas
+                                                </DialogDescription>
+                                            </DialogHeader>
+                                            <div className="space-y-4 py-4">
+                                                <div className="space-y-2">
+                                                    <Label>Canal</Label>
+                                                    <Select
+                                                        value={reminderForm.channel}
+                                                        onValueChange={(val: any) => setReminderForm({ ...reminderForm, channel: val })}
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="EMAIL">Email</SelectItem>
+                                                            <SelectItem value="WHATSAPP" disabled>WhatsApp (Próximamente)</SelectItem>
+                                                            <SelectItem value="SMS" disabled>SMS (Próximamente)</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <Label>Tiempo</Label>
+                                                        <Input
+                                                            type="number"
+                                                            min={1}
+                                                            value={reminderForm.timeValue}
+                                                            onChange={(e) => setReminderForm({ ...reminderForm, timeValue: parseInt(e.target.value) || 0 })}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label>Unidad</Label>
+                                                        <Select
+                                                            value={reminderForm.timeUnit}
+                                                            onValueChange={(val: any) => setReminderForm({ ...reminderForm, timeUnit: val })}
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="MINUTES">Minutos antes</SelectItem>
+                                                                <SelectItem value="HOURS">Horas antes</SelectItem>
+                                                                <SelectItem value="DAYS">Días antes</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <DialogFooter>
+                                                <Button onClick={handleCreateReminder} disabled={createReminder.isPending}>
+                                                    {createReminder.isPending ? "Guardando..." : "Guardar"}
+                                                </Button>
+                                            </DialogFooter>
+                                        </DialogContent>
+                                    </Dialog>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            {reminders?.map((reminder) => (
+                                <Card key={reminder.id} className="relative">
+                                    <CardHeader className="pb-2">
+                                        <div className="flex justify-between items-start">
+                                            <CardTitle className="flex items-center gap-2 text-lg">
+                                                <Clock className="size-5 text-muted-foreground" />
+                                                {reminder.timeValue} {reminder.timeUnit === 'MINUTES' ? 'Minutos' : reminder.timeUnit === 'HOURS' ? 'Horas' : 'Días'} antes
+                                            </CardTitle>
+                                            {canEdit && (
+                                                <div className="flex gap-1">
+                                                    <Switch
+                                                        checked={reminder.isActive}
+                                                        onCheckedChange={(checked) => toggleReminder.mutate({ id: reminder.id, isActive: checked })}
+                                                        disabled={toggleReminder.isPending}
+                                                    />
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="size-8 text-destructive hover:text-destructive ml-2"
+                                                        onClick={() => deleteReminder.mutate({ id: reminder.id })}
+                                                        disabled={deleteReminder.isPending}
+                                                    >
+                                                        <Trash2 className="size-4" />
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex items-center gap-2 text-sm text-muted-foreground p-2 bg-muted/50 rounded-md">
+                                            <Bell className="size-4" />
+                                            <span>Envia {reminder.channel}</span>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    </TabsContent>
                 </Tabs>
-            </div>
+            </div >
         </>
     );
 }

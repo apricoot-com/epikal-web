@@ -138,6 +138,42 @@ export const BOOKING_RESCHEDULED = `
 `;
 
 /**
+ * Booking Reminder Template
+ */
+export const BOOKING_REMINDER = `
+    <h1>Recordatorio de Cita</h1>
+    <p>Hola <strong>{{customerName}}</strong>,</p>
+    <p>Este es un recordatorio amigable de tu cita en <strong>{{companyName}}</strong>:</p>
+    
+    <div class="info-box">
+        <p class="info-item"><strong>Servicio:</strong> {{serviceName}}</p>
+        <p class="info-item"><strong>Profesional:</strong> {{providerName}}</p>
+        <p class="info-item"><strong>Fecha:</strong> {{formattedDate}}</p>
+    </div>
+    
+    <p>Por favor, confirma que asistirás a tu cita:</p>
+    
+    <div style="text-align: center;">
+        {{#if confirmUrl}}
+        <a href="{{confirmUrl}}" class="button">Sí, Asistiré</a>
+        {{/if}}
+    </div>
+
+    <div style="text-align: center; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+        <p style="font-size: 14px; color: #64748b;">¿Cambio de planes?</p>
+        <div style="display: flex; gap: 15px; justify-content: center; align-items: center;">
+            {{#if rescheduleUrl}}
+            <a href="{{rescheduleUrl}}" style="color: {{brandingColor}}; font-weight: bold; text-decoration: none;">Reagendar</a>
+            <span style="color: #cbd5e1;">|</span>
+            {{/if}}
+            {{#if cancelUrl}}
+            <a href="{{cancelUrl}}" style="color: #ef4444; font-weight: bold; text-decoration: none; font-size: 14px;">Cancelar Cita</a>
+            {{/if}}
+        </div>
+    </div>
+`;
+
+/**
  * Registry of templates
  */
 export const EmailTemplates = {
@@ -152,7 +188,12 @@ export const EmailTemplates = {
     BOOKING_RESCHEDULED: {
         subject: 'Cita reprogramada: {{serviceName}} en {{companyName}}',
         body: BOOKING_RESCHEDULED
+    },
+    BOOKING_REMINDER: {
+        subject: 'Recordatorio: Tu cita en {{companyName}}',
+        body: BOOKING_REMINDER
     }
 } as const;
+
 
 export type TemplateName = keyof typeof EmailTemplates;
