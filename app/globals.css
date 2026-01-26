@@ -309,14 +309,17 @@ body {
 /* Events */
 .fc-event {
   border-radius: var(--radius-sm) !important;
-  padding: 2px 4px !important;
+  padding: 0 !important;
+  /* Remove padding to let custom content fill */
   font-size: 0.8rem !important;
   font-weight: 500 !important;
   border: none !important;
-  background-color: var(--primary);
+  background-color: transparent !important;
+  /* Make invisible so inner content shows */
+  box-shadow: none !important;
 }
 
-.fc-v-event {
-  background-color: var(--primary);
-  border-color: var(--primary);
+a.fc-v-event {
+  background-color: transparent !important;
+  border-color: transparent !important;
 }
