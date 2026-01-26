@@ -285,7 +285,7 @@ export default function CalendarView() {
                                         <Button
                                             variant="default"
                                             className="bg-green-600 hover:bg-green-700 text-white font-bold h-12 rounded-xl flex items-center gap-2"
-                                            onClick={() => updateStatus.mutate({ id: selectedEvent.id, status: 'COMPLETED' })}
+                                            onClick={() => updateStatus.mutate({ id: selectedEvent.extendedProps.originalId, status: 'COMPLETED' })}
                                             disabled={updateStatus.isPending}
                                         >
                                             <CheckCircle className="h-5 w-5" />
@@ -294,7 +294,7 @@ export default function CalendarView() {
                                         <Button
                                             variant="secondary"
                                             className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200 font-bold h-12 rounded-xl flex items-center gap-2"
-                                            onClick={() => updateStatus.mutate({ id: selectedEvent.id, status: 'NO_SHOW' })}
+                                            onClick={() => updateStatus.mutate({ id: selectedEvent.extendedProps.originalId, status: 'NO_SHOW' })}
                                             disabled={updateStatus.isPending}
                                         >
                                             <XCircle className="h-5 w-5" />

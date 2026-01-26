@@ -47,14 +47,16 @@ export const calendarRouter = router({
             // Normalize to FullCalendar event format
             return [
                 ...bookings.map(b => ({
-                    id: b.id,
+                    id: `booking-${b.id}`,
                     title: `${b.customerName} - ${b.service.name}`,
                     start: b.startTime,
                     end: b.endTime,
                     resourceId: b.resourceId,
-                    type: 'booking',
-                    status: b.status,
+                    classNames: ['cursor-pointer', 'pointer-events-auto'],
                     extendedProps: {
+                        originalId: b.id,
+                        type: 'booking',
+                        status: b.status,
                         email: b.customerEmail,
                         phone: b.customerPhone,
                         serviceName: b.service.name,
@@ -64,14 +66,16 @@ export const calendarRouter = router({
                     }
                 })),
                 ...blockouts.map(b => ({
-                    id: b.id,
+                    id: `blockout-${b.id}`,
                     title: b.description || 'Bloqueado',
                     start: b.startTime,
                     end: b.endTime,
                     resourceId: b.resourceId,
-                    type: 'blockout',
-                    color: '#9ca3af',
+                    color: '#4b5563', // Darker gray for visibility
+                    classNames: ['cursor-pointer', 'pointer-events-auto'],
                     extendedProps: {
+                        originalId: b.id,
+                        type: 'blockout',
                         resourceName: b.resource.name
                     }
                 }))

@@ -317,6 +317,6 @@ body {
 }
 
 .fc-v-event {
-  background-color: var(--primary) !important;
-  border-color: var(--primary) !important;
+  background-color: var(--primary);
+  border-color: var(--primary);
 }
