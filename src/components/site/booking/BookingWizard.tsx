@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { trpc } from '@/src/lib/trpc/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -28,6 +29,10 @@ export default function BookingWizard({
 }: BookingWizardProps) {
     const { toast } = useToast();
     const [step, setStep] = useState<Step>('service');
+    const pathname = usePathname();
+
+    const isSitePreview = pathname.startsWith('/sites');
+    const homeUrl = isSitePreview ? `/sites/${companySlug}/` : '/';
 
     // Selection State
     const [selectedService, setSelectedService] = useState<any>(null);
@@ -300,7 +305,7 @@ export default function BookingWizard({
                                     if (callbackUrl) {
                                         window.location.href = callbackUrl;
                                     } else {
-                                        window.location.href = `/sites/${companySlug}`;
+                                        window.location.href = homeUrl;
                                     }
                                 }}
                             >

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams, useParams } from "next/navigation";
+import { useSearchParams, useParams, usePathname } from "next/navigation";
 import { trpc } from "@/src/lib/trpc/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,12 +13,16 @@ import Link from "next/link";
 export default function ConfirmBookingPage() {
     const searchParams = useSearchParams();
     const params = useParams();
+    const pathname = usePathname();
     const token = searchParams.get("token");
     const site = params.site as string;
 
     const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
     const [bookingDetails, setBookingDetails] = useState<any>(null);
     const [errorMessage, setErrorMessage] = useState("");
+
+    const isSitePreview = pathname.startsWith('/sites');
+    const homeUrl = isSitePreview ? `/sites/${site}/` : "/";
 
     const confirmMutation = trpc.booking.confirmByToken.useMutation({
         onSuccess: (data) => {
@@ -84,7 +88,7 @@ export default function ConfirmBookingPage() {
                             )}
 
                             <Button asChild className="w-full mt-6">
-                                <Link href={`/sites/${site}`}>
+                                <Link href={homeUrl}>
                                     Ir al Inicio
                                 </Link>
                             </Button>
@@ -103,7 +107,7 @@ export default function ConfirmBookingPage() {
                                 </p>
                             </div>
                             <Button asChild variant="outline" className="w-full mt-6">
-                                <Link href={`/sites/${site}`}>
+                                <Link href={homeUrl}>
                                     Regresar al Sitio
                                 </Link>
                             </Button>

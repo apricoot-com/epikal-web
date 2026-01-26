@@ -114,8 +114,13 @@ export const bookingRouter = router({
 
             // 4. Send Confirmation Email if needed
             if (requiresConfirmation && confirmationToken) {
-                const host = process.env.BETTER_AUTH_URL ? new URL(process.env.BETTER_AUTH_URL).origin : "http://localhost:3000";
-                const confirmationUrl = `${host}/sites/${company.slug}/confirm-booking?token=${confirmationToken}`;
+                // Determine the correct host for the link
+                const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost:3000';
+                const siteHost = company.customDomain || `${company.slug}.${rootDomain}`;
+
+                // Construct URL (using http for local dev, should be https in prod with actual domains)
+                const protocol = siteHost.includes('localhost') ? 'http' : 'https';
+                const confirmationUrl = `${protocol}://${siteHost}/confirm-booking?token=${confirmationToken}`;
 
                 await sendBookingConfirmationEmail({
                     customerEmail: input.customer.email,
@@ -169,9 +174,10 @@ export const bookingRouter = router({
             });
 
             return {
-                success: true,
                 companyName: booking.company.name,
-                startTime: booking.startTime
+                companySlug: booking.company.slug,
+                customDomain: booking.company.customDomain,
+                startTime: booking.startTime,
             };
         }),
 
