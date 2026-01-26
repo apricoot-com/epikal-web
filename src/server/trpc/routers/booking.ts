@@ -122,6 +122,9 @@ export const bookingRouter = router({
             const protocol = siteHost.includes('localhost') ? 'http' : 'https';
 
             // 5. Send Confirmation/Success Email
+            const rescheduleUrl = `${protocol}://${siteHost}/reschedule?token=${rescheduleToken}`;
+            const cancelUrl = `${protocol}://${siteHost}/cancel?token=${cancellationToken}`;
+
             if (requiresConfirmation && confirmationToken) {
                 const confirmationUrl = `${protocol}://${siteHost}/confirm-booking?token=${confirmationToken}`;
 
@@ -139,9 +142,6 @@ export const bookingRouter = router({
                 });
             } else if (!requiresConfirmation) {
                 // Direct booking: Send success email immediately
-                const rescheduleUrl = `${protocol}://${siteHost}/reschedule?token=${rescheduleToken}`;
-                const cancelUrl = `${protocol}://${siteHost}/cancel?token=${cancellationToken}`;
-
                 await sendBookingSuccessEmail({
                     customerEmail: input.customer.email,
                     customerName: input.customer.name,

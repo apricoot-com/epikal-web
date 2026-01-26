@@ -39,6 +39,15 @@ export default function CalendarView() {
     // Filters
     const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
 
+    // Filter by Role
+    const { data: role } = trpc.team.myRole.useQuery();
+    const { data: me } = trpc.resource.getMe.useQuery();
+
+    // Auto-select my resource if I am STAFF
+    if (role === 'STAFF' && me && selectedResourceId !== me.id) {
+        setSelectedResourceId(me.id);
+    }
+
     // Side Panel State
     const [selectedEvent, setSelectedEvent] = useState<any>(null);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -79,6 +88,81 @@ export default function CalendarView() {
         setSelectedEvent(info.event);
         setIsSheetOpen(true);
     };
+
+    const renderEventContent = (eventInfo: any) => {
+        const props = eventInfo.event.extendedProps;
+        const isBooking = props.type === 'booking';
+
+        let bgColor = "bg-primary";
+        let borderColor = "border-primary";
+
+        if (isBooking) {
+            if (props.status === 'CANCELLED') {
+                // Cancelled: Gray/Slate (unchanged or slightly adjusted)
+                bgColor = "bg-slate-400";
+                borderColor = "border-slate-500";
+            } else if (props.status === 'PENDING') {
+                // Pending: Light Gray
+                bgColor = "bg-gray-400";
+                borderColor = "border-gray-500";
+            } else if (props.status === 'COMPLETED') {
+                // Completed: Clear Green
+                bgColor = "bg-green-500";
+                borderColor = "border-green-600";
+            } else if (props.status === 'NO_SHOW') {
+                // No Show: Soft Red
+                bgColor = "bg-red-400";
+                borderColor = "border-red-500";
+            } else {
+                // Confirmed (Default): Primary
+                bgColor = "bg-primary";
+                borderColor = "border-primary";
+            }
+        } else {
+            // Blockout
+            bgColor = "bg-slate-400";
+            borderColor = "border-slate-500";
+        }
+
+        return (
+            <div
+                className={`w-full h-full px-1.5 py-0.5 text-[10px] leading-tight overflow-hidden flex flex-col justify-center rounded-sm border-l-4 ${bgColor} ${borderColor} text-white cursor-pointer`}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedEvent(eventInfo.event);
+                    setIsSheetOpen(true);
+                }}
+            >
+                {/* Admin/Owner View: Service + Professional */}
+                {(role === 'OWNER' || role === 'ADMIN') && (
+                    <>
+                        <div className="font-bold truncate text-[11px] mb-0.5">{props.serviceName}</div>
+                        {props.resourceName && (
+                            <div className="truncate uppercase opacity-90 mb-0.5">{props.resourceName}</div>
+                        )}
+                        {/* Optional: Show customer small at bottom if needed, or hide as requested "remove patient name" */}
+                    </>
+                )}
+
+                {/* Staff View: Patient Name + Service */}
+                {role === 'STAFF' && (
+                    <>
+                        <div className="font-bold truncate text-[11px] mb-0.5">{props.customerName}</div>
+                        <div className="truncate opacity-90">{props.serviceName}</div>
+                    </>
+                )}
+
+                {/* Fallback/Generic (if no role loaded yet or other cases) */}
+                {!role && (
+                    <div className="font-semibold truncate">{eventInfo.event.title}</div>
+                )}
+
+                {isBooking && props.status === 'CANCELLED' && (
+                    <div className="italic text-[9px] opacity-80 truncate mt-auto">Cancelada</div>
+                )}
+            </div>
+        );
+    }
 
     return (
         <>
@@ -127,6 +211,7 @@ export default function CalendarView() {
                             datesSet={handleDatesSet}
                             events={events || []}
                             eventClick={handleEventClick}
+                            eventContent={renderEventContent}
                             nowIndicator
                             allDaySlot={false}
                             slotMinTime="08:00:00"
