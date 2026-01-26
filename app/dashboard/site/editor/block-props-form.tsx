@@ -215,7 +215,7 @@ export function BlockPropsForm({ block, onChange }: BlockPropsFormProps) {
         }
 
         return (
-            <div key={key} className="p-4 border border-yellow-500 rounded bg-yellow-50 text-yellow-800 text-xs break-all">
+            <div key={key} className="p-4 border border-amber-500/50 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs break-all">
                 <strong>Unknown Field Type:</strong> {key} ({typeName})
                 <br />
                 CType: {zodType?.constructor?.name}

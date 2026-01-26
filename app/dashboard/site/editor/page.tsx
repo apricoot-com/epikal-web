@@ -142,7 +142,7 @@ export default function SiteEditorPage() {
     const isLoadingSave = updateCompany.isPending;
 
     return (
-        <div className="h-[calc(100vh-4rem)] flex flex-col bg-gray-50/50">
+        <div className="h-[calc(100vh-4rem)] flex flex-col bg-muted/30">
             {/* Header */}
             <div className="border-b bg-background p-4 flex items-center justify-between sticky top-0 z-20">
                 <div className="flex items-center gap-4">
