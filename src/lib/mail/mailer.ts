@@ -122,3 +122,81 @@ export async function sendBookingSuccessEmail({
         attachments
     });
 }
+
+/**
+ * For rescheduled bookings - Includes Updated Calendar Invite
+ */
+export async function sendBookingRescheduledEmail({
+    customerEmail,
+    customerName,
+    companyName,
+    serviceName,
+    startTime,
+    durationInMinutes,
+    rescheduleUrl,
+    companyLogo,
+    brandingColor,
+}: {
+    customerEmail: string;
+    customerName: string;
+    companyName: string;
+    serviceName: string;
+    startTime: Date;
+    durationInMinutes: number;
+    rescheduleUrl?: string;
+    companyLogo?: string | null;
+    brandingColor?: string | null;
+}) {
+    const formattedDate = new Intl.DateTimeFormat('es-CO', {
+        dateStyle: 'full',
+        timeStyle: 'short'
+    }).format(startTime);
+
+    // Generate ICS content
+    const date = new Date(startTime);
+    const event: EventAttributes = {
+        start: [
+            date.getFullYear(),
+            date.getMonth() + 1,
+            date.getDate(),
+            date.getHours(),
+            date.getMinutes()
+        ],
+        duration: { minutes: durationInMinutes },
+        title: `${serviceName} - ${companyName} (Reagendada)`,
+        description: `Cita reprogramada para ${customerName} en ${companyName}. Servicio: ${serviceName}.`,
+        location: companyName,
+        organizer: { name: companyName, email: 'noreply@epikal.com' },
+        status: 'CONFIRMED',
+        busyStatus: 'BUSY',
+        sequence: 1 // Increment sequence for updates (simplified approach)
+    };
+
+    const { error, value } = createEvent(event);
+    const attachments = [];
+
+    if (!error && value) {
+        attachments.push({
+            filename: 'cita-reprogramada.ics',
+            content: value,
+            contentType: 'text/calendar; charset=utf-8; method=REQUEST'
+        });
+    } else {
+        console.error('Failed to generate ICS:', error);
+    }
+
+    return EmailService.send({
+        to: customerEmail,
+        template: 'BOOKING_RESCHEDULED',
+        data: {
+            customerName,
+            companyName,
+            serviceName,
+            formattedDate,
+            rescheduleUrl,
+            companyLogo,
+            brandingColor,
+        },
+        attachments
+    });
+}

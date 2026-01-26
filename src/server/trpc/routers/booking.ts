@@ -4,7 +4,7 @@
 import { z } from 'zod';
 import { router, publicProcedure, companyProcedure } from '../init';
 import { getAvailableSlots } from '@/src/lib/scheduling/availability';
-import { sendBookingConfirmationEmail, sendBookingSuccessEmail } from '@/src/lib/mail/mailer';
+import { sendBookingConfirmationEmail, sendBookingSuccessEmail, sendBookingRescheduledEmail } from '@/src/lib/mail/mailer';
 import { TRPCError } from '@trpc/server';
 import crypto from 'crypto';
 
@@ -315,7 +315,7 @@ export const bookingRouter = router({
             const protocol = siteHost.includes('localhost') ? 'http' : 'https';
             const rescheduleUrl = `${protocol}://${siteHost}/reschedule?token=${booking.rescheduleToken}`;
 
-            await sendBookingSuccessEmail({
+            await sendBookingRescheduledEmail({
                 customerEmail: booking.customerEmail,
                 customerName: booking.customerName,
                 companyName: booking.company.name,

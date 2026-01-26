@@ -101,6 +101,31 @@ export const BOOKING_SUCCESS = `
 `;
 
 /**
+ * Booking Rescheduled Template
+ */
+export const BOOKING_RESCHEDULED = `
+    <h1>¡Tu cita ha sido reprogramada!</h1>
+    <p>Hola <strong>{{customerName}}</strong>,</p>
+    <p>Te informamos que tu cita en <strong>{{companyName}}</strong> ha sido reprogramada exitosamente.</p>
+    
+    <div class="info-box">
+        <p class="info-item"><strong>Servicio:</strong> {{serviceName}}</p>
+        <p class="info-item"><strong>Nueva Fecha:</strong> {{formattedDate}}</p>
+    </div>
+    
+    <p>Hemos adjuntado una nueva invitación de calendario actualizada a este correo.</p>
+    
+    {{#if rescheduleUrl}}
+    <div style="text-align: center; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+        <p style="font-size: 14px; color: #64748b;">¿Necesitas cambiar la fecha nuevamente?</p>
+        <a href="{{rescheduleUrl}}" style="color: {{brandingColor}}; font-weight: bold; text-decoration: none;">Reagendar mi Cita</a>
+    </div>
+    {{/if}}
+    
+    <p>¡Te esperamos en el nuevo horario!</p>
+`;
+
+/**
  * Registry of templates
  */
 export const EmailTemplates = {
@@ -111,6 +136,10 @@ export const EmailTemplates = {
     BOOKING_SUCCESS: {
         subject: '¡Cita confirmada! {{serviceName}} en {{companyName}}',
         body: BOOKING_SUCCESS
+    },
+    BOOKING_RESCHEDULED: {
+        subject: 'Cita reprogramada: {{serviceName}} en {{companyName}}',
+        body: BOOKING_RESCHEDULED
     }
 } as const;
 
