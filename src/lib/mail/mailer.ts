@@ -11,6 +11,7 @@ export async function sendBookingConfirmationEmail({
     serviceName,
     startTime,
     confirmationUrl,
+    rescheduleUrl,
     companyLogo,
     brandingColor,
 }: {
@@ -20,6 +21,7 @@ export async function sendBookingConfirmationEmail({
     serviceName: string;
     startTime: Date;
     confirmationUrl: string;
+    rescheduleUrl?: string;
     companyLogo?: string | null;
     brandingColor?: string | null;
 }) {
@@ -37,6 +39,7 @@ export async function sendBookingConfirmationEmail({
             serviceName,
             formattedDate,
             confirmationUrl,
+            rescheduleUrl,
             companyLogo,
             brandingColor,
         }
@@ -53,6 +56,7 @@ export async function sendBookingSuccessEmail({
     serviceName,
     startTime,
     durationInMinutes,
+    rescheduleUrl,
     companyLogo,
     brandingColor,
 }: {
@@ -62,6 +66,7 @@ export async function sendBookingSuccessEmail({
     serviceName: string;
     startTime: Date;
     durationInMinutes: number;
+    rescheduleUrl?: string;
     companyLogo?: string | null;
     brandingColor?: string | null;
 }) {
@@ -110,6 +115,7 @@ export async function sendBookingSuccessEmail({
             companyName,
             serviceName,
             formattedDate,
+            rescheduleUrl,
             companyLogo,
             brandingColor,
         },

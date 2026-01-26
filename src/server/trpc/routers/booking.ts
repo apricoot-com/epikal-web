@@ -92,6 +92,7 @@ export const bookingRouter = router({
 
             const requiresConfirmation = company.requiresBookingConfirmation;
             const confirmationToken = requiresConfirmation ? crypto.randomUUID() : null;
+            const rescheduleToken = crypto.randomUUID();
 
             // 3. Create Booking
             const booking = await ctx.prisma.booking.create({
@@ -103,6 +104,7 @@ export const bookingRouter = router({
                     endTime: endTime,
                     status: requiresConfirmation ? 'PENDING' : 'CONFIRMED',
                     confirmationToken: confirmationToken,
+                    rescheduleToken: rescheduleToken,
                     // Legacy fields
                     customerName: input.customer.name,
                     customerEmail: input.customer.email,
@@ -112,7 +114,12 @@ export const bookingRouter = router({
                 }
             });
 
-            // 4. Send Confirmation Email if needed
+            // 4. Resolve Domain for links
+            const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost:3000';
+            const siteHost = company.customDomain || `${company.slug}.${rootDomain}`;
+            const protocol = siteHost.includes('localhost') ? 'http' : 'https';
+
+            // 5. Send Confirmation/Success Email
             if (requiresConfirmation && confirmationToken) {
                 // Determine the correct host for the link
                 const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost:3000';
@@ -121,6 +128,7 @@ export const bookingRouter = router({
                 // Construct URL (using http for local dev, should be https in prod with actual domains)
                 const protocol = siteHost.includes('localhost') ? 'http' : 'https';
                 const confirmationUrl = `${protocol}://${siteHost}/confirm-booking?token=${confirmationToken}`;
+                const rescheduleUrl = `${protocol}://${siteHost}/reschedule?token=${rescheduleToken}`;
 
                 await sendBookingConfirmationEmail({
                     customerEmail: input.customer.email,
@@ -129,11 +137,14 @@ export const bookingRouter = router({
                     serviceName: service.name,
                     startTime: new Date(input.startTime),
                     confirmationUrl,
+                    rescheduleUrl,
                     companyLogo: company.branding?.logoUrl,
                     brandingColor: company.branding?.primaryColor
                 });
             } else if (!requiresConfirmation) {
                 // Direct booking: Send success email immediately
+                const rescheduleUrl = `${protocol}://${siteHost}/reschedule?token=${rescheduleToken}`;
+
                 await sendBookingSuccessEmail({
                     customerEmail: input.customer.email,
                     customerName: input.customer.name,
@@ -141,6 +152,7 @@ export const bookingRouter = router({
                     serviceName: service.name,
                     startTime: new Date(input.startTime),
                     durationInMinutes: service.duration,
+                    rescheduleUrl,
                     companyLogo: company.branding?.logoUrl,
                     brandingColor: company.branding?.primaryColor
                 });
@@ -192,6 +204,11 @@ export const bookingRouter = router({
             });
 
             // Trigger Success Email
+            const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost:3000';
+            const siteHost = booking.company.customDomain || `${booking.company.slug}.${rootDomain}`;
+            const protocol = siteHost.includes('localhost') ? 'http' : 'https';
+            const rescheduleUrl = `${protocol}://${siteHost}/reschedule?token=${booking.rescheduleToken}`;
+
             await sendBookingSuccessEmail({
                 customerEmail: booking.customerEmail,
                 customerName: booking.customerName,
@@ -199,6 +216,7 @@ export const bookingRouter = router({
                 serviceName: booking.service.name,
                 startTime: booking.startTime,
                 durationInMinutes: booking.service.duration,
+                rescheduleUrl,
                 companyLogo: booking.company.branding?.logoUrl,
                 brandingColor: booking.company.branding?.primaryColor
             });
@@ -209,6 +227,107 @@ export const bookingRouter = router({
                 customDomain: booking.company.customDomain,
                 startTime: booking.startTime,
             };
+        }),
+
+    /**
+     * Public: Get booking details by reschedule token
+     */
+    getByRescheduleToken: publicProcedure
+        .input(z.object({
+            token: z.string().min(1)
+        }))
+        .query(async ({ ctx, input }) => {
+            const booking = await ctx.prisma.booking.findUnique({
+                where: { rescheduleToken: input.token },
+                include: {
+                    company: {
+                        include: { branding: true }
+                    },
+                    service: true,
+                    resource: true
+                }
+            });
+
+            if (!booking) {
+                throw new TRPCError({
+                    code: 'NOT_FOUND',
+                    message: 'Token de reagendamiento inválido o expirado.'
+                });
+            }
+
+            return booking;
+        }),
+
+    /**
+     * Public: Reschedule a booking
+     */
+    reschedule: publicProcedure
+        .input(z.object({
+            token: z.string().min(1),
+            newStartTime: z.string(), // ISO Date
+        }))
+        .mutation(async ({ ctx, input }) => {
+            // 1. Resolve Booking
+            const booking = await ctx.prisma.booking.findUnique({
+                where: { rescheduleToken: input.token },
+                include: {
+                    company: { include: { branding: true } },
+                    service: true
+                }
+            });
+
+            if (!booking) throw new TRPCError({ code: 'NOT_FOUND', message: 'Cita no encontrada.' });
+
+            // 2. Validate availability for new slot
+            const newStart = new Date(input.newStartTime);
+            const newEnd = new Date(newStart.getTime() + booking.service.duration * 60000);
+
+            const slots = await getAvailableSlots({
+                serviceId: booking.serviceId,
+                startDate: newStart,
+                endDate: newEnd,
+                resourceId: booking.resourceId
+            });
+
+            const isAvailable = slots.some(s => new Date(s.start).getTime() === newStart.getTime());
+
+            if (!isAvailable) {
+                throw new TRPCError({
+                    code: 'CONFLICT',
+                    message: 'El horario seleccionado ya no está disponible.'
+                });
+            }
+
+            // 3. Update Booking
+            const updatedBooking = await ctx.prisma.booking.update({
+                where: { id: booking.id },
+                data: {
+                    startTime: newStart,
+                    endTime: newEnd,
+                    status: 'CONFIRMED' // Ensure it's confirmed if it was somehow pending
+                }
+            });
+
+            // 4. Send Update Email (optional, but good practice)
+            // For now, let's reuse success email as it has the ICS
+            const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost:3000';
+            const siteHost = booking.company.customDomain || `${booking.company.slug}.${rootDomain}`;
+            const protocol = siteHost.includes('localhost') ? 'http' : 'https';
+            const rescheduleUrl = `${protocol}://${siteHost}/reschedule?token=${booking.rescheduleToken}`;
+
+            await sendBookingSuccessEmail({
+                customerEmail: booking.customerEmail,
+                customerName: booking.customerName,
+                companyName: booking.company.name,
+                serviceName: booking.service.name,
+                startTime: newStart,
+                durationInMinutes: booking.service.duration,
+                rescheduleUrl,
+                companyLogo: booking.company.branding?.logoUrl,
+                brandingColor: booking.company.branding?.primaryColor
+            });
+
+            return updatedBooking;
         }),
 
     /**

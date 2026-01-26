@@ -64,6 +64,13 @@ export const BOOKING_CONFIRMATION = `
     <div style="text-align: center;">
         <a href="{{confirmationUrl}}" class="button">Confirmar mi Cita</a>
     </div>
+
+    {{#if rescheduleUrl}}
+    <div style="text-align: center; margin-top: 10px;">
+        <p style="font-size: 14px; color: #64748b;">¿Necesitas cambiar la fecha?</p>
+        <a href="{{rescheduleUrl}}" style="color: {{brandingColor}}; font-weight: bold; text-decoration: none;">Reagendar mi Cita</a>
+    </div>
+    {{/if}}
     
     <p>Si no has solicitado esta cita, puedes ignorar este correo.</p>
 `;
@@ -82,6 +89,13 @@ export const BOOKING_SUCCESS = `
     </div>
     
     <p>Hemos adjuntado una invitación de calendario a este correo para que puedas agregarla fácilmente a tu agenda.</p>
+    
+    {{#if rescheduleUrl}}
+    <div style="text-align: center; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+        <p style="font-size: 14px; color: #64748b;">¿Necesitas cambiar la fecha?</p>
+        <a href="{{rescheduleUrl}}" style="color: {{brandingColor}}; font-weight: bold; text-decoration: none;">Reagendar mi Cita</a>
+    </div>
+    {{/if}}
     
     <p>¡Te esperamos!</p>
 `;
