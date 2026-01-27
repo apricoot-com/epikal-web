@@ -104,6 +104,9 @@ model Company {
   siteSettings  Json?         // Custom settings (colors, logo override, etc) for the template
   createdTemplates Template[] @relation("TemplateOwner")
   
+  // Testimonials
+  testimonials  Testimonial[]
+
   // Module 6: Analytics
   analyticsEvents AnalyticsEvent[]
   dailyStats      DailyStats[]
@@ -665,4 +668,29 @@ model BookingReminderLog {
 
   @@index([bookingId])
   @@map("booking_reminder_logs")
+}
+
+// =============================================================================
+// TESTIMONIALS
+// =============================================================================
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  companyId String
+  
+  name      String
+  title     String?  // "Paciente VIP", "Cliente satisfecha"
+  image     String?  // URL
+  text      String   @db.Text
+  
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("testimonials")
 }

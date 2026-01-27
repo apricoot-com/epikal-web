@@ -43,6 +43,7 @@ import {
 import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { DashboardHeader } from "@/components/dashboard/header";
+import { TestimonialsManager } from "@/components/dashboard/site/testimonials-manager";
 
 export default function SiteEditorPage() {
     const router = useRouter();
@@ -212,6 +213,7 @@ export default function SiteEditorPage() {
                 <Tabs defaultValue="templates" className="space-y-6">
                     <TabsList>
                         <TabsTrigger value="templates">Plantillas</TabsTrigger>
+                        <TabsTrigger value="testimonials">Testimonios</TabsTrigger>
                         <TabsTrigger value="configuration">Configuración</TabsTrigger>
                     </TabsList>
 
@@ -251,6 +253,10 @@ export default function SiteEditorPage() {
                                 </Card>
                             ))}
                         </div>
+                    </TabsContent>
+
+                    <TabsContent value="testimonials">
+                        <TestimonialsManager />
                     </TabsContent>
 
                     <TabsContent value="configuration" className="space-y-6">

@@ -29,6 +29,10 @@ export async function GET(
             where: { isPublic: true },
             include: { webPage: true, resources: true },
             orderBy: { sortOrder: 'asc' }
+        },
+        testimonials: {
+            where: { isActive: true },
+            orderBy: { sortOrder: 'asc' }
         }
     };
 
@@ -234,7 +238,8 @@ export async function GET(
                 description: s.description,
                 price: s.price,
                 image: s.webPage?.heroImage
-            }))
+            })),
+            testimonials: company.testimonials || []
         },
         context: {
             path: urlPath,

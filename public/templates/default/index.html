@@ -240,22 +240,43 @@
                         }
 
                         if (type === 'testimonials') {
-                            const items = props.items || [];
+                            // 1. Try to use explicit items from props
+                            let items = props.items || [];
+
+                            // 2. If no items or explicit source='database', try fetching from Company Data
+                            if ((items.length === 0 || props.source === 'database') && data.company.testimonials) {
+                                items = data.company.testimonials;
+                            }
+
+                            if (items.length === 0) return '';
+
                             return `
-                                <section class="py-12 bg-gray-50 overflow-hidden md:py-20 lg:py-24">
+                                <section class="py-12 bg-gray-50 overflow-hidden md:py-20 lg:py-24" id="testimonials">
                                     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                                         <div class="relative">
                                             <div class="text-center mb-10">
-                                                <h2 class="text-3xl font-extrabold text-gray-900">${props.title || 'Client Testimonials'}</h2>
+                                                <h2 class="text-3xl font-extrabold text-gray-900">${props.title || 'Lo que dicen nuestros clientes'}</h2>
                                             </div>
                                             <div class="grid gap-8 lg:grid-cols-3">
                                                 ${items.map(item => `
-                                                    <div class="bg-white rounded-lg shadow-lg overflow-hidden p-8">
-                                                        <blockquote class="mt-2 text-gray-500">
-                                                            <p class="mb-5">"${item.text || item.quote}"</p>
-                                                            <footer class="text-sm font-medium text-gray-900">
-                                                                - ${item.author}, <span class="text-gray-500">${item.role || 'Client'}</span>
-                                                            </footer>
+                                                    <div class="bg-white rounded-lg shadow-lg overflow-hidden p-8 hover:shadow-xl transition-shadow">
+                                                        <div class="flex items-center gap-4 mb-6">
+                                                            ${item.image ?
+                                    `<img src="${item.image}" alt="${item.name || item.author}" class="w-14 h-14 rounded-full object-cover border-2 border-primary/20">` :
+                                    `<div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
+                                                                    ${(item.name || item.author || '?').charAt(0)}
+                                                                </div>`
+                                }
+                                                            <div>
+                                                                <h4 class="font-bold text-gray-900 text-lg">${item.name || item.author}</h4>
+                                                                <p class="text-sm text-primary font-medium">${item.title || item.role || 'Cliente'}</p>
+                                                            </div>
+                                                        </div>
+                                                        <blockquote class="relative">
+                                                            <svg class="absolute top-0 left-0 transform -translate-x-4 -translate-y-4 h-8 w-8 text-gray-100" fill="currentColor" viewBox="0 0 32 32" aria-hidden="true">
+                                                                <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.896 3.456-8.352 9.12-8.352 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.552-7.104 6.624-9.024L25.864 4z" />
+                                                            </svg>
+                                                            <p class="relative text-gray-600 italic leading-relaxed">"${item.text || item.quote}"</p>
                                                         </blockquote>
                                                     </div>
                                                 `).join('')}
@@ -413,6 +434,23 @@
                         }
                     };
 
+                    // AUTO-INJECT TESTIMONIALS IF NOT PRESENT
+                    if (data.company.testimonials && data.company.testimonials.length > 0) {
+                        // Check if ANY testimonials block already exists (regardless of source)
+                        // This prevents duplicates if the user already added a block via CMS
+                        const hasTestimonials = data.blocks.some(b => b.type === 'testimonials');
+                        if (!hasTestimonials) {
+                            // Inject before contact or at the end
+                            data.blocks.push({
+                                type: 'testimonials',
+                                props: {
+                                    source: 'database',
+                                    title: 'Lo que dicen nuestros clientes'
+                                }
+                            });
+                        }
+                    }
+
                     const renderedBlocks = data.blocks.map(renderBlock).join('');
                     blocksContainer.innerHTML = renderedBlocks;
 
@@ -425,6 +463,9 @@
             } else {
                 if (DEBUG) console.log("Blocks disabled or empty. Showing Default Home Content.");
             }
+
+
+
 
             // --- APPENDING ABOUT SECTION IF PRESENT ---
             if (data.company.aboutHtml) {

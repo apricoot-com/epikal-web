@@ -13,6 +13,7 @@ import { customerRouter } from "./customer";
 import { storageRouter } from "./storage";
 import { reminderRouter } from "./reminder";
 import { superadminRouter } from "./superadmin";
+import { testimonialRouter } from "./testimonial";
 
 
 /**
@@ -43,6 +44,7 @@ export const appRouter = router({
     customer: customerRouter,
     storage: storageRouter,
     reminder: reminderRouter,
+    testimonial: testimonialRouter,
 });
 
 export type AppRouter = typeof appRouter;

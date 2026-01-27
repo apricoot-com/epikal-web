@@ -15,6 +15,7 @@
 - [ ] Pagina de profesionales (activar desactivar)
 - [ ] Pagina de profesionales
 - [ ] Banner de logos y certificados
+- [ ] Short bio for Professionals
 
 Pagina de acerca de
 - [ ] Banner en el about
