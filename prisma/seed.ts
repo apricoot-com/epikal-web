@@ -81,8 +81,8 @@ async function main() {
             slug: "clinica-aurora",
             status: "ACTIVE",
             language: "es",
-            currency: "MXN",
-            timezone: "America/Mexico_City",
+            currency: "COP",
+            timezone: "America/Bogota",
             siteTemplateId: template.id,
             description: "Somos Clínica Aurora, un espacio dedicado al bienestar integral y la belleza consciente. Fundada en 2015, nuestra misión es combinar la tecnología más avanzada con un trato profundamente humano para resaltar tu belleza natural. Nos especializamos en tratamientos faciales y corporales no invasivos, avalados por un equipo médico de primer nivel.",
             aboutImage: "/seed/aurora/clinic-interior.jpg",
@@ -90,7 +90,7 @@ async function main() {
                 facebook: "https://facebook.com/clinicaaurora",
                 instagram: "https://instagram.com/clinicaaurora",
                 tiktok: "https://tiktok.com/@clinicaaurora",
-                whatsapp: "https://wa.me/525512345678"
+                whatsapp: "https://wa.me/573001234567"
             }
         },
     });
@@ -158,15 +158,15 @@ async function main() {
     const location = await prisma.location.create({
         data: {
             companyId: company.id,
-            name: "Sede Central Polanco",
-            address: "Av. Masaryk 123",
-            city: "CDMX",
-            country: "México",
-            phone: "+52 55 1234 5678",
-            email: "polanco@clinica-aurora.com",
-            googleMapsUrl: "https://www.google.com/maps/place/Av.+Pdte.+Masaryk+123,+Polanco,+Polanco+V+Secc,+Miguel+Hidalgo,+11560+Ciudad+de+M%C3%A9xico,+CDMX",
-            latitude: 19.432608,
-            longitude: -99.194951,
+            name: "Sede Principal Chico",
+            address: "Calle 93B # 13-47",
+            city: "Bogotá",
+            country: "Colombia",
+            phone: "+57 300 123 4567",
+            email: "bogota@clinica-aurora.com",
+            googleMapsUrl: "https://www.google.com/maps/place/Juan+Carlos+Le%C3%B3n+-+Cirug%C3%ADa+Pl%C3%A1stica/@4.7044828,-74.041243",
+            latitude: 4.7044621,
+            longitude: -74.0410872,
         },
     });
 
@@ -210,7 +210,7 @@ async function main() {
             name: "Limpieza Facial Profunda",
             slug: "facial-profundo",
             duration: 60,
-            price: 850.00,
+            price: 180000.00,
             shortDescription: "Purifica tu rostro con una técnica avanzada de extracción e hidratación profunda.",
             image: "/seed/aurora/services/limpieza-facial.jpeg",
             content: `
@@ -239,7 +239,7 @@ Ideal para mantener una piel luminosa, libre de imperfecciones y retrasar los si
             name: "Masaje Relajante Holístico",
             slug: "masaje-relajante",
             duration: 50,
-            price: 1200.00,
+            price: 240000.00,
             shortDescription: "Libera tensiones musculares y equilibra tu mente con aceites esenciales orgánicos.",
             image: "/seed/aurora/services/masaje-relajante.jpeg",
             content: `
@@ -265,7 +265,7 @@ Utilizamos **aceites esenciales de grado terapéutico** (lavanda, bergamota o eu
             name: "Bótox Preventivo (Baby Botox)",
             slug: "botox",
             duration: 30,
-            price: 4500.00,
+            price: 900000.00,
             shortDescription: "Suaviza las líneas de expresión y previene la formación de arrugas permanentes.",
             image: "/seed/aurora/services/botox.jpg",
             content: `
@@ -296,7 +296,7 @@ Mediante micro-inyecciones de toxina botulínica de alta calidad (Botox® o Dysp
             name: "Radiofrecuencia Facial (Efecto Lifting)",
             slug: "radiofrecuencia",
             duration: 45,
-            price: 1500.00,
+            price: 300000.00,
             shortDescription: "Estimula el colágeno natural para tensar la piel y definir el contorno facial.",
             image: "/seed/aurora/services/radiofrecuencia-facial.webp",
             content: `
@@ -321,7 +321,7 @@ Es un tratamiento indoloro, altamente placentero y que te permite retomar tus ac
             name: "Depilación Láser Soprano Ice",
             slug: "depilacion-laser",
             duration: 40,
-            price: 950.00,
+            price: 200000.00,
             shortDescription: "Eliminación permanente del vello con tecnología de punta, rápida e indolora.",
             image: "/seed/aurora/services/depilacion-laser.jpg",
             content: `
@@ -333,7 +333,7 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
 *   **Prácticamente Indoloro**: Gracias a su sistema de enfriamiento integrado patentado.
 *   **Eficaz en Veraneo**: Se puede aplicar incluso en pieles bronceadas.
 *   **Sesiones Rápidas**: Protocolos optimizados para que tu tiempo sea valorado.
-*   **Seguro y Preciso**: Tratamiento aprobado por la FDA y COFEPRIS.
+*   **Seguro y Preciso**: Tratamiento aprobado por la FDA y regulaciones colombianas.
 
 #### Áreas Populares:
 *   Axilas
@@ -402,9 +402,9 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
         data: {
             siteSettings: {
                 contact: {
-                    phone: "+52 55 1234 5678",
+                    phone: "+57 300 123 4567",
                     email: "hola@clinica-aurora.com",
-                    address: "Av. Presidente Masaryk 123, Polanco"
+                    address: "Calle 93B # 13-47, Bogotá"
                 },
                 pages: {
                     home: {
@@ -414,7 +414,7 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
                                 type: "hero",
                                 props: {
                                     title: "Bienvenida a Clínica Aurora",
-                                    subtitle: "Tu santuario de belleza y cuidado personal en la CDMX. Descubre tratamientos diseñados para resaltar tu mejor versión.",
+                                    subtitle: "Tu santuario de belleza y cuidado personal en Bogotá. Descubre tratamientos diseñados para resaltar tu mejor versión.",
                                     ctaText: "Agendar Cita Ahora",
                                     ctaLink: "/booking",
                                     backgroundImage: "/seed/aurora/banner.png",
@@ -464,7 +464,7 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
                                 id: "contact-1",
                                 type: "contact",
                                 props: {
-                                    title: "Visítanos en Polanco",
+                                    title: "Visítanos en Chico",
                                     subtitle: "Envíanos un mensaje o agenda directamente desde el botón superior."
                                 }
                             }
@@ -516,7 +516,7 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
                                 props: {
                                     title: "Ven a Conocernos",
                                     description: "Agenda una visita de valoración sin costo y descubre nuestras instalaciones de primer nivel.",
-                                    zoomTitle: "Clínica Aurora Polanco"
+                                    zoomTitle: "Clínica Aurora Bogotá"
                                 }
                             }
                         ]
