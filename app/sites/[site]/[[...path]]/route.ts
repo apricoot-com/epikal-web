@@ -25,6 +25,19 @@ export async function GET(
         siteTemplate: true,
         branding: true,
         locations: true,
+        resources: {
+            where: {
+                type: 'PROFESSIONAL',
+                status: 'ACTIVE'
+            },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                image: true,
+                bio: true
+            }
+        },
         services: {
             where: { isPublic: true },
             include: { webPage: true, resources: true },
@@ -125,6 +138,9 @@ export async function GET(
             fileToRead = `${urlPath}.html`;
         } else if (fs.existsSync(path.join(templatePath, urlPath, "index.html"))) {
             fileToRead = path.join(urlPath, "index.html");
+        } else if (["about", "contact"].includes(urlPath)) {
+            // Virtual pages that use the index shell
+            fileToRead = "index.html";
         } else {
             return new NextResponse("Page not found", { status: 404 });
         }
@@ -167,6 +183,7 @@ export async function GET(
             '${company.phone}': siteSettings.contact?.phone || "",
             '${company.email}': siteSettings.contact?.email || "",
             '${company.address}': siteSettings.contact?.address || "",
+            '${company.aboutImage}': (company as any).aboutImage || "https://images.unsplash.com/photo-1629909613654-28e377c37b09?q=80&w=2068&auto=format&fit=crop", // Fallback image
         };
 
         if (context.type === 'service-detail' && context.data) {
@@ -231,6 +248,7 @@ export async function GET(
                 logo: branding.logoUrl,
             },
             locations: company.locations || [],
+            resources: company.resources || [],
             services: company.services.map((s: any) => ({
                 id: s.id,
                 name: s.name,

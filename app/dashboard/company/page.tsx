@@ -100,6 +100,7 @@ export default function CompanySettingsPage() {
     const [secondaryColor, setSecondaryColor] = useState("#10B981");
     const [logoUrl, setLogoUrl] = useState("");
     const [description, setDescription] = useState("");
+    const [aboutImage, setAboutImage] = useState("");
 
     const [socialUrls, setSocialUrls] = useState({
         facebook: "",
@@ -154,7 +155,9 @@ export default function CompanySettingsPage() {
             setPrimaryColor(company.branding?.primaryColor || "#3B82F6");
             setSecondaryColor(company.branding?.secondaryColor || "#10B981");
             setLogoUrl(company.branding?.logoUrl || "");
+            setLogoUrl(company.branding?.logoUrl || "");
             setDescription(company.description || "");
+            setAboutImage((company as any).aboutImage || "");
 
             const savedSocial = (company.socialUrls as any) || {};
             setSocialUrls({
@@ -180,6 +183,7 @@ export default function CompanySettingsPage() {
             name,
             legalName: legalName || null,
             description: description || null,
+            aboutImage: aboutImage || null,
         });
         toast.success("Información general guardada");
     };
@@ -401,22 +405,38 @@ export default function CompanySettingsPage() {
                                         Cuéntale a tus clientes sobre tu negocio, historia y valores.
                                     </CardDescription>
                                 </CardHeader>
-                                <CardContent>
-                                    <MarkdownEditor
-                                        value={description}
-                                        onChange={setDescription}
-                                        placeholder="Escribe aquí la descripción de tu empresa..."
-                                    />
+                                <CardContent className="space-y-6">
+                                    <div className="space-y-4">
+                                        <Label className="text-base font-medium">Imagen "Acerca de"</Label>
+                                        <div className="p-1 border-2 border-dashed rounded-xl">
+                                            <ImageUpload
+                                                value={aboutImage}
+                                                onChange={setAboutImage}
+                                                onRemove={() => setAboutImage("")}
+                                                folder="company"
+                                                description="Banner para la página de Nosotros (1920x1080 recomendado)"
+                                            />
+                                        </div>
+                                    </div>
 
-                                    {canEdit && (
-                                        <Button
-                                            onClick={handleSaveGeneral}
-                                            disabled={updateCompany.isPending}
-                                            className="mt-4"
-                                        >
-                                            {updateCompany.isPending ? "Guardando..." : "Guardar cambios"}
-                                        </Button>
-                                    )}
+                                    <div className="space-y-2">
+                                        <Label>Descripción Pública</Label>
+                                        <MarkdownEditor
+                                            value={description}
+                                            onChange={setDescription}
+                                            placeholder="Escribe aquí la descripción de tu empresa..."
+                                        />
+
+                                        {canEdit && (
+                                            <Button
+                                                onClick={handleSaveGeneral}
+                                                disabled={updateCompany.isPending}
+                                                className="mt-4"
+                                            >
+                                                {updateCompany.isPending ? "Guardando..." : "Guardar cambios"}
+                                            </Button>
+                                        )}
+                                    </div>
                                 </CardContent>
                             </Card>
                         </div>

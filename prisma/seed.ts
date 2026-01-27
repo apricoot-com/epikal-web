@@ -84,6 +84,14 @@ async function main() {
             currency: "MXN",
             timezone: "America/Mexico_City",
             siteTemplateId: template.id,
+            description: "Somos Clínica Aurora, un espacio dedicado al bienestar integral y la belleza consciente. Fundada en 2015, nuestra misión es combinar la tecnología más avanzada con un trato profundamente humano para resaltar tu belleza natural. Nos especializamos en tratamientos faciales y corporales no invasivos, avalados por un equipo médico de primer nivel.",
+            aboutImage: "/seed/aurora/clinic-interior.jpg",
+            socialUrls: {
+                facebook: "https://facebook.com/clinicaaurora",
+                instagram: "https://instagram.com/clinicaaurora",
+                tiktok: "https://tiktok.com/@clinicaaurora",
+                whatsapp: "https://wa.me/525512345678"
+            }
         },
     });
 
@@ -168,7 +176,9 @@ async function main() {
             type: "PROFESSIONAL",
             name: "María García",
             description: "Especialista en limpiezas y masajes.",
+            bio: "Con más de 8 años de experiencia en el mundo del bienestar, María se especializa en tratamientos holísticos que combinan técnicas tradicionales con aparatología moderna.",
             status: "ACTIVE",
+            image: "https://randomuser.me/api/portraits/women/20.jpg"
         }
     });
 
@@ -181,7 +191,9 @@ async function main() {
             type: "PROFESSIONAL",
             name: "Dra. Laura Torres",
             description: "Médico estético especializada en inyectables.",
+            bio: "Graduada con honores y certificada en medicina estética avanzada. La Dra. Laura es reconocida por sus resultados naturales y su enfoque en la seguridad del paciente.",
             status: "ACTIVE",
+            image: "https://randomuser.me/api/portraits/women/40.jpg"
         }
     });
 
@@ -430,6 +442,14 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
                                 }
                             },
                             {
+                                id: "team-1",
+                                type: "team",
+                                props: {
+                                    title: "Conoce a nuestro Equipo",
+                                    description: "Profesionales apasionados por tu belleza y bienestar."
+                                }
+                            },
+                            {
                                 id: "testimonials-1",
                                 type: "testimonials",
                                 props: {
@@ -443,6 +463,57 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
                                 props: {
                                     title: "Visítanos en Polanco",
                                     subtitle: "Envíanos un mensaje o agenda directamente desde el botón superior."
+                                }
+                            }
+                        ]
+                    },
+                    "about": {
+                        blocks: [
+                            {
+                                id: "about-hero",
+                                type: "hero",
+                                props: {
+                                    title: "Nuestra Historia",
+                                    subtitle: "Más de una década transformando vidas a través de la belleza responsable.",
+                                    ctaText: "Conoce Nuestros Servicios",
+                                    ctaLink: "/#services",
+                                    backgroundImage: "${company.aboutImage}",
+                                    alignment: "center"
+                                }
+                            },
+                            {
+                                id: "about-content",
+                                type: "content",
+                                props: {
+                                    title: "Filosofía Clínica Aurora",
+                                    content: `
+                                        <p>En Clínica Aurora, creemos que la belleza es una consecuencia de la salud. Desde nuestra fundación en 2015, hemos mantenido un compromiso inquebrantable con la excelencia médica y la atención personalizada.</p>
+                                        <p>Nuestro enfoque no se trata de transformar quién eres, sino de potenciar tus rasgos naturales para que te sientas segura y radiante.</p>
+                                        <h3>Nuestros Pilares</h3>
+                                        <ul>
+                                            <li><strong>Seguridad Médica:</strong> Todos nuestros procedimientos son realizados o supervisados por médicos titulados.</li>
+                                            <li><strong>Tecnología de Punta:</strong> Renovamos nuestra aparatología anualmente para ofrecerte lo mejor del mercado global.</li>
+                                            <li><strong>Calidez Humana:</strong> Sabemos que cada paciente es único, y nos tomamos el tiempo para escucharte.</li>
+                                        </ul>
+                                    `,
+                                    alignment: "left"
+                                }
+                            },
+                            {
+                                id: "about-team",
+                                type: "team",
+                                props: {
+                                    title: "Nuestro Equipo Médico",
+                                    description: "La excelencia está en nuestras manos."
+                                }
+                            },
+                            {
+                                id: "about-location",
+                                type: "location-social",
+                                props: {
+                                    title: "Ven a Conocernos",
+                                    description: "Agenda una visita de valoración sin costo y descubre nuestras instalaciones de primer nivel.",
+                                    zoomTitle: "Clínica Aurora Polanco"
                                 }
                             }
                         ]

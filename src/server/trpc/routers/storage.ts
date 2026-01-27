@@ -17,7 +17,7 @@ export const storageRouter = router({
             z.object({
                 base64: z.string(), // data:image/jpeg;base64,...
                 filename: z.string(),
-                folder: z.enum(["profiles", "services", "branding", "templates", "testimonials"]),
+                folder: z.enum(["profiles", "services", "branding", "templates", "testimonials", "company"]),
             })
         )
         .mutation(async ({ ctx, input }) => {

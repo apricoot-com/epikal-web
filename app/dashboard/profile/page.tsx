@@ -53,6 +53,7 @@ export default function MyProfilePage() {
     const [formData, setFormData] = useState({
         name: "",
         description: "",
+        bio: "",
         image: "",
     });
 
@@ -84,6 +85,7 @@ export default function MyProfilePage() {
             setFormData({
                 name: professional.name,
                 description: professional.description || "",
+                bio: professional.bio || "",
                 image: professional.image || "",
             });
 
@@ -111,6 +113,7 @@ export default function MyProfilePage() {
                 id: professional.id,
                 name: formData.name,
                 description: formData.description || null,
+                bio: formData.bio || null,
                 image: formData.image || null,
             });
 
@@ -227,8 +230,8 @@ export default function MyProfilePage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="description">Descripción / Especialidad</Label>
-                                    <Textarea
+                                    <Label htmlFor="description">Descripción / Especialidad (Corto)</Label>
+                                    <Input
                                         id="description"
                                         value={formData.description}
                                         onChange={(e) =>
@@ -238,7 +241,22 @@ export default function MyProfilePage() {
                                             })
                                         }
                                         placeholder="Ej. Fisioterapeuta especialista en..."
-                                        rows={4}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="bio">Biografía Pública (Detallado)</Label>
+                                    <Textarea
+                                        id="bio"
+                                        value={formData.bio}
+                                        onChange={(e) =>
+                                            setFormData({
+                                                ...formData,
+                                                bio: e.target.value,
+                                            })
+                                        }
+                                        placeholder="Escribe una breve biografía sobre tu experiencia y enfoque..."
+                                        rows={6}
                                     />
                                 </div>
                             </CardContent>
