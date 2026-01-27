@@ -168,11 +168,19 @@
                     // Create Blocks Container Reference
                     let blocksContainer = document.getElementById('blocks-container');
 
-                    const renderBlock = (block) => {
+                    const renderBlock = (block, index) => {
                         const { type, props } = block;
                         if (DEBUG) console.log(`Rendering Block: ${type}`, props);
 
+                        // Alternating Background Logic
+                        // Even index (0, 2, 4...) -> bg-white
+                        // Odd index (1, 3, 5...) -> bg-gray-50
+                        const isEven = index % 2 === 0;
+                        const bgClass = isEven ? 'bg-white' : 'bg-gray-50';
+
                         if (type === 'hero') {
+                            // Hero usually stands alone at top, but we can respect the alternation or force white if preferred.
+                            // Let's force white for Hero as it usually has its own complex background handling.
                             return `
                             <div class="relative bg-white overflow-hidden mb-12">
                                 <div class="max-w-7xl mx-auto">
@@ -207,12 +215,8 @@
                         if (type === 'features') {
                             const cols = props.columns || 3;
                             const items = props.items || [];
-                            // UPDATED: Semantic grid with regex for responsive columns
-                            // We use standard tailwind classes instead of inline styles for responsiveness
-                            // mobile: 1 col, md+: 3 cols (or defined cols)
-
                             return `
-                            <div class="py-12 bg-gray-50">
+                            <div class="py-12 ${bgClass}">
                                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                                     <div class="text-center">
                                         <h2 class="text-3xl font-extrabold text-gray-900">${props.title || 'Features'}</h2>
@@ -234,7 +238,7 @@
 
                         if (type === 'content') {
                             return `
-                            <div class="py-12 bg-white">
+                            <div class="py-12 ${bgClass}">
                                 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 prose prose-indigo text-${props.alignment || 'left'}">
                                     ${props.title ? `<h2>${props.title}</h2>` : ''}
                                     ${props.content || ''} 
@@ -244,31 +248,19 @@
                         }
 
                         if (type === 'testimonials') {
-                            // 1. Determine items
                             let items = props.items || [];
                             const dbItems = data.company.testimonials || [];
-
-                            // Logic: 
-                            // - If source is 'database', use DB items.
-                            // - If source is 'manual', use props.items.
-                            // - If source is unspecified (default):
-                            //      - Use DB items if available (Prioritize real data over demo data)
-                            //      - Fallback to props.items if DB is empty
                             if (props.source === 'database') {
                                 items = dbItems;
                             } else if (props.source === 'manual') {
                                 items = items;
                             } else {
-                                // Smart default: If we have real DB testimonials, assume they are preferred over static/demo items
-                                if (dbItems.length > 0) {
-                                    items = dbItems;
-                                }
+                                if (dbItems.length > 0) items = dbItems;
                             }
-
                             if (items.length === 0) return '';
 
                             return `
-                                <section class="py-12 bg-gray-50 overflow-hidden md:py-20 lg:py-24" id="testimonials">
+                                <section class="py-12 ${bgClass} overflow-hidden md:py-20 lg:py-24" id="testimonials">
                                     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                                         <div class="relative">
                                             <div class="text-center mb-10">
@@ -310,7 +302,7 @@
                             const gridStyle = `grid-template-columns: repeat(${cols}, minmax(0, 1fr)); display: grid; gap: 1rem;`;
 
                             return `
-                                <section class="py-12 bg-white">
+                                <section class="py-12 ${bgClass}">
                                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                                          <div class="text-center mb-10">
                                             <h2 class="text-3xl font-extrabold text-gray-900">${props.title || 'Gallery'}</h2>
@@ -331,12 +323,11 @@
                         if (type === 'services') {
                             if (data.company.services) {
                                 return `
-                                <div class="py-12 bg-white" id="services">
+                                <div class="py-12 ${bgClass}" id="services">
                                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                                         <div class="text-center mb-10">
                                              <h2 class="text-3xl font-extrabold text-gray-900">${props.title || 'Our Services'}</h2>
                                         </div>
-                                        <!-- UPDATED: Better grid for services -->
                                         <div class="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch w-full">
                                             ${data.company.services.map(service => `
                                                 <div class="w-full flex flex-col rounded-lg shadow-lg overflow-hidden h-full transition-shadow hover:shadow-xl bg-white relative group">
@@ -361,7 +352,6 @@
                                                         </div>
                                                     </div>
 
-                                                    <!-- Stretched Link (Overlay) placed last with z-10 -->
                                                     <a href="/services/${service.slug}" class="absolute inset-0 z-10">
                                                         <span class="sr-only">Ver detalles de ${service.name}</span>
                                                     </a>
@@ -377,7 +367,7 @@
                         if (type === 'faq') {
                             const items = Array.isArray(props.items) ? props.items : [];
                             return `
-                                <div class="py-12 bg-gray-50">
+                                <div class="py-12 ${bgClass}">
                                     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                                         <div class="text-center mb-10">
                                             <h2 class="text-3xl font-extrabold text-gray-900">${props.title || 'Preguntas Frecuentes'}</h2>
@@ -410,7 +400,7 @@
                             if (!items || items.length === 0) return '';
 
                             return `
-                            <section class="py-16 bg-white" id="team">
+                            <section class="py-16 ${bgClass}" id="team">
                                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                                     <div class="text-center mb-12">
                                         <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">${props.title || 'Nuestro Equipo'}</h2>
@@ -444,7 +434,7 @@
 
                         if (type === 'contact') {
                             return `
-                                <section class="py-12 bg-white">
+                                <section class="py-12 ${bgClass}">
                                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                                         <div class="max-w-lg mx-auto md:max-w-none md:grid md:grid-cols-2 md:gap-8">
                                             <div>
@@ -485,10 +475,15 @@
                             const mainLocation = locations[0] || { lat: 19.4326, lng: -99.1332, name: 'CDMX' }; // Default to CDMX
                             const socials = data.company.social || {};
 
+                            // Determine if map coordinates are available
+                            const lat = mainLocation.latitude !== undefined && mainLocation.latitude !== null ? mainLocation.latitude : mainLocation.lat;
+                            const lng = mainLocation.longitude !== undefined && mainLocation.longitude !== null ? mainLocation.longitude : mainLocation.lng;
+                            const hasMap = lat !== undefined && lat !== null && lng !== undefined && lng !== null;
+
                             return `
-                                <section class="py-16 bg-gray-50">
+                                <section class="py-16 ${bgClass}">
                                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                                        <div class="grid grid-cols-1 ${hasMap ? 'lg:grid-cols-2' : ''} gap-12 items-center">
                                             <!-- Left: Social & Contact -->
                                             <div>
                                                 <h2 class="text-3xl font-extrabold text-gray-900 mb-6">${props.title || 'Visítanos y Síguenos'}</h2>
@@ -523,34 +518,15 @@
                                             </div>
 
                                             <!-- Right: Map -->
+                                            ${hasMap ? `
                                             <div class="h-96 w-full rounded-2xl shadow-xl overflow-hidden relative z-0 md:h-[500px]" id="map-container-${block.id}">
                                                 <!-- Map injected here -->
                                             </div>
+                                            ` : ''}
                                         </div>
                                     </div>
-                                    <script>
-                                        document.addEventListener("DOMContentLoaded", function() {
-                                            const mapId = 'map-container-${block.id}';
-                                            const lat = ${mainLocation.latitude || 19.4326}; 
-                                            const lng = ${mainLocation.longitude || -99.1332}; 
-                                            
-                                            // Ensure Leaflet is loaded
-                                            if (typeof L !== 'undefined') {
-                                                const map = L.map(mapId).setView([lat, lng], 15);
-                                                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                                                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-                                                    subdomains: 'abcd',
-                                                    maxZoom: 20
-                                                }).addTo(map);
-
-                                                L.marker([lat, lng]).addTo(map)
-                                                    .bindPopup('<b>${props.zoomTitle || "Clínica Aurora"}</b><br>${mainLocation.address || ""}')
-                                                    .openPopup();
-                                            }
-                                        });
-                                    <\/script>
-                                </section>
-                            `;
+                                </section >
+                        `;
                         }
 
                         // Debug: Render unknown blocks visibly if DEBUG is on
@@ -564,11 +540,8 @@
 
                     // AUTO-INJECT TESTIMONIALS IF NOT PRESENT
                     if (data.company.testimonials && data.company.testimonials.length > 0) {
-                        // Check if ANY testimonials block already exists (regardless of source)
-                        // This prevents duplicates if the user already added a block via CMS
                         const hasTestimonials = data.blocks.some(b => b.type === 'testimonials');
                         if (!hasTestimonials) {
-                            // Inject before contact or at the end
                             data.blocks.push({
                                 type: 'testimonials',
                                 props: {
@@ -579,8 +552,47 @@
                         }
                     }
 
-                    const renderedBlocks = data.blocks.map(renderBlock).join('');
+                    const renderedBlocks = data.blocks.map((block, index) => renderBlock(block, index)).join('');
                     blocksContainer.innerHTML = renderedBlocks;
+
+                    // POST-RENDER: Initialize Maps
+                    // Since scripts inside innerHTML don't run, we must init manually
+                    data.blocks.forEach(block => {
+                        if (block.type === 'location-social') {
+                            const locations = data.company.locations || [];
+                            const mainLocation = locations[0] || { lat: 19.4326, lng: -99.1332 };
+
+                            const lat = mainLocation.latitude !== undefined && mainLocation.latitude !== null ? mainLocation.latitude : mainLocation.lat;
+                            const lng = mainLocation.longitude !== undefined && mainLocation.longitude !== null ? mainLocation.longitude : mainLocation.lng;
+                            const hasMap = lat !== undefined && lat !== null && lng !== undefined && lng !== null;
+
+                            if (hasMap) {
+                                const mapId = `map-container-${block.id}`;
+                                const el = document.getElementById(mapId);
+                                if (el && typeof L !== 'undefined') {
+                                    // Check if map already initialized to avoid error
+                                    if (el._leaflet_id) return;
+
+                                    const map = L.map(mapId).setView([lat, lng], 15);
+                                    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                                        attributionControl: false,
+                                        subdomains: 'abcd',
+                                        maxZoom: 20
+                                    }).addTo(map);
+
+                                    L.marker([lat, lng]).addTo(map)
+                                        .bindPopup(`<b> ${block.props.zoomTitle || "Clínica Aurora"}</b> <br>${mainLocation.address || ""}`)
+                                        .openPopup();
+
+                                    // Fix: Force map refresh to ensure tiles load and center correctly
+                                    setTimeout(() => {
+                                        map.invalidateSize();
+                                        map.setView([lat, lng], 15);
+                                    }, 100);
+                                }
+                            }
+                        }
+                    });
 
                 } catch (e) {
                     console.error("🔥 Error rendering blocks:", e);
@@ -601,16 +613,16 @@
                 aboutSection.id = 'about-section';
                 aboutSection.className = 'py-16 bg-white border-t';
                 aboutSection.innerHTML = `
-                    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div class="text-center mb-8">
-                           <h2 class="text-3xl font-extrabold text-gray-900">Acerca de Nosotros</h2>
-                           <div class="mt-2 h-1 w-20 bg-primary mx-auto rounded"></div>
+                        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div class="text-center mb-8">
+                                <h2 class="text-3xl font-extrabold text-gray-900">Acerca de Nosotros</h2>
+                                <div class="mt-2 h-1 w-20 bg-primary mx-auto rounded"></div>
+                            </div>
+                            <div class="prose prose-lg prose-indigo mx-auto text-gray-600">
+                                ${data.company.aboutHtml}
+                            </div>
                         </div>
-                        <div class="prose prose-lg prose-indigo mx-auto text-gray-600">
-                            ${data.company.aboutHtml}
-                        </div>
-                    </div>
-                `;
+                        `;
                 // Insert after blocks container
                 const blocksContainer = document.getElementById('blocks-container');
                 if (blocksContainer) {
