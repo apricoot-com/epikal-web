@@ -164,6 +164,9 @@ async function main() {
             country: "México",
             phone: "+52 55 1234 5678",
             email: "polanco@clinica-aurora.com",
+            googleMapsUrl: "https://www.google.com/maps/place/Av.+Pdte.+Masaryk+123,+Polanco,+Polanco+V+Secc,+Miguel+Hidalgo,+11560+Ciudad+de+M%C3%A9xico,+CDMX",
+            latitude: 19.432608,
+            longitude: -99.194951,
         },
     });
 

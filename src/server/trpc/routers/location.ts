@@ -56,6 +56,9 @@ export const locationRouter = router({
                 country: z.string().max(100).optional(),
                 phone: z.string().max(50).optional(),
                 email: z.string().email().optional(),
+                googleMapsUrl: z.string().url().optional().nullable(),
+                latitude: z.number().optional().nullable(),
+                longitude: z.number().optional().nullable(),
             })
         )
         .mutation(async ({ ctx, input }) => {
@@ -122,6 +125,9 @@ export const locationRouter = router({
                 country: z.string().max(100).optional().nullable(),
                 phone: z.string().max(50).optional().nullable(),
                 email: z.string().email().optional().nullable(),
+                googleMapsUrl: z.string().url().optional().nullable(),
+                latitude: z.number().optional().nullable(),
+                longitude: z.number().optional().nullable(),
             })
         )
         .mutation(async ({ ctx, input }) => {

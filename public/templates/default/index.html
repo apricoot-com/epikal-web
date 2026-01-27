@@ -502,6 +502,11 @@
                                                             <span>${mainLocation.address || 'Consulta nuestras redes para dirección exacta.'}<br>
                                                             ${mainLocation.city || ''}, ${mainLocation.country || ''}</span>
                                                         </p>
+                                                        ${mainLocation.googleMapsUrl ? `
+                                                            <a href="${mainLocation.googleMapsUrl}" target="_blank" class="mt-3 inline-flex items-center text-primary hover:text-primary/80 font-medium transition-colors">
+                                                                <i class="fas fa-external-link-alt mr-2"></i> Ver en Google Maps
+                                                            </a>
+                                                        ` : ''}
                                                     </div>
 
                                                     <div>
@@ -526,8 +531,8 @@
                                     <script>
                                         document.addEventListener("DOMContentLoaded", function() {
                                             const mapId = 'map-container-${block.id}';
-                                            const lat = ${mainLocation.lat || 19.435}; // Default fallback
-                                            const lng = ${mainLocation.lng || -99.19}; // Polanco approx
+                                            const lat = ${mainLocation.latitude || 19.4326}; 
+                                            const lng = ${mainLocation.longitude || -99.1332}; 
                                             
                                             // Ensure Leaflet is loaded
                                             if (typeof L !== 'undefined') {

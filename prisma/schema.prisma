@@ -194,6 +194,9 @@ model Location {
   country   String?
   phone     String?
   email     String?
+  googleMapsUrl String?
+  latitude  Float?
+  longitude Float?
   
   // Timestamps
   createdAt DateTime @default(now())

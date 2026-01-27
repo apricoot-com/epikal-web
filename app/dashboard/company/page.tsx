@@ -73,6 +73,9 @@ type LocationFormData = {
     country: string;
     phone: string;
     email: string;
+    googleMapsUrl: string;
+    latitude: string;
+    longitude: string;
 };
 
 const emptyLocationForm: LocationFormData = {
@@ -82,6 +85,9 @@ const emptyLocationForm: LocationFormData = {
     country: "",
     phone: "",
     email: "",
+    googleMapsUrl: "",
+    latitude: "",
+    longitude: "",
 };
 
 export default function CompanySettingsPage() {
@@ -228,19 +234,29 @@ export default function CompanySettingsPage() {
             country: loc.country || "",
             phone: loc.phone || "",
             email: loc.email || "",
+            googleMapsUrl: (loc as any).googleMapsUrl || "",
+            latitude: (loc as any).latitude?.toString() || "",
+            longitude: (loc as any).longitude?.toString() || "",
         });
         setLocationsDialogOpen(true);
     };
 
     const handleLocationSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        const payload = {
+            ...locationForm,
+            googleMapsUrl: locationForm.googleMapsUrl || null,
+            latitude: locationForm.latitude ? parseFloat(locationForm.latitude) : null,
+            longitude: locationForm.longitude ? parseFloat(locationForm.longitude) : null,
+        };
+
         if (editingLocationId) {
             await updateLocation.mutateAsync({
                 id: editingLocationId,
-                ...locationForm,
+                ...payload,
             });
         } else {
-            await createLocation.mutateAsync(locationForm);
+            await createLocation.mutateAsync(payload);
         }
     };
 
@@ -588,6 +604,38 @@ export default function CompanySettingsPage() {
                                                 <Input
                                                     value={locationForm.email}
                                                     onChange={(e) => setLocationForm({ ...locationForm, email: e.target.value })}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Link de Google Maps</Label>
+                                            <Input
+                                                value={locationForm.googleMapsUrl}
+                                                onChange={(e) => setLocationForm({ ...locationForm, googleMapsUrl: e.target.value })}
+                                                placeholder="https://maps.google.com/..."
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label>Latitud</Label>
+                                                <Input
+                                                    type="number"
+                                                    step="any"
+                                                    value={locationForm.latitude}
+                                                    onChange={(e) => setLocationForm({ ...locationForm, latitude: e.target.value })}
+                                                    placeholder="19.4326"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Longitud</Label>
+                                                <Input
+                                                    type="number"
+                                                    step="any"
+                                                    value={locationForm.longitude}
+                                                    onChange={(e) => setLocationForm({ ...locationForm, longitude: e.target.value })}
+                                                    placeholder="-99.1332"
                                                 />
                                             </div>
                                         </div>
