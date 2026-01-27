@@ -434,10 +434,7 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
                                 type: "testimonials",
                                 props: {
                                     title: "Testimonios de Pacientes",
-                                    items: [
-                                        { text: "La Dra. Sofía tiene unas manos mágicas. El Bótox se ve súper natural, justo lo que buscaba.", author: "Andrea Gómez", role: "Paciente Frecuente" },
-                                        { text: "El mejor facial que me han hecho en años. El personal es muy amable.", author: "Ricardo Silva", role: "Cliente Premium" }
-                                    ]
+                                    source: "database"
                                 }
                             },
                             {
@@ -592,9 +589,48 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
         });
     }
 
+    // =========================================================================
+    // 11. TESTIMONIALS
+    // =========================================================================
+    console.log("🗣️ Creating testimonials...");
+
+    const testimonialsData = [
+        {
+            name: "Andrea Gómez",
+            title: "Paciente Frecuente",
+            text: "La Dra. Sofía tiene unas manos mágicas. El Bótox se ve súper natural, justo lo que buscaba.",
+            image: "https://randomuser.me/api/portraits/women/44.jpg"
+        },
+        {
+            name: "Ricardo Silva",
+            title: "Cliente Premium",
+            text: "El mejor facial que me han hecho en años. El personal es muy amable y las instalaciones impecables.",
+            image: "https://randomuser.me/api/portraits/men/32.jpg"
+        },
+        {
+            name: "Elena Torres",
+            title: "Paciente de Depilación",
+            text: "Llevo 3 sesiones de láser y los cambios son impresionantes. ¡Casi no duele nada!",
+            image: "https://randomuser.me/api/portraits/women/68.jpg"
+        }
+    ];
+
+    for (const t of testimonialsData) {
+        await prisma.testimonial.create({
+            data: {
+                companyId: company.id,
+                name: t.name,
+                title: t.title,
+                text: t.text,
+                image: t.image,
+                isActive: true,
+            }
+        });
+    }
+
     console.log("\n" + "=".repeat(60));
     console.log("✅ Rich Seed completed successfully!");
-    console.log("🔑 Initialized: 1 Template, 5 Services, 1 Clinic, 4 Users.");
+    console.log("🔑 Initialized: 1 Template, 5 Services, 1 Clinic, 4 Users, 3 Testimonials.");
     console.log("=".repeat(60) + "\n");
 }
 
