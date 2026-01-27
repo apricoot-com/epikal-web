@@ -11,6 +11,16 @@
 - [ ] Agregar paginas de about, terminos y condiciones y politica de privacidad
 - [ ] Superadmin debe poder impersonar a un admin de organizacion
 
+- [ ] Bloque de testimonios (foto, nombre, comentario, calificación)
+- [ ] Pagina de profesionales (activar desactivar)
+- [ ] Pagina de profesionales
+- [ ] Banner de logos y certificados
+
+Pagina de acerca de
+- [ ] Banner en el about
+- [ ] Banner de profesionales
+- [ ] Mapa en la ubicación (Poner en acerca de)
+
 
 
 ## Next phase ideas (Not to implement now)
