@@ -7,6 +7,9 @@
     <title>Epikal Site</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script>
         tailwind.config = {
             theme: {
@@ -199,8 +202,11 @@
 
                         if (type === 'features') {
                             const cols = props.columns || 3;
-                            const gridStyle = `grid-template-columns: repeat(${cols}, minmax(0, 1fr)); display: grid; gap: 2rem;`;
                             const items = props.items || [];
+                            // UPDATED: Semantic grid with regex for responsive columns
+                            // We use standard tailwind classes instead of inline styles for responsiveness
+                            // mobile: 1 col, md+: 3 cols (or defined cols)
+
                             return `
                             <div class="py-12 bg-gray-50">
                                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -208,9 +214,10 @@
                                         <h2 class="text-3xl font-extrabold text-gray-900">${props.title || 'Features'}</h2>
                                         <p class="mt-4 text-gray-500">${props.description || ''}</p>
                                     </div>
-                                    <div class="mt-10" style="${gridStyle}">
+                                    <div class="mt-10 grid gap-8 grid-cols-1 md:grid-cols-${cols}">
                                         ${items.map(item => `
-                                            <div class="bg-white p-6 rounded-lg shadow text-center">
+                                            <div class="bg-white p-6 rounded-lg shadow text-center hover:shadow-lg transition-shadow duration-300">
+                                                ${item.icon ? `<div class="mb-4 text-4xl text-primary flex justify-center"><i class="${item.icon}"></i></div>` : ''}
                                                 <h3 class="text-lg font-medium text-gray-900">${item.title}</h3>
                                                 <p class="mt-2 text-base text-gray-500">${item.description}</p>
                                             </div>

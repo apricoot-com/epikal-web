@@ -308,7 +308,7 @@ Es un tratamiento indoloro, altamente placentero y que te permite retomar tus ac
             duration: 40,
             price: 950.00,
             shortDescription: "Eliminación permanente del vello con tecnología de punta, rápida e indolora.",
-            image: "/seed/aurora/services/depilacion-laser.avif",
+            image: "/seed/aurora/services/depilacion-laser.jpg",
             content: `
 ### Despídete del Vello para Siempre
 
@@ -402,7 +402,7 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
                                     subtitle: "Tu santuario de belleza y cuidado personal en la CDMX. Descubre tratamientos diseñados para resaltar tu mejor versión.",
                                     ctaText: "Agendar Cita Ahora",
                                     ctaLink: "/booking",
-                                    backgroundImage: "/seed/aurora/banner.avif",
+                                    backgroundImage: "/seed/aurora/banner.png",
                                     alignment: "center"
                                 }
                             },
@@ -414,9 +414,9 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
                                     description: "Nos apasiona brindarte resultados naturales respaldados por ciencia.",
                                     columns: 3,
                                     items: [
-                                        { title: "Médicos Expertos", description: "Contamos con especialistas certificados con más de 10 años de experiencia." },
-                                        { title: "Tecnología Premium", description: "Invertimos constantemente en aparatos de última generación mundial." },
-                                        { title: "Atención HUMANA", description: "No eres un número más. Diseñamos planes personalizados para tu piel." }
+                                        { title: "Médicos Expertos", description: "Contamos con especialistas certificados con más de 10 años de experiencia.", icon: "fas fa-user-md" },
+                                        { title: "Tecnología Premium", description: "Invertimos constantemente en aparatos de última generación mundial.", icon: "fas fa-star" },
+                                        { title: "Atención HUMANA", description: "No eres un número más. Diseñamos planes personalizados para tu piel.", icon: "fas fa-heart" }
                                     ]
                                 }
                             },
