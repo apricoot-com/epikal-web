@@ -240,12 +240,25 @@
                         }
 
                         if (type === 'testimonials') {
-                            // 1. Try to use explicit items from props
+                            // 1. Determine items
                             let items = props.items || [];
+                            const dbItems = data.company.testimonials || [];
 
-                            // 2. If no items or explicit source='database', try fetching from Company Data
-                            if ((items.length === 0 || props.source === 'database') && data.company.testimonials) {
-                                items = data.company.testimonials;
+                            // Logic: 
+                            // - If source is 'database', use DB items.
+                            // - If source is 'manual', use props.items.
+                            // - If source is unspecified (default):
+                            //      - Use DB items if available (Prioritize real data over demo data)
+                            //      - Fallback to props.items if DB is empty
+                            if (props.source === 'database') {
+                                items = dbItems;
+                            } else if (props.source === 'manual') {
+                                items = items;
+                            } else {
+                                // Smart default: If we have real DB testimonials, assume they are preferred over static/demo items
+                                if (dbItems.length > 0) {
+                                    items = dbItems;
+                                }
                             }
 
                             if (items.length === 0) return '';
