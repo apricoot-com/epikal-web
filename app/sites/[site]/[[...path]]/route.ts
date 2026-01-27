@@ -24,6 +24,7 @@ export async function GET(
     const companyInclude = {
         siteTemplate: true,
         branding: true,
+        locations: true,
         services: {
             where: { isPublic: true },
             include: { webPage: true, resources: true },
@@ -216,6 +217,7 @@ export async function GET(
             heroTitle: siteSettings.home?.heroTitle || company.name,
             heroDescription: siteSettings.home?.heroDescription || "Tu clínica de confianza.",
             heroImage: siteSettings.home?.heroImage,
+            aboutHtml: company.description ? await marked(company.description) : "",
             social: company.socialUrls || {}, // { facebook, instagram, ... }
             branding: {
                 colors: {
@@ -224,6 +226,7 @@ export async function GET(
                 },
                 logo: branding.logoUrl,
             },
+            locations: company.locations || [],
             services: company.services.map((s: any) => ({
                 id: s.id,
                 name: s.name,

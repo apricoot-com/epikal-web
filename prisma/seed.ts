@@ -138,6 +138,7 @@ async function main() {
             secondaryColor: "#F472B6", // Pink
             brandTone: "profesional",
             brandKeywords: ["belleza", "salud", "bienestar", "estética"],
+            logoUrl: "/seed/aurora/logo.png",
         },
     });
 
@@ -196,7 +197,7 @@ async function main() {
             duration: 60,
             price: 850.00,
             shortDescription: "Purifica tu rostro con una técnica avanzada de extracción e hidratación profunda.",
-            image: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&q=80&w=2070",
+            image: "/seed/aurora/services/limpieza-facial.jpeg",
             content: `
 ### Purificación y Renovación Cutánea
 
@@ -225,7 +226,7 @@ Ideal para mantener una piel luminosa, libre de imperfecciones y retrasar los si
             duration: 50,
             price: 1200.00,
             shortDescription: "Libera tensiones musculares y equilibra tu mente con aceites esenciales orgánicos.",
-            image: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&q=80&w=2070",
+            image: "/seed/aurora/services/masaje-relajante.jpeg",
             content: `
 ### Un Viaje de Serenidad para tus Sentidos
 
@@ -251,7 +252,7 @@ Utilizamos **aceites esenciales de grado terapéutico** (lavanda, bergamota o eu
             duration: 30,
             price: 4500.00,
             shortDescription: "Suaviza las líneas de expresión y previene la formación de arrugas permanentes.",
-            image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=2070",
+            image: "/seed/aurora/services/botox.jpg",
             content: `
 ### Juventud Preservada con Naturalidad
 
@@ -282,7 +283,7 @@ Mediante micro-inyecciones de toxina botulínica de alta calidad (Botox® o Dysp
             duration: 45,
             price: 1500.00,
             shortDescription: "Estimula el colágeno natural para tensar la piel y definir el contorno facial.",
-            image: "https://images.unsplash.com/photo-1512290923902-8a9f81dc2069?auto=format&fit=crop&q=80&w=2070",
+            image: "/seed/aurora/services/radiofrecuencia-facial.webp",
             content: `
 ### Remodelación Facial sin Cirugía
 
@@ -307,7 +308,7 @@ Es un tratamiento indoloro, altamente placentero y que te permite retomar tus ac
             duration: 40,
             price: 950.00,
             shortDescription: "Eliminación permanente del vello con tecnología de punta, rápida e indolora.",
-            image: "https://images.unsplash.com/photo-1559599101-f09722fb4948?auto=format&fit=crop&q=80&w=2070",
+            image: "/seed/aurora/services/depilacion-laser.avif",
             content: `
 ### Despídete del Vello para Siempre
 
@@ -401,7 +402,7 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
                                     subtitle: "Tu santuario de belleza y cuidado personal en la CDMX. Descubre tratamientos diseñados para resaltar tu mejor versión.",
                                     ctaText: "Agendar Cita Ahora",
                                     ctaLink: "/booking",
-                                    backgroundImage: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=2068",
+                                    backgroundImage: "/seed/aurora/banner.avif",
                                     alignment: "center"
                                 }
                             },
