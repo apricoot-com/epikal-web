@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Sparkles, Check } from "lucide-react";
 import type { SubscriptionTier } from "@prisma/client";
+import { CreditCardForm } from "@/components/billing/credit-card-form";
 
 const TIER_INFO: Record<SubscriptionTier, { price: string; features: string[] }> = {
     FREE: {
@@ -14,38 +15,37 @@ const TIER_INFO: Record<SubscriptionTier, { price: string; features: string[] }>
         features: [
             "1 ubicación",
             "Hasta 5 servicios",
-            "2 miembros del equipo",
+            "1 profesional",
             "3 recursos",
         ],
     },
     BASIC: {
         price: "$29",
         features: [
-            "3 ubicaciones",
+            "1 ubicación",
             "Hasta 20 servicios",
-            "5 miembros del equipo",
-            "10 recursos",
+            "1 profesional",
+            "Agendamiento online",
         ],
     },
     PROFESSIONAL: {
-        price: "$99",
+        price: "$79",
         features: [
-            "10 ubicaciones",
+            "Multi-sede (1+)",
             "Servicios ilimitados",
-            "20 miembros del equipo",
-            "50 recursos",
+            "Múltiples profesionales",
             "Dominio personalizado",
+            "Gestión avanzada",
         ],
     },
     ENTERPRISE: {
         price: "Contacto",
         features: [
-            "Ubicaciones ilimitadas",
-            "Servicios ilimitados",
-            "Equipo ilimitado",
-            "Recursos ilimitados",
-            "Dominio personalizado",
+            "Sedes ilimitadas",
+            "Profesionales ilimitados",
             "Marca blanca",
+            "API Access",
+            "Soporte prioritario 24/7",
         ],
     },
 };
@@ -71,7 +71,7 @@ export default function BillingPage() {
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">Suscripción y Facturación</h1>
                 <p className="text-muted-foreground mt-1">
-                    Gestiona tu plan y revisa tu uso actual
+                    Gestiona tu plan mensual. Todos los planes pagos incluyen 14 días de prueba gratis.
                 </p>
             </div>
 
@@ -186,21 +186,8 @@ export default function BillingPage() {
                 </div>
             </div>
 
-            {/* Placeholder for payment integration */}
-            <Card className="bg-muted/50">
-                <CardHeader>
-                    <CardTitle>Integración de Pagos</CardTitle>
-                    <CardDescription>
-                        La funcionalidad de pago estará disponible próximamente
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                        Por ahora, los límites de suscripción están activos pero no se procesan pagos.
-                        Contacta al administrador para cambios de plan.
-                    </p>
-                </CardContent>
-            </Card>
+            {/* Payment Integration */}
+            <CreditCardForm companyId={subscription.companyId} />
         </div>
     );
 }

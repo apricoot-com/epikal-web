@@ -29,25 +29,25 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, SubscriptionPlan> = {
         },
     },
     BASIC: {
-        name: "Básico",
-        description: "Para pequeños negocios",
+        name: "Profesional",
+        description: "Para profesionales independientes",
         limits: {
-            maxLocations: 3,
+            maxLocations: 1,
             maxServices: 20,
-            maxTeamMembers: 5,
-            maxResources: 10,
+            maxTeamMembers: 1, // 1 profesional (the user themselves)
+            maxResources: 5,
             customDomain: false,
             whiteLabel: false,
         },
     },
     PROFESSIONAL: {
-        name: "Profesional",
-        description: "Para equipos en crecimiento",
+        name: "Clínica / Equipo",
+        description: "Para equipos y clínicas en crecimiento",
         limits: {
-            maxLocations: 10,
-            maxServices: -1, // unlimited
-            maxTeamMembers: 20,
-            maxResources: 50,
+            maxLocations: 3, // "una o más sedes"
+            maxServices: -1,
+            maxTeamMembers: 10, // "varios profesionales"
+            maxResources: 20,
             customDomain: true,
             whiteLabel: false,
         },

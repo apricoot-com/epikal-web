@@ -113,6 +113,10 @@ model Company {
   dailyStats      DailyStats[]
   bookings        Booking[]
   customers       Customer[]
+
+  // Payment Relations
+  paymentMethods  PaymentMethod[]
+  transactions    Transaction[]
   
   @@map("companies")
 }
@@ -698,4 +702,50 @@ model Testimonial {
 
   @@index([companyId])
   @@map("testimonials")
+}
+
+// =============================================================================
+// BILLING & PAYMENTS (Module 4 Extension)
+// =============================================================================
+
+model PaymentMethod {
+  id            String   @id @default(cuid())
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  gateway       String   @default("PAYU") // PAYU, STRIPE, etc.
+  token         String   // The token returned by PayU
+  last4         String?  // For display purposes (e.g., "4242")
+  brand         String?  // VISA, MASTERCARD
+  expiryMonth   Int?
+  expiryYear    Int?
+  
+  isDefault     Boolean  @default(false)
+  status        String   @default("ACTIVE") // ACTIVE, EXPIRED
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([companyId])
+  @@map("payment_methods")
+}
+
+model Transaction {
+  id            String   @id @default(cuid())
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  amount        Decimal  @db.Decimal(10, 2)
+  currency      String   @default("USD")
+  status        String   // PENDING, SUCCESS, FAILED, REFUNDED
+  type          String   // SUBSCRIPTION, ONE_TIME
+  
+  gatewayId     String?  // Transaction ID from PayU
+  gatewayResponse Json?  // Full response for debugging
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([companyId])
+  @@map("transactions")
 }

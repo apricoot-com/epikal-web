@@ -19,6 +19,7 @@ import {
     User,
     Shield,
     CalendarClock,
+    CreditCard,
 } from "lucide-react";
 
 import {
@@ -133,6 +134,12 @@ const settingsItems = [
         href: "/dashboard/booking-settings",
         icon: CalendarClock,
         roles: ["SUPERADMIN", "OWNER", "ADMIN"],
+    },
+    {
+        title: "Facturación",
+        href: "/dashboard/settings/billing",
+        icon: CreditCard,
+        roles: ["SUPERADMIN", "OWNER"],
     },
 ];
 

@@ -41,6 +41,7 @@ export const subscriptionRouter = router({
         const plan = SUBSCRIPTION_PLANS[company.subscriptionTier];
 
         return {
+            companyId: company.id,
             tier: company.subscriptionTier,
             status: company.subscriptionStatus,
             endsAt: company.subscriptionEndsAt,
