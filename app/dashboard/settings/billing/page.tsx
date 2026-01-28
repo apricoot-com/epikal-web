@@ -87,9 +87,19 @@ export default function BillingPage() {
                     </div>
 
                     {subscription.endsAt && (
-                        <p className="text-sm text-muted-foreground">
-                            Renovación: {new Date(subscription.endsAt).toLocaleDateString("es-MX")}
-                        </p>
+                        <div className="text-sm text-muted-foreground">
+                            {subscription.status === "TRIALING" ? (
+                                <p>
+                                    Tu prueba termina el <strong>{new Date(subscription.endsAt).toLocaleDateString("es-MX")}</strong>.
+                                    <br />
+                                    A partir de esa fecha se te cobrará <strong>{TIER_INFO[subscription.tier as SubscriptionTier]?.price || ""}</strong> mensuales.
+                                </p>
+                            ) : (
+                                <p>
+                                    Próximo pago: <strong>{new Date(subscription.endsAt).toLocaleDateString("es-MX")}</strong>
+                                </p>
+                            )}
+                        </div>
                     )}
                 </CardContent>
             </Card>
