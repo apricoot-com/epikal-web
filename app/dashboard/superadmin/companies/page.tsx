@@ -83,6 +83,7 @@ export default function SuperAdminCompaniesPage() {
                                 <TableHead>Empresa</TableHead>
                                 <TableHead>Slug</TableHead>
                                 <TableHead>Owner</TableHead>
+                                <TableHead>Suscripción</TableHead>
                                 <TableHead>Estadísticas</TableHead>
                                 <TableHead>Fecha Registro</TableHead>
                                 <TableHead>Acciones</TableHead>
@@ -104,6 +105,19 @@ export default function SuperAdminCompaniesPage() {
                                         <div className="flex flex-col text-sm">
                                             <span>{company.members[0]?.user.name || "Sin asignar"}</span>
                                             <span className="text-xs text-muted-foreground">{company.members[0]?.user.email}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col gap-1 items-start">
+                                            <Badge variant="secondary" className="text-xs">
+                                                {company.subscriptionTier}
+                                            </Badge>
+                                            <Badge
+                                                variant={company.subscriptionStatus === 'ACTIVE' ? 'default' : 'destructive'}
+                                                className="text-[10px]"
+                                            >
+                                                {company.subscriptionStatus}
+                                            </Badge>
                                         </div>
                                     </TableCell>
                                     <TableCell>

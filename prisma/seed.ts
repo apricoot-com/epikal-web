@@ -26,6 +26,7 @@ async function main() {
     await prisma.userCompany.deleteMany();
     await prisma.companyBranding.deleteMany();
     await prisma.location.deleteMany();
+    await prisma.paymentMethod.deleteMany();
     await prisma.booking.deleteMany();
     await prisma.customer.deleteMany();
     await prisma.session.deleteMany();
@@ -84,6 +85,9 @@ async function main() {
             currency: "COP",
             timezone: "America/Bogota",
             siteTemplateId: template.id,
+            subscriptionTier: "PROFESSIONAL",
+            subscriptionStatus: "ACTIVE",
+            subscriptionEndsAt: addDays(new Date(), 30),
             description: "Somos Clínica Aurora, un espacio dedicado al bienestar integral y la belleza consciente. Fundada en 2015, nuestra misión es combinar la tecnología más avanzada con un trato profundamente humano para resaltar tu belleza natural. Nos especializamos en tratamientos faciales y corporales no invasivos, avalados por un equipo médico de primer nivel.",
             aboutImage: "/seed/aurora/clinic-interior.jpg",
             socialUrls: {
@@ -95,14 +99,119 @@ async function main() {
         },
     });
 
+    console.log("🏢 Creating test company: Clínica Cancelada...");
+    const companyCanceled = await prisma.company.create({
+        data: {
+            name: "Clínica Cancelada",
+            slug: "clinica-cancelada",
+            status: "ACTIVE",
+            language: "es",
+            currency: "USD",
+            timezone: "America/Bogota",
+            subscriptionTier: "PROFESSIONAL",
+            subscriptionStatus: "CANCELED",
+            subscriptionEndsAt: subDays(new Date(), 10), // Expired 10 days ago
+            siteTemplateId: template.id,
+            siteSettings: {
+                pages: {
+                    home: {
+                        blocks: [{
+                            id: "hero",
+                            type: "hero",
+                            props: { title: "Clínica Cancelada", subtitle: "Esta clínica no debería ser visible." }
+                        }]
+                    }
+                }
+            } as any,
+        },
+    });
+
+    console.log("🏢 Creating test company: Clínica Deudora...");
+    const companyPastDue = await prisma.company.create({
+        data: {
+            name: "Clínica Deudora",
+            slug: "clinica-deudora",
+            status: "ACTIVE",
+            language: "es",
+            currency: "USD",
+            timezone: "America/Bogota",
+            subscriptionTier: "TEAM",
+            subscriptionStatus: "PAST_DUE",
+            subscriptionEndsAt: subDays(new Date(), 5), // Payment failed 5 days ago
+            siteTemplateId: template.id,
+            siteSettings: {
+                pages: {
+                    home: {
+                        blocks: [{
+                            id: "hero",
+                            type: "hero",
+                            props: { title: "Clínica Deudora", subtitle: "Esta clínica tiene pagos pendientes." }
+                        }]
+                    }
+                }
+            } as any,
+        },
+    });
+
     // =========================================================================
     // 4. USERS
     // =========================================================================
+    // =========================================================================
+    // 3.1 PAYMENT METHODS (PayU Test Cards)
+    // =========================================================================
+    console.log("💳 Adding test payment cards (PayU)...");
+
+    // Aurora: Active Card (VISA)
+    await prisma.paymentMethod.create({
+        data: {
+            companyId: company.id,
+            gateway: "PAYU",
+            token: "tok_test_visa_4111", // Mock token
+            last4: "1111",
+            brand: "VISA",
+            expiryMonth: 12,
+            expiryYear: 2030,
+            isDefault: true
+        }
+    });
+
+    // Canceled: Expired Card? Or just canceled subscription.
+    // Let's give it a card to test reactivation.
+    await prisma.paymentMethod.create({
+        data: {
+            companyId: companyCanceled.id,
+            gateway: "PAYU",
+            token: "tok_test_amex_3712",
+            last4: "0123",
+            brand: "AMEX",
+            expiryMonth: 1,
+            expiryYear: 2024, // Expired
+            isDefault: true
+        }
+    });
+
+    // Past Due: Valid card but failed charge simulation?
+    // In PayU sandbox, specific amounts trigger failures, but here we just seed the card.
+    await prisma.paymentMethod.create({
+        data: {
+            companyId: companyPastDue.id,
+            gateway: "PAYU",
+            token: "tok_test_master_5123",
+            last4: "2345",
+            brand: "MASTERCARD",
+            expiryMonth: 6,
+            expiryYear: 2028,
+            isDefault: true
+        }
+    });
+
     console.log("👤 Creating user accounts...");
 
     const usersData = [
         { email: "superadmin@epikal.com", name: "Super Admin", role: "SUPERADMIN", companyId: systemCompany.id },
         { email: "admin@clinica-aurora.com", name: "Dra. Sofía Mendoza", role: "OWNER", companyId: company.id },
+        { email: "admin@clinica-cancelada.com", name: "Admin Cancelado", role: "OWNER", companyId: companyCanceled.id },
+        { email: "admin@clinica-deudora.com", name: "Admin Deudor", role: "OWNER", companyId: companyPastDue.id },
         { email: "pro1@clinica-aurora.com", name: "María Profesional", role: "STAFF", companyId: company.id },
         { email: "pro2@clinica-aurora.com", name: "Laura Profesional", role: "STAFF", companyId: company.id },
     ];

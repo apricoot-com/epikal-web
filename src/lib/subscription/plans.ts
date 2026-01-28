@@ -12,6 +12,7 @@ export type PlanLimits = {
 export type SubscriptionPlan = {
     name: string;
     description: string;
+    priceInCents?: number;
     limits: PlanLimits;
 };
 
@@ -20,6 +21,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, SubscriptionPlan> = {
     PROFESSIONAL: {
         name: "Profesional",
         description: "Para profesionales independientes",
+        priceInCents: 2900,
         limits: {
             maxLocations: 1,
             maxServices: 20,
@@ -32,6 +34,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, SubscriptionPlan> = {
     TEAM: {
         name: "Clínica / Equipo",
         description: "Para equipos y clínicas en crecimiento",
+        priceInCents: 7900,
         limits: {
             maxLocations: 3, // "una o más sedes"
             maxServices: -1,

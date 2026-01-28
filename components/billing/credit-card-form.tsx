@@ -39,11 +39,18 @@ const formSchema = z.object({
 
 interface CreditCardFormProps {
     companyId: string;
+    existingPaymentMethod?: {
+        brand: string;
+        last4: string;
+        expiryMonth: number;
+        expiryYear: number;
+    } | null;
     onSuccess?: () => void;
 }
 
-export function CreditCardForm({ companyId, onSuccess }: CreditCardFormProps) {
+export function CreditCardForm({ companyId, existingPaymentMethod, onSuccess }: CreditCardFormProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -57,8 +64,50 @@ export function CreditCardForm({ companyId, onSuccess }: CreditCardFormProps) {
         },
     });
 
+    // ... onSubmit logic stays same ...
+
+    // If we have a card and are not editing, show the summary view
+    if (existingPaymentMethod && !isEditing) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <CreditCard className="w-5 h-5" />
+                        Método de Pago
+                    </CardTitle>
+                    <CardDescription>
+                        Tarjeta registrada actualmente.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-4">
+                            <div className="bg-background p-2 rounded border">
+                                <CreditCard className="w-6 h-6 text-muted-foreground" />
+                            </div>
+                            <div>
+                                <p className="font-medium text-sm">
+                                    {existingPaymentMethod.brand} •••• {existingPaymentMethod.last4}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    Expira: {existingPaymentMethod.expiryMonth}/{existingPaymentMethod.expiryYear}
+                                </p>
+                            </div>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                            Cambiar Tarjeta
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    // Default return (form)
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
+        // ... (keep existing onSubmit content)
+        console.log("DEBUG: Submitting Card Form. CompanyId:", companyId);
         try {
             const response = await fetch("/api/subscriptions/register-card", {
                 method: "POST",
@@ -87,6 +136,7 @@ export function CreditCardForm({ companyId, onSuccess }: CreditCardFormProps) {
             });
 
             form.reset();
+            setIsEditing(false); // Go back to view mode if successful
             onSuccess?.();
         } catch (error: any) {
             toast.error("Error", {
@@ -108,12 +158,13 @@ export function CreditCardForm({ companyId, onSuccess }: CreditCardFormProps) {
                     Método de Pago
                 </CardTitle>
                 <CardDescription>
-                    Agrega tu tarjeta para iniciar tu suscripción. Los datos viajan encriptados.
+                    {isEditing ? "Ingresa los datos de la nueva tarjeta." : "Agrega tu tarjeta para iniciar tu suscripción. Los datos viajan encriptados."}
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        {/* Fields ... */}
 
                         <FormField
                             control={form.control}

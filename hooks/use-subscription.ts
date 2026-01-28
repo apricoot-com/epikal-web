@@ -2,7 +2,7 @@ import { trpc } from "@/src/lib/trpc/client";
 import type { ResourceType } from "@/src/lib/subscription/limits";
 
 export function useSubscription() {
-    const { data: subscription, isLoading } =
+    const { data: subscription, isLoading, refetch } =
         trpc.subscription.getMySubscription.useQuery();
 
     /**
@@ -59,6 +59,7 @@ export function useSubscription() {
         canCreate,
         hasFeature,
         isLoading,
+        refetch,
     };
 }
 

@@ -43,7 +43,7 @@ const TIER_INFO: Record<SubscriptionTier, { price: string; features: string[] }>
 };
 
 export default function BillingPage() {
-    const { subscription, isLoading } = useSubscription();
+    const { subscription, isLoading, refetch } = useSubscription();
 
     if (isLoading) {
         return <div className="p-8">Cargando...</div>;
@@ -57,6 +57,8 @@ export default function BillingPage() {
         if (max === -1) return 0; // unlimited
         return (current / max) * 100;
     };
+
+    console.log("DEBUG: Billing Page Subscription:", subscription);
 
     return (
         <div className="p-8 space-y-8">
@@ -135,7 +137,11 @@ export default function BillingPage() {
 
                 {/* Payment Integration */}
                 <div className="h-full">
-                    <CreditCardForm companyId={subscription.companyId} />
+                    <CreditCardForm
+                        companyId={subscription.companyId}
+                        existingPaymentMethod={(subscription as any).paymentMethod}
+                        onSuccess={() => refetch()}
+                    />
                 </div>
             </div>
 

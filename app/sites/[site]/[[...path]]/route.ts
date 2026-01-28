@@ -84,6 +84,24 @@ export async function GET(
         return new NextResponse("No template configured for this site", { status: 404 });
     }
 
+    // Check Subscription Status
+    const isSubscriptionActive = company.subscriptionStatus === 'ACTIVE' || company.subscriptionStatus === 'TRIALING';
+    if (!isSubscriptionActive && !isLocal) { // Allow localhost to bypass for debugging if needed, or enforce it. Let's enforce it usually unless we want to debug.
+        // Actually, seed data has localhost companies with CANCELED status for testing, so we should enforce it even on localhost.
+    }
+
+    // Strict check: if status is CANCELED or PAST_DUE
+    if (company.subscriptionStatus === 'CANCELED' || company.subscriptionStatus === 'PAST_DUE') {
+        const maintenancePath = path.join(process.cwd(), "public", "maintenance.html");
+        if (fs.existsSync(maintenancePath)) {
+            const maintenanceHtml = fs.readFileSync(maintenancePath, "utf-8");
+            return new NextResponse(maintenanceHtml, {
+                headers: { "Content-Type": "text/html" }
+            });
+        }
+        return new NextResponse("Under Maintenance", { status: 503 });
+    }
+
     // 2. Resolve File & Route Logic
     const templatePath = path.join(process.cwd(), "public", "templates", company.siteTemplate.storagePath);
     const hasExtension = urlPath.includes(".");

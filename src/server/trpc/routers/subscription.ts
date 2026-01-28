@@ -12,10 +12,21 @@ export const subscriptionRouter = router({
         const company = await ctx.prisma.company.findUnique({
             where: { id: ctx.company.id },
             select: {
+                id: true,
                 subscriptionTier: true,
                 subscriptionStatus: true,
                 subscriptionEndsAt: true,
                 customLimits: true,
+                paymentMethods: {
+                    where: { isDefault: true },
+                    take: 1,
+                    select: {
+                        brand: true,
+                        last4: true,
+                        expiryMonth: true,
+                        expiryYear: true
+                    }
+                },
                 _count: {
                     select: {
                         locations: true,
@@ -48,6 +59,7 @@ export const subscriptionRouter = router({
             planName: plan.name,
             planDescription: plan.description,
             limits,
+            paymentMethod: company.paymentMethods[0] || null,
             usage: {
                 locations: company._count.locations,
                 services: company._count.services,

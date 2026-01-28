@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { PaymentService } from '@/lib/payments/service';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { SUBSCRIPTION_PLANS } from '@/src/lib/subscription/plans';
 
 const schema = z.object({
     companyId: z.string().min(1, "Company ID is required"),
@@ -17,20 +18,48 @@ const schema = z.object({
     })
 });
 
+// Helper to map technical gateway errors to user-friendly messages
+function getFriendlyErrorMessage(rawMessage: string): string {
+    const msg = rawMessage.toLowerCase();
+
+    if (msg.includes("numero de la tarjeta de credito no es valido") || msg.includes("credit card number is not valid")) {
+        return "El número de tarjeta es incorrecto. Por favor verifícalo.";
+    }
+    if (msg.includes("fondos insuficientes") || msg.includes("insufficient funds")) {
+        return "Fondos insuficientes. Por favor intenta con otra tarjeta.";
+    }
+    if (msg.includes("expiracion") || msg.includes("expiration")) {
+        return "La fecha de expiración es inválida.";
+    }
+    if (msg.includes("seguridad") || msg.includes("security code")) {
+        return "El código de seguridad (CVV) es incorrecto.";
+    }
+    if (msg.includes("transaccion rechazada") || msg.includes("declined")) {
+        return "La transacción fue rechazada por el banco. Contacta a tu entidad financiera.";
+    }
+
+    // Return original if it looks like a manual friendly error we threw (like in reactivation)
+    if (msg.includes("el cobro falló. por favor verifica")) {
+        return rawMessage;
+    }
+
+    return "No pudimos procesar tu tarjeta. Por favor verifica los datos e intenta nuevamente.";
+}
+
 export async function POST(req: Request) {
     try {
         const body = await req.json();
         const result = schema.safeParse(body);
 
         if (!result.success) {
-            return NextResponse.json({ error: 'Validation failed', details: result.error.format() }, { status: 400 });
+            return NextResponse.json({ error: 'Datos inválidos. Revisa el formulario.', details: result.error.format() }, { status: 400 });
         }
 
         const { companyId, cardData } = result.data;
 
         const company = await prisma.company.findUnique({ where: { id: companyId } });
         if (!company) {
-            return NextResponse.json({ error: 'Company not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Empresa no encontrada.' }, { status: 404 });
         }
 
         // 1. Tokenize Card via Payment Service
@@ -59,29 +88,52 @@ export async function POST(req: Request) {
                 }
             });
 
-            // 3. Apply 14-Day Trial if applicable
-            // Only if status is not already ACTIVE or TRIALING? 
-            // User asked "se da un trial de 14 dias", implied on registration.
-            // If re-registering card, maybe they assume trial continues?
-            // I'll keep it safe: if not active, give trial.
-            if (company.subscriptionStatus !== 'ACTIVE' && company.subscriptionStatus !== 'TRIALING') {
-                const trialEndsAt = new Date();
-                trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+            // 3. Reactivation Logic
+            // If CANCELED or PAST_DUE, we must CHARGE immediately to reactivate.
+            if (company.subscriptionStatus === 'CANCELED' || company.subscriptionStatus === 'PAST_DUE') {
+                const plan = SUBSCRIPTION_PLANS[company.subscriptionTier];
+                const amountInCents = plan.priceInCents || 0;
+
+                if (amountInCents > 0) {
+                    // Charge the new token
+                    // Note: paymentMethodResult returned a token we just created but haven't saved inside `tx` strictly yet?
+                    // Actually we just did `tx.paymentMethod.create`.
+                    // We can use `paymentMethodResult.token`.
+
+                    const chargeResult = await provider.charge(
+                        amountInCents,
+                        company.currency || 'USD',
+                        paymentMethodResult.token,
+                        { companyId: company.id, description: `Reactivation of ${plan.name} Plan` }
+                    );
+
+                    if (chargeResult.status !== 'SUCCESS') {
+                        throw new Error("El cobro falló. Por favor verifica tu tarjeta o intenta con otra.");
+                    }
+                }
+
+                // If charge successful (or free), extend subscription
+                const newPeriodEnd = new Date();
+                newPeriodEnd.setDate(newPeriodEnd.getDate() + 30); // 30 days valid from now
 
                 await tx.company.update({
                     where: { id: companyId },
                     data: {
-                        subscriptionStatus: 'TRIALING',
-                        subscriptionEndsAt: trialEndsAt
+                        subscriptionStatus: 'ACTIVE',
+                        subscriptionEndsAt: newPeriodEnd
                     }
                 });
             }
+            // If already TRIALING, keep it. 
+            // If ACTIVE, keep it.
+            // If brand new and somehow neither (default is ACTIVE), keep it.
         });
 
-        return NextResponse.json({ success: true, message: 'Card registered and trial activated if applicable' });
+        return NextResponse.json({ success: true, message: 'Tarjeta registrada exitosamente.' });
 
     } catch (error: any) {
         console.error('Registration Error:', error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        const friendlyMessage = getFriendlyErrorMessage(error.message || '');
+        return NextResponse.json({ error: friendlyMessage }, { status: 500 });
     }
 }
