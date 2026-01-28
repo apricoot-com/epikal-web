@@ -14,6 +14,7 @@ import { storageRouter } from "./storage";
 import { reminderRouter } from "./reminder";
 import { superadminRouter } from "./superadmin";
 import { testimonialRouter } from "./testimonial";
+import { templatesRouter } from "./templates";
 
 
 /**
@@ -45,6 +46,7 @@ export const appRouter = router({
     storage: storageRouter,
     reminder: reminderRouter,
     testimonial: testimonialRouter,
+    templates: templatesRouter,
 });
 
 export type AppRouter = typeof appRouter;

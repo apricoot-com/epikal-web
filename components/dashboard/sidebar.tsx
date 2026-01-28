@@ -20,6 +20,7 @@ import {
     Shield,
     CalendarClock,
     CreditCard,
+    LayoutTemplate,
 } from "lucide-react";
 
 import {
@@ -94,6 +95,12 @@ const navItems = [
         title: "Super Admin",
         href: "/dashboard/superadmin/companies",
         icon: Shield,
+        roles: ["SUPERADMIN"],
+    },
+    {
+        title: "Plantillas",
+        href: "/dashboard/superadmin/templates",
+        icon: LayoutTemplate,
         roles: ["SUPERADMIN"],
     },
 ];
