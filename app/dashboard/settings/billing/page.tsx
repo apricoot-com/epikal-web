@@ -78,7 +78,7 @@ export default function BillingPage() {
                 <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h3 className="text-2xl font-bold">{subscription.planName}</h3>
+                            <h3 className="text-2xl font-bold">{subscription.planName || subscription.tier}</h3>
                             <p className="text-sm text-muted-foreground mt-1">
                                 {subscription.planDescription}
                             </p>
