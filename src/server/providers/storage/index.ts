@@ -7,7 +7,17 @@ let storageProvider: StorageProvider | null = null;
 export function getStorageProvider(): StorageProvider {
     if (storageProvider) return storageProvider;
 
-    const type = process.env.STORAGE_TYPE || 'local';
+    let type = process.env.STORAGE_TYPE;
+
+    // Auto-detect S3 if not explicitly set
+    if (!type && process.env.STORAGE_S3_BUCKET && process.env.STORAGE_S3_ACCESS_KEY && process.env.STORAGE_S3_SECRET_KEY) {
+        type = 's3';
+    }
+
+    // Default to local if still not determined
+    if (!type) {
+        type = 'local';
+    }
 
     if (type === 's3') {
         storageProvider = new S3StorageProvider();

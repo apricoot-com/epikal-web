@@ -57,6 +57,35 @@ Consulta el listado completo de roles y usuarios de prueba en [docs/setup-seed.m
 
 ---
 
+## 📦 Storage Configuration
+
+The application uses an abstract storage provider that supports both **Local Filesystem** and **AWS S3**.
+
+### S3 Auto-Detection
+The system automatically switches to S3 storage if the following environment variables are present in your `.env` file:
+
+```env
+STORAGE_S3_BUCKET=your-bucket-name
+STORAGE_S3_ACCESS_KEY=your-access-key
+STORAGE_S3_SECRET_KEY=your-secret-key
+STORAGE_S3_REGION=us-east-1 (optional, defaults to us-east-1)
+```
+
+### CloudFront CDN (Optional)
+To serve assets via CloudFront instead of directly from S3, add:
+```env
+STORAGE_CLOUDFRONT_DOMAIN=https://your-distribution-domain.net
+```
+This enables the system to generate public URLs pointing to your CDN.
+
+### Forcing Local Storage
+To force local storage even if S3 variables are present (useful for development), set:
+```env
+STORAGE_TYPE=local
+```
+
+---
+
 ## Architecture Modules
 - **Module 1**: Company Core (Users, Roles, Locations)
 - **Module 2**: Services & Resources (Professionals, Facilities)
