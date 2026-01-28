@@ -283,16 +283,29 @@ export function CreditCardForm({ companyId, existingPaymentMethod, onSuccess }: 
                             )}
                         />
 
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Procesando...
-                                </>
-                            ) : (
-                                "Guardar Tarjeta y Activar"
+                        <div className="flex gap-4">
+                            {existingPaymentMethod && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => setIsEditing(false)}
+                                    disabled={isLoading}
+                                >
+                                    Cancelar
+                                </Button>
                             )}
-                        </Button>
+                            <Button type="submit" className="flex-1" disabled={isLoading}>
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Procesando...
+                                    </>
+                                ) : (
+                                    "Guardar Tarjeta"
+                                )}
+                            </Button>
+                        </div>
                     </form>
                 </Form>
             </CardContent>

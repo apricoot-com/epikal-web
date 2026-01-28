@@ -107,6 +107,30 @@ export async function POST(req: Request) {
                         { companyId: company.id, description: `Reactivation of ${plan.name} Plan` }
                     );
 
+                    // Create Transaction Record
+                    await tx.transaction.create({
+                        data: {
+                            companyId: company.id,
+                            amount: amountInCents / 100, // Store in cents or decimal? Schema says Decimal(10,2). 
+                            // Wait, schema says Decimal. Is it expecting dollars or cents?
+                            // Typically Decimal stores 29.00. 
+                            // provider.charge takes cents usually for Stripe/PayU? 
+                            // PayU provider uses `amount` as value.
+                            // Let's assume schema expects major units if it is Decimal(10,2).
+                            // If provider takes cents (2900), we should divide by 100 for DB if we want major units.
+                            // Let's check schema again. `amount Decimal @db.Decimal(10, 2)`.
+                            // If I store 2900 there, it fits, but it means $2900.
+                            // I need to verify what `plans.ts` has. `priceInCents: 2900`. 
+                            // So I should probably convert to major units for display/storage if that's the convention.
+                            // Let's divide by 100.
+                            currency: company.currency || 'USD',
+                            status: chargeResult.status,
+                            type: 'SUBSCRIPTION',
+                            gatewayId: chargeResult.transactionId,
+                            gatewayResponse: chargeResult.rawResponse as any
+                        }
+                    });
+
                     if (chargeResult.status !== 'SUCCESS') {
                         throw new Error("El cobro falló. Por favor verifica tu tarjeta o intenta con otra.");
                     }

@@ -27,6 +27,18 @@ export const subscriptionRouter = router({
                         expiryYear: true
                     }
                 },
+                transactions: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 5,
+                    select: {
+                        id: true,
+                        amount: true,
+                        currency: true,
+                        status: true,
+                        createdAt: true,
+                        gatewayId: true
+                    }
+                },
                 _count: {
                     select: {
                         locations: true,
@@ -60,6 +72,7 @@ export const subscriptionRouter = router({
             planDescription: plan.description,
             limits,
             paymentMethod: company.paymentMethods[0] || null,
+            transactions: company.transactions,
             usage: {
                 locations: company._count.locations,
                 services: company._count.services,

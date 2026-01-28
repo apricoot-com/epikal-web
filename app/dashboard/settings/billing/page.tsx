@@ -107,41 +107,85 @@ export default function BillingPage() {
             </Card>
 
             <div className="grid gap-8 md:grid-cols-2">
-                {/* Usage Stats */}
+                {/* Transaction History - Now on Left */}
                 <Card className="h-full">
                     <CardHeader>
-                        <CardTitle>Uso Actual</CardTitle>
-                        <CardDescription>Revisa tu consumo y límites</CardDescription>
+                        <CardTitle>Historial de Pagos</CardTitle>
+                        <CardDescription>Últimos movimientos registrados</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                        {Object.entries(subscription.usage).map(([key, value]) => {
-                            const limitKey = `max${key.charAt(0).toUpperCase() + key.slice(1)}` as keyof typeof subscription.limits;
-                            const limit = subscription.limits[limitKey];
-                            const percentage =
-                                typeof limit === "number" ? calculateUsagePercentage(value, limit) : 0;
-
-                            return (
-                                <div key={key} className="space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="font-medium capitalize">{getLabel(key)}</span>
-                                        <span className="text-muted-foreground">
-                                            {value} / {typeof limit === "number" && limit === -1 ? "∞" : limit}
-                                        </span>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {(subscription as any).transactions?.length > 0 ? (
+                                (subscription as any).transactions.map((tx: any) => (
+                                    <div key={tx.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
+                                        <div>
+                                            <p className="font-medium text-sm">
+                                                {new Date(tx.createdAt).toLocaleDateString("es-MX", {
+                                                    year: 'numeric', month: 'long', day: 'numeric'
+                                                })}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                ID: {tx.gatewayId || tx.id}
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-bold text-sm">
+                                                {new Intl.NumberFormat('es-MX', { style: 'currency', currency: tx.currency }).format(parseFloat(tx.amount))}
+                                            </p>
+                                            <Badge
+                                                variant={tx.status === 'SUCCESS' ? 'default' : 'destructive'}
+                                                className="text-[10px] h-5 px-1.5"
+                                            >
+                                                {tx.status}
+                                            </Badge>
+                                        </div>
                                     </div>
-                                    <Progress value={percentage} className="h-2" />
-                                </div>
-                            );
-                        })}
+                                ))
+                            ) : (
+                                <p className="text-sm text-muted-foreground text-center py-4">
+                                    No hay pagos registrados.
+                                </p>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
 
-                {/* Payment Integration */}
-                <div className="h-full">
+                {/* Right Column: Payment & Usage */}
+                <div className="h-full flex flex-col gap-8">
+                    {/* Payment Integration */}
                     <CreditCardForm
                         companyId={subscription.companyId}
                         existingPaymentMethod={(subscription as any).paymentMethod}
                         onSuccess={() => refetch()}
                     />
+
+                    {/* Usage Stats - Now on Right */}
+                    <Card className="flex-1">
+                        <CardHeader>
+                            <CardTitle>Uso Actual</CardTitle>
+                            <CardDescription>Revisa tu consumo y límites</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            {Object.entries(subscription.usage).map(([key, value]) => {
+                                const limitKey = `max${key.charAt(0).toUpperCase() + key.slice(1)}` as keyof typeof subscription.limits;
+                                const limit = subscription.limits[limitKey];
+                                const percentage =
+                                    typeof limit === "number" ? calculateUsagePercentage(value, limit) : 0;
+
+                                return (
+                                    <div key={key} className="space-y-2">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="font-medium capitalize">{getLabel(key)}</span>
+                                            <span className="text-muted-foreground">
+                                                {value} / {typeof limit === "number" && limit === -1 ? "∞" : limit}
+                                            </span>
+                                        </div>
+                                        <Progress value={percentage} className="h-2" />
+                                    </div>
+                                );
+                            })}
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
 
