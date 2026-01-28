@@ -34,7 +34,7 @@ const formSchema = z.object({
     expiryMonth: z.string().min(1, "Mes requerido"),
     expiryYear: z.string().min(4, "Año requerido"),
     cvv: z.string().min(3, "CVV requerido").max(4),
-    email: z.string().email("Email inválido"),
+    email: z.email("Email inválido"),
 });
 
 interface CreditCardFormProps {

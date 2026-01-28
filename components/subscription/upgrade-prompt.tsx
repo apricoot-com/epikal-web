@@ -19,9 +19,9 @@ interface UpgradePromptProps {
 }
 
 const TIER_NAMES: Record<SubscriptionTier, string> = {
-    FREE: "Gratis",
-    BASIC: "Básico",
+
     PROFESSIONAL: "Profesional",
+    TEAM: "Clínica / Equipo",
     ENTERPRISE: "Empresarial",
 };
 

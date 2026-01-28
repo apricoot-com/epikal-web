@@ -16,19 +16,8 @@ export type SubscriptionPlan = {
 };
 
 export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, SubscriptionPlan> = {
-    FREE: {
-        name: "Gratis",
-        description: "Perfecto para comenzar",
-        limits: {
-            maxLocations: 1,
-            maxServices: 5,
-            maxTeamMembers: 2,
-            maxResources: 3,
-            customDomain: false,
-            whiteLabel: false,
-        },
-    },
-    BASIC: {
+
+    PROFESSIONAL: {
         name: "Profesional",
         description: "Para profesionales independientes",
         limits: {
@@ -40,7 +29,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, SubscriptionPlan> = {
             whiteLabel: false,
         },
     },
-    PROFESSIONAL: {
+    TEAM: {
         name: "Clínica / Equipo",
         description: "Para equipos y clínicas en crecimiento",
         limits: {

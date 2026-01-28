@@ -10,16 +10,8 @@ import type { SubscriptionTier } from "@prisma/client";
 import { CreditCardForm } from "@/components/billing/credit-card-form";
 
 const TIER_INFO: Record<SubscriptionTier, { price: string; features: string[] }> = {
-    FREE: {
-        price: "$0",
-        features: [
-            "1 ubicación",
-            "Hasta 5 servicios",
-            "1 profesional",
-            "3 recursos",
-        ],
-    },
-    BASIC: {
+
+    PROFESSIONAL: {
         price: "$29",
         features: [
             "1 ubicación",
@@ -28,8 +20,8 @@ const TIER_INFO: Record<SubscriptionTier, { price: string; features: string[] }>
             "Agendamiento online",
         ],
     },
-    PROFESSIONAL: {
-        price: "$79",
+    TEAM: {
+        price: "Desde $79",
         features: [
             "Multi-sede (1+)",
             "Servicios ilimitados",
@@ -102,36 +94,43 @@ export default function BillingPage() {
                 </CardContent>
             </Card>
 
-            {/* Usage Stats */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Uso Actual</CardTitle>
-                    <CardDescription>Revisa tu consumo y límites</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    {Object.entries(subscription.usage).map(([key, value]) => {
-                        const limitKey = `max${key.charAt(0).toUpperCase() + key.slice(1)}` as keyof typeof subscription.limits;
-                        const limit = subscription.limits[limitKey];
-                        const percentage =
-                            typeof limit === "number" ? calculateUsagePercentage(value, limit) : 0;
+            <div className="grid gap-8 md:grid-cols-2">
+                {/* Usage Stats */}
+                <Card className="h-full">
+                    <CardHeader>
+                        <CardTitle>Uso Actual</CardTitle>
+                        <CardDescription>Revisa tu consumo y límites</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {Object.entries(subscription.usage).map(([key, value]) => {
+                            const limitKey = `max${key.charAt(0).toUpperCase() + key.slice(1)}` as keyof typeof subscription.limits;
+                            const limit = subscription.limits[limitKey];
+                            const percentage =
+                                typeof limit === "number" ? calculateUsagePercentage(value, limit) : 0;
 
-                        return (
-                            <div key={key} className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="font-medium capitalize">{getLabel(key)}</span>
-                                    <span className="text-muted-foreground">
-                                        {value} / {typeof limit === "number" && limit === -1 ? "∞" : limit}
-                                    </span>
+                            return (
+                                <div key={key} className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="font-medium capitalize">{getLabel(key)}</span>
+                                        <span className="text-muted-foreground">
+                                            {value} / {typeof limit === "number" && limit === -1 ? "∞" : limit}
+                                        </span>
+                                    </div>
+                                    <Progress value={percentage} className="h-2" />
                                 </div>
-                                <Progress value={percentage} className="h-2" />
-                            </div>
-                        );
-                    })}
-                </CardContent>
-            </Card>
+                            );
+                        })}
+                    </CardContent>
+                </Card>
+
+                {/* Payment Integration */}
+                <div className="h-full">
+                    <CreditCardForm companyId={subscription.companyId} />
+                </div>
+            </div>
 
             {/* Available Plans */}
-            <div className="space-y-4">
+            <div className="space-y-4 pt-4">
                 <h2 className="text-2xl font-bold">Planes Disponibles</h2>
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {(Object.keys(TIER_INFO) as SubscriptionTier[]).map((tier) => {
@@ -185,9 +184,6 @@ export default function BillingPage() {
                     })}
                 </div>
             </div>
-
-            {/* Payment Integration */}
-            <CreditCardForm companyId={subscription.companyId} />
         </div>
     );
 }

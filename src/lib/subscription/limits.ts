@@ -80,7 +80,7 @@ function getRequiredTierForCount(
     targetCount: number,
     resourceType: ResourceType
 ): SubscriptionTier {
-    const tiers: SubscriptionTier[] = ["BASIC", "PROFESSIONAL", "ENTERPRISE"];
+    const tiers: SubscriptionTier[] = ["PROFESSIONAL", "TEAM", "ENTERPRISE"];
     const limitKey = `max${capitalize(resourceType)}` as keyof PlanLimits;
 
     for (const tier of tiers) {

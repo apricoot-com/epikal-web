@@ -38,9 +38,8 @@ enum MembershipStatus {
 }
 
 enum SubscriptionTier {
-  FREE
-  BASIC
   PROFESSIONAL
+  TEAM
   ENTERPRISE
 }
 
@@ -77,7 +76,7 @@ model Company {
   requiresBookingConfirmation Boolean @default(false)
 
   // Module 4: Subscription & Billing
-  subscriptionTier    SubscriptionTier    @default(FREE)
+  subscriptionTier    SubscriptionTier    @default(PROFESSIONAL)
   subscriptionStatus  SubscriptionStatus  @default(ACTIVE)
   subscriptionEndsAt  DateTime?           // For trials or pending cancellations
   customLimits        Json?               // Override tier defaults: { maxLocations: 5, ... }
