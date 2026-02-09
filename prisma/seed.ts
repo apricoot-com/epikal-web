@@ -1,6 +1,4 @@
 import "dotenv/config";
-import { Pool } from "pg";
-import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import { auth } from "../src/lib/auth";
 import { randomUUID } from "crypto";
@@ -11,13 +9,11 @@ import { addDays, subDays, startOfHour, setHours } from "date-fns";
  * Refined version for full system testing with rich content
  */
 
-const prisma = new PrismaClient({
-    datasources: {
-        db: {
-            url: process.env.DATABASE_URL || "postgresql://epikal:epikal@127.0.0.1:5433/epikal?sslmode=disable",
-        },
-    },
-});
+if (!process.env.DATABASE_URL) {
+    process.env.DATABASE_URL = "postgresql://epikal:epikal@127.0.0.1:5433/epikal?sslmode=disable";
+}
+
+const prisma = new PrismaClient();
 
 async function main() {
     console.log("🌱 Starting full database seed with rich content...\n");
@@ -135,7 +131,7 @@ async function main() {
             language: "es",
             currency: "USD",
             timezone: "America/Bogota",
-            subscriptionTier: "TEAM",
+            subscriptionTier: "PROFESSIONAL",
             subscriptionStatus: "PAST_DUE",
             subscriptionEndsAt: subDays(new Date(), 5), // Payment failed 5 days ago
             siteTemplateId: template.id,
@@ -273,9 +269,7 @@ async function main() {
             country: "Colombia",
             phone: "+57 300 123 4567",
             email: "bogota@clinica-aurora.com",
-            googleMapsUrl: "https://www.google.com/maps/place/Juan+Carlos+Le%C3%B3n+-+Cirug%C3%ADa+Pl%C3%A1stica/@4.7044828,-74.041243",
-            latitude: 4.7044621,
-            longitude: -74.0410872,
+            // googleMapsUrl removed as it is not in schema
         },
     });
 
@@ -288,7 +282,6 @@ async function main() {
             type: "PROFESSIONAL",
             name: "María García",
             description: "Especialista en limpiezas y masajes.",
-            bio: "Con más de 8 años de experiencia en el mundo del bienestar, María se especializa en tratamientos holísticos que combinan técnicas tradicionales con aparatología moderna.",
             status: "ACTIVE",
             image: "https://randomuser.me/api/portraits/women/20.jpg"
         }
@@ -303,7 +296,6 @@ async function main() {
             type: "PROFESSIONAL",
             name: "Dra. Laura Torres",
             description: "Médico estético especializada en inyectables.",
-            bio: "Graduada con honores y certificada en medicina estética avanzada. La Dra. Laura es reconocida por sus resultados naturales y su enfoque en la seguridad del paciente.",
             status: "ACTIVE",
             image: "https://randomuser.me/api/portraits/women/40.jpg"
         }
@@ -773,43 +765,9 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
     }
 
     // =========================================================================
-    // 11. TESTIMONIALS
+    // 11. TESTIMONIALS (Simulated as content blocks or just skipped if model missing)
     // =========================================================================
-    console.log("🗣️ Creating testimonials...");
-
-    const testimonialsData = [
-        {
-            name: "Andrea Gómez",
-            title: "Paciente Frecuente",
-            text: "La Dra. Sofía tiene unas manos mágicas. El Bótox se ve súper natural, justo lo que buscaba.",
-            image: "https://randomuser.me/api/portraits/women/44.jpg"
-        },
-        {
-            name: "Ricardo Silva",
-            title: "Cliente Premium",
-            text: "El mejor facial que me han hecho en años. El personal es muy amable y las instalaciones impecables.",
-            image: "https://randomuser.me/api/portraits/men/32.jpg"
-        },
-        {
-            name: "Elena Torres",
-            title: "Paciente de Depilación",
-            text: "Llevo 3 sesiones de láser y los cambios son impresionantes. ¡Casi no duele nada!",
-            image: "https://randomuser.me/api/portraits/women/68.jpg"
-        }
-    ];
-
-    for (const t of testimonialsData) {
-        await prisma.testimonial.create({
-            data: {
-                companyId: company.id,
-                name: t.name,
-                title: t.title,
-                text: t.text,
-                image: t.image,
-                isActive: true,
-            }
-        });
-    }
+    console.log("🗣️ Skipped testimonials creation (Model not in schema)...");
 
     console.log("\n" + "=".repeat(60));
     console.log("✅ Rich Seed completed successfully!");
@@ -819,7 +777,7 @@ Experimenta la libertad de una piel suave todos los días con nuestra **Depilaci
 
 main()
     .catch((e) => {
-        console.error("❌ Seed failed:", e);
+        console.error(e);
         process.exit(1);
     })
     .finally(async () => {
