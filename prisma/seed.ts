@@ -13,7 +13,9 @@ if (!process.env.DATABASE_URL) {
     process.env.DATABASE_URL = "postgresql://epikal:epikal@127.0.0.1:5433/epikal?sslmode=disable";
 }
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+    log: ['info', 'warn', 'error'],
+});
 
 async function main() {
     console.log("🌱 Starting full database seed with rich content...\n");
@@ -782,5 +784,4 @@ main()
     })
     .finally(async () => {
         await prisma.$disconnect();
-        await pool.end();
     });
