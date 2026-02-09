@@ -1,6 +1,3 @@
-// Prisma schema for Epikal - Multi-tenant SaaS
-// See: /docs/Modulos/Módulo 1 — Core de Empresa (Company Core).md
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,9 +6,420 @@ datasource db {
   provider = "postgresql"
 }
 
-// =============================================================================
-// ENUMS
-// =============================================================================
+/// Representa una cuenta cliente del SaaS (tenant)
+model Company {
+  id                          String             @id @default(cuid())
+  name                        String
+  legalName                   String?
+  slug                        String             @unique
+  customDomain                String?            @unique
+  status                      CompanyStatus      @default(ACTIVE)
+  language                    String             @default("es")
+  currency                    String             @default("USD")
+  timezone                    String             @default("America/Mexico_City")
+  socialUrls                  Json?
+  subscriptionTier            SubscriptionTier   @default(FREE)
+  subscriptionStatus          SubscriptionStatus @default(ACTIVE)
+  subscriptionEndsAt          DateTime?
+  customLimits                Json?
+  gtmContainerId              String?
+  fbPixelId                   String?
+  fbAccessToken               String?
+  createdAt                   DateTime           @default(now())
+  updatedAt                   DateTime           @updatedAt
+  siteTemplateId              String?
+  siteSettings                Json?
+  requiresBookingConfirmation Boolean            @default(false)
+  description                 String?
+  analyticsEvents             AnalyticsEvent[]
+  bookings                    Booking[]
+  siteTemplate                Template?          @relation("InstalledTemplate", fields: [siteTemplateId], references: [id])
+  branding                    CompanyBranding?
+  customers                   Customer[]
+  dailyStats                  DailyStats[]
+  locations                   Location[]
+  reminderConfigs             ReminderConfig[]
+  resources                   Resource[]
+  services                    Service[]
+  createdTemplates            Template[]         @relation("TemplateOwner")
+  members                     UserCompany[]
+
+  @@map("companies")
+}
+
+/// Representa una persona que accede al SaaS
+model User {
+  id            String        @id @default(cuid())
+  name          String
+  email         String        @unique
+  emailVerified Boolean       @default(false)
+  image         String?
+  status        UserStatus    @default(ACTIVE)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  accounts      Account[]
+  resources     Resource[]
+  sessions      Session[]
+  memberships   UserCompany[]
+
+  @@map("users")
+}
+
+/// Membresía Usuario-Empresa (many-to-many con rol)
+model UserCompany {
+  id        String           @id @default(cuid())
+  userId    String
+  companyId String
+  role      Role             @default(STAFF)
+  status    MembershipStatus @default(ACTIVE)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  company   Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, companyId])
+  @@map("user_companies")
+}
+
+/// Identidad visual y verbal de la empresa
+model CompanyBranding {
+  id                String   @id @default(cuid())
+  companyId         String   @unique
+  logoUrl           String?
+  primaryColor      String   @default("#3B82F6")
+  secondaryColor    String   @default("#10B981")
+  brandTone         String?
+  brandKeywords     String[]
+  brandRestrictions String[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  company           Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("company_brandings")
+}
+
+/// Sedes / Ubicaciones físicas
+model Location {
+  id        String     @id @default(cuid())
+  companyId String
+  name      String
+  address   String?
+  city      String?
+  country   String?
+  phone     String?
+  email     String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  resources Resource[]
+
+  @@map("locations")
+}
+
+/// Represents what the client buys
+model Service {
+  id              String            @id @default(cuid())
+  companyId       String
+  name            String
+  slug            String
+  description     String?
+  duration        Int
+  price           Decimal           @db.Decimal(10, 2)
+  allowsDeposit   Boolean           @default(false)
+  depositAmount   Decimal?          @db.Decimal(10, 2)
+  status          ServiceStatus     @default(ACTIVE)
+  isPublic        Boolean           @default(true)
+  sortOrder       Int               @default(0)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  analyticsEvents AnalyticsEvent[]
+  bookings        Booking[]
+  resources       ServiceResource[]
+  webPage         ServiceWebPage?
+  company         Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, slug])
+  @@map("services")
+}
+
+/// Represents who or what delivers the service
+model Resource {
+  id           String            @id @default(cuid())
+  companyId    String
+  locationId   String?
+  type         ResourceType
+  name         String
+  description  String?
+  status       ServiceStatus     @default(ACTIVE)
+  calendarId   String?
+  image        String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  userId       String?
+  availability Availability[]
+  blockouts    Blockout[]
+  bookings     Booking[]
+  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  location     Location?         @relation(fields: [locationId], references: [id])
+  user         User?             @relation(fields: [userId], references: [id])
+  services     ServiceResource[]
+
+  @@unique([companyId, userId])
+  @@map("resources")
+}
+
+/// Many-to-many relationship between Service and Resource
+model ServiceResource {
+  serviceId  String
+  resourceId String
+  createdAt  DateTime @default(now())
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([serviceId, resourceId])
+  @@map("service_resources")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verifications")
+}
+
+/// Defines a deployable site template (11ty build)
+model Template {
+  id            String    @id @default(cuid())
+  name          String
+  description   String?
+  storagePath   String
+  previewImage  String?
+  isPublic      Boolean   @default(true)
+  companyId     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  installations Company[] @relation("InstalledTemplate")
+  company       Company?  @relation("TemplateOwner", fields: [companyId], references: [id])
+
+  @@map("templates")
+}
+
+/// Web-specific configuration for a Service
+model ServiceWebPage {
+  id                String   @id @default(cuid())
+  serviceId         String   @unique
+  displayTitle      String?
+  heroImage         String?
+  content           String?
+  blocks            Json?
+  seo               Json?
+  schedulingEnabled Boolean  @default(true)
+  agentEnabled      Boolean  @default(false)
+  analyticsEnabled  Boolean  @default(false)
+  agentConfig       Json?
+  bookingConfig     Json?
+  faqs              Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  service           Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@map("service_web_pages")
+}
+
+/// Raw analytics events (page views, conversions, etc.)
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  companyId   String
+  type        String
+  path        String
+  pageType    String
+  serviceId   String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+  utmTerm     String?
+  sessionId   String
+  visitorId   String
+  referrer    String?
+  userAgent   String?
+  timestamp   DateTime @default(now())
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  service     Service? @relation(fields: [serviceId], references: [id])
+
+  @@index([companyId, timestamp])
+  @@index([serviceId, timestamp])
+  @@index([sessionId])
+  @@map("analytics_events")
+}
+
+/// Aggregated daily statistics per company
+model DailyStats {
+  id             String   @id @default(cuid())
+  companyId      String
+  date           DateTime @db.Date
+  pageViews      Int      @default(0)
+  uniqueVisitors Int      @default(0)
+  topServices    Json
+  topSources     Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, date])
+  @@index([companyId, date])
+  @@map("daily_stats")
+}
+
+/// Define el horario laboral estándar de un Recurso
+model Availability {
+  id          String    @id @default(cuid())
+  resourceId  String
+  dayOfWeek   DayOfWeek
+  startTime   String
+  endTime     String
+  isAvailable Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  resource    Resource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@unique([resourceId, dayOfWeek, startTime])
+  @@map("availabilities")
+}
+
+/// Excepciones al horario (Vacaciones, Almuerzo, etc)
+model Blockout {
+  id          String   @id @default(cuid())
+  resourceId  String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  resource    Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@map("blockouts")
+}
+
+/// Cita agendada
+model Booking {
+  id                String               @id @default(cuid())
+  companyId         String
+  resourceId        String
+  serviceId         String
+  customerName      String
+  customerEmail     String
+  customerPhone     String?
+  userId            String?
+  customerId        String?
+  startTime         DateTime
+  endTime           DateTime
+  status            BookingStatus        @default(CONFIRMED)
+  notes             String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  confirmationToken String?              @unique
+  rescheduleToken   String?              @unique
+  cancellationToken String?              @unique
+  reminderLogs      BookingReminderLog[]
+  company           Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer          Customer?            @relation(fields: [customerId], references: [id])
+  resource          Resource             @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  service           Service              @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([resourceId, startTime])
+  @@map("bookings")
+}
+
+model Customer {
+  id            String    @id @default(cuid())
+  companyId     String
+  firstName     String
+  lastName      String?
+  email         String
+  phone         String?
+  userId        String?
+  notes         String?
+  tags          String[]
+  totalBookings Int       @default(0)
+  lastBookingAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bookings      Booking[]
+  company       Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, email])
+  @@index([companyId])
+  @@map("customers")
+}
+
+model ReminderConfig {
+  id        String               @id @default(cuid())
+  companyId String
+  channel   ReminderChannel      @default(EMAIL)
+  timeValue Int
+  timeUnit  TimeUnit
+  isActive  Boolean              @default(true)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  logs      BookingReminderLog[]
+  company   Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("reminder_configs")
+}
+
+model BookingReminderLog {
+  id               String            @id @default(cuid())
+  bookingId        String
+  reminderConfigId String
+  sentAt           DateTime          @default(now())
+  channel          ReminderChannel
+  status           ReminderLogStatus @default(SUCCESS)
+  error            String?
+  booking          Booking           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  reminderConfig   ReminderConfig    @relation(fields: [reminderConfigId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@map("booking_reminder_logs")
+}
 
 enum Role {
   SUPERADMIN
@@ -38,8 +446,9 @@ enum MembershipStatus {
 }
 
 enum SubscriptionTier {
+  FREE
+  BASIC
   PROFESSIONAL
-  TEAM
   ENTERPRISE
 }
 
@@ -50,440 +459,15 @@ enum SubscriptionStatus {
   TRIALING
 }
 
-// =============================================================================
-// CORE ENTITIES (Module 1)
-// =============================================================================
-
-/// Representa una cuenta cliente del SaaS (tenant)
-model Company {
-  id            String        @id @default(cuid())
-  name          String        // Nombre comercial
-  legalName     String?       // Razón social
-  slug          String        @unique // Subdominio
-  description   String?       // Acerca de
-  aboutImage    String?       // Imagen para la página About Us
-  customDomain  String?       @unique // Dominio personalizado
-  status        CompanyStatus @default(ACTIVE)
-  
-  // Regional settings
-  language      String        @default("es")
-  currency      String        @default("USD")
-  timezone      String        @default("America/Mexico_City")
-  
-  socialUrls    Json?         // { facebook, instagram, twitter, linkedin, tiktok }
-
-  // Module 3: Scheduling Settings
-  requiresBookingConfirmation Boolean @default(false)
-
-  // Module 4: Subscription & Billing
-  subscriptionTier    SubscriptionTier    @default(PROFESSIONAL)
-  subscriptionStatus  SubscriptionStatus  @default(ACTIVE)
-  subscriptionEndsAt  DateTime?           // For trials or pending cancellations
-  customLimits        Json?               // Override tier defaults: { maxLocations: 5, ... }
-  
-  // Module 6: Analytics & Tracking
-  gtmContainerId  String?       // Google Tag Manager container ID (e.g., "GTM-XXXXXX")
-  fbPixelId       String?       // Facebook Pixel ID
-  fbAccessToken   String?       // Facebook Conversions API access token (encrypted)
-  
-  // Timestamps
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  
-  // Relations
-  members       UserCompany[]
-  branding      CompanyBranding?
-  locations     Location[]
-  services      Service[]
-  resources     Resource[]
-  reminderConfigs ReminderConfig[]
-  
-  // Module 3: Web Pages
-  siteTemplateId String?
-  siteTemplate  Template?     @relation("InstalledTemplate", fields: [siteTemplateId], references: [id])
-  siteSettings  Json?         // Custom settings (colors, logo override, etc) for the template
-  createdTemplates Template[] @relation("TemplateOwner")
-  
-  // Testimonials
-  testimonials  Testimonial[]
-
-  // Module 6: Analytics
-  analyticsEvents AnalyticsEvent[]
-  dailyStats      DailyStats[]
-  bookings        Booking[]
-  customers       Customer[]
-
-  // Payment Relations
-  paymentMethods  PaymentMethod[]
-  transactions    Transaction[]
-  
-  @@map("companies")
-}
-
-/// Representa una persona que accede al SaaS
-model User {
-  id            String      @id @default(cuid())
-  name          String
-  email         String      @unique
-  emailVerified Boolean     @default(false)
-  image         String?
-  status        UserStatus  @default(ACTIVE)
-  
-  // Timestamps
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  
-  // Relations
-  memberships   UserCompany[]
-  sessions      Session[]
-  accounts      Account[]
-  resources     Resource[]
-  
-  @@map("users")
-}
-
-/// Membresía Usuario-Empresa (many-to-many con rol)
-model UserCompany {
-  id        String           @id @default(cuid())
-  userId    String
-  companyId String
-  role      Role             @default(STAFF)
-  status    MembershipStatus @default(ACTIVE)
-  
-  // Timestamps
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  
-  // Relations
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  company   Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
-  @@unique([userId, companyId])
-  @@map("user_companies")
-}
-
-/// Identidad visual y verbal de la empresa
-model CompanyBranding {
-  id              String   @id @default(cuid())
-  companyId       String   @unique
-  
-  // Visual
-  logoUrl         String?
-  primaryColor    String   @default("#3B82F6")
-  secondaryColor  String   @default("#10B981")
-  
-  // Voice (for AI context)
-  brandTone       String?  // "profesional", "cercano", "formal"
-  brandKeywords   String[] // Palabras que definen la marca
-  brandRestrictions String[] // Palabras/frases a evitar
-  
-  // Timestamps
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Relations
-  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
-  @@map("company_brandings")
-}
-
-/// Sedes / Ubicaciones físicas
-model Location {
-  id        String   @id @default(cuid())
-  companyId String
-  name      String
-  address   String?
-  city      String?
-  country   String?
-  phone     String?
-  email     String?
-  googleMapsUrl String?
-  latitude  Float?
-  longitude Float?
-  
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relations
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  resources Resource[]
-  
-  @@map("locations")
-}
-
-// =============================================================================
-// SERVICES & RESOURCES (Module 2)
-// =============================================================================
-
 enum ResourceType {
-  PROFESSIONAL  // Person (doctor, stylist, etc.)
-  PHYSICAL      // Space/equipment (room, court, etc.)
+  PROFESSIONAL
+  PHYSICAL
 }
 
 enum ServiceStatus {
   ACTIVE
   INACTIVE
 }
-
-/// Represents what the client buys
-model Service {
-  id              String        @id @default(cuid())
-  companyId       String
-  name            String
-  slug            String
-  description     String?
-  duration        Int           // Duration in minutes
-  price           Decimal       @db.Decimal(10, 2)
-  allowsDeposit   Boolean       @default(false)
-  depositAmount   Decimal?      @db.Decimal(10, 2)
-  status          ServiceStatus @default(ACTIVE)
-  isPublic        Boolean       @default(true) // Visible on public web
-  sortOrder       Int           @default(0)
-  
-  // Timestamps
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  
-  // Relations
-  company         Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  resources       ServiceResource[]
-  webPage         ServiceWebPage?
-  analyticsEvents AnalyticsEvent[]
-  bookings        Booking[]
-  
-  @@unique([companyId, slug])
-  @@map("services")
-}
-
-/// Represents who or what delivers the service
-model Resource {
-  id              String        @id @default(cuid())
-  companyId       String
-  userId          String?
-  locationId      String?
-  type            ResourceType
-  name            String
-  description     String?
-  status          ServiceStatus @default(ACTIVE)
-  calendarId      String?       // External calendar ID (Google Calendar)
-  image           String?       // Profile image URL
-  bio             String?       @db.Text // Public biography
-  
-  // Timestamps
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  
-  // Relations
-  company         Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
-  location        Location?     @relation(fields: [locationId], references: [id], onDelete: SetNull)
-  services        ServiceResource[]
-  availability    Availability[]
-  bookings        Booking[]
-  blockouts       Blockout[]
-  
-  @@unique([companyId, userId])
-  @@map("resources")
-}
-
-/// Many-to-many relationship between Service and Resource
-model ServiceResource {
-  serviceId       String
-  resourceId      String
-  
-  // Future: per-resource pricing, duration override
-  
-  // Timestamps
-  createdAt       DateTime      @default(now())
-  
-  // Relations
-  service         Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  resource        Resource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-  
-  @@id([serviceId, resourceId])
-  @@map("service_resources")
-}
-
-// =============================================================================
-// BETTER AUTH TABLES
-// =============================================================================
-
-model Session {
-  id           String   @id @default(cuid())
-  userId       String
-  token        String   @unique
-  expiresAt    DateTime
-  ipAddress    String?
-  userAgent    String?
-  
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@map("sessions")
-}
-
-model Account {
-  id                String   @id @default(cuid())
-  userId            String
-  accountId         String
-  providerId        String
-  accessToken       String?
-  refreshToken      String?
-  accessTokenExpiresAt  DateTime?
-  refreshTokenExpiresAt DateTime?
-  scope             String?
-  idToken           String?
-  password          String?
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@map("accounts")
-}
-
-model Verification {
-  id         String   @id @default(cuid())
-  identifier String
-  value      String
-  expiresAt  DateTime
-  
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  
-  @@map("verifications")
-}
-
-// =============================================================================
-// WEB PAGES & TEMPLATING (Module 3)
-// =============================================================================
-
-/// Defines a deployable site template (11ty build)
-model Template {
-  id            String   @id @default(cuid())
-  name          String
-  description   String?
-  storagePath   String   // Folder name in public/templates (e.g. "minimal-v1")
-  previewImage  String?
-  isPublic      Boolean  @default(true) // Available to all companies?
-  companyId     String?  // If uploaded by a specific client (custom template)
-  
-  // Timestamps
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  // Relations
-  company       Company? @relation("TemplateOwner", fields: [companyId], references: [id])
-  installations Company[] @relation("InstalledTemplate")
-  
-  @@map("templates")
-}
-
-/// Web-specific configuration for a Service
-model ServiceWebPage {
-  id                String   @id @default(cuid())
-  serviceId         String   @unique
-  displayTitle      String?
-  heroImage         String?
-  content           String?  // Rich text description
-  
-  // Page Builder & SEO
-  blocks            Json?    // Array of SiteBlock
-  seo               Json?    // { title, description, keywords, ogImage }
-
-  // Feature Flags
-  schedulingEnabled Boolean @default(true)
-  agentEnabled      Boolean @default(false)
-  analyticsEnabled  Boolean @default(false)
-  
-  // Module Configs (JSON for flexibility)
-  agentConfig       Json?
-  bookingConfig     Json?
-  faqs              Json?    // Structured FAQs: { question: string, answer: string }[]
-  
-  // Timestamps
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
-  // Relations
-  service           Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  
-  @@map("service_web_pages")
-}
-
-// =============================================================================
-// ANALYTICS & TRACKING (Module 6)
-// =============================================================================
-
-/// Raw analytics events (page views, conversions, etc.)
-model AnalyticsEvent {
-  id           String   @id @default(cuid())
-  companyId    String
-  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
-  // Event data
-  type         String   // "pageview", "lead", "booking"
-  path         String   // URL path (e.g., "/services/haircut")
-  pageType     String   // "home", "service-detail", "about", "contact"
-  
-  // Service tracking
-  serviceId    String?
-  service      Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
-  
-  // UTM Parameters (traffic source attribution)
-  utmSource    String?
-  utmMedium    String?
-  utmCampaign  String?
-  utmContent   String?
-  utmTerm      String?
-  
-  // Session tracking
-  sessionId    String   // 30-minute session cookie
-  visitorId    String   // Long-term visitor cookie (2 years)
-  
-  // Metadata
-  referrer     String?
-  userAgent    String?
-  
-  timestamp    DateTime @default(now())
-  
-  @@index([companyId, timestamp])
-  @@index([serviceId, timestamp])
-  @@index([sessionId])
-  @@map("analytics_events")
-}
-
-/// Aggregated daily statistics per company
-model DailyStats {
-  id              String   @id @default(cuid())
-  companyId       String
-  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
-  date            DateTime @db.Date
-  
-  // Aggregated metrics
-  pageViews       Int      @default(0)
-  uniqueVisitors  Int      @default(0)
-  
-  // Top performers (JSON arrays)
-  topServices     Json     // [{ id, name, views }]
-  topSources      Json     // [{ source, views }]
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  @@unique([companyId, date])
-  @@index([companyId, date])
-  @@map("daily_stats")
-}
-
-// =============================================================================
-// SCHEDULING (Module 3)
-// =============================================================================
 
 enum DayOfWeek {
   MONDAY
@@ -503,129 +487,6 @@ enum BookingStatus {
   NO_SHOW
 }
 
-/// Define el horario laboral estándar de un Recurso
-model Availability {
-  id          String    @id @default(cuid())
-  resourceId  String
-  dayOfWeek   DayOfWeek
-  startTime   String    // "09:00"
-  endTime     String    // "17:00"
-  isAvailable Boolean   @default(true) // Allows explicitly marking days as off
-  
-  // Timestamps
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  // Relations
-  resource    Resource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-  
-  @@unique([resourceId, dayOfWeek, startTime]) // Evita duplicados para el mismo slot
-  @@map("availabilities")
-}
-
-/// Excepciones al horario (Vacaciones, Almuerzo, etc)
-model Blockout {
-  id          String   @id @default(cuid())
-  resourceId  String
-  description String?
-  startTime   DateTime
-  endTime     DateTime
-  
-  // Timestamps
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  resource    Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-  
-  @@map("blockouts")
-}
-
-/// Cita agendada
-model Booking {
-  id            String        @id @default(cuid())
-  companyId     String
-  resourceId    String
-  serviceId     String
-  
-  // Cliente (puede ser usuario registrado o invitado)
-  customerName  String
-  customerEmail String
-  customerPhone String?
-  userId        String?       // If customer has account (Legacy/Direct link)
-  
-  customerId    String?       // CRM Link
-  customer      Customer?     @relation(fields: [customerId], references: [id])
-  
-  // Tiempo
-  startTime     DateTime
-  endTime       DateTime
-  
-  status        BookingStatus @default(CONFIRMED)
-  notes         String?
-  confirmationToken String? @unique
-  rescheduleToken   String? @unique
-  cancellationToken String? @unique
-  
-  // Timestamps
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  
-  // Relations
-  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  resource      Resource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-  service       Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  reminderLogs  BookingReminderLog[]
-  
-  
-  @@index([companyId])
-  @@index([resourceId, startTime])
-  @@map("bookings")
-}
-
-// =============================================================================
-// CRM & CUSTOMERS (Module 5)
-// =============================================================================
-
-model Customer {
-  id            String    @id @default(cuid())
-  companyId     String
-  
-  // Basic Info
-  firstName     String
-  lastName      String?
-  email         String
-  phone         String?
-  
-  // Link to Registered User (optional)
-  userId        String?
-  
-  // CRM Metadata
-  notes         String?   @db.Text
-  tags          String[]  // "VIP", "Frequent", "Late Payer"
-  
-  // Stats (Denormalized)
-  totalBookings Int       @default(0)
-  lastBookingAt DateTime?
-  
-  // Timestamps
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  // Relations
-  company       Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  bookings      Booking[]
-
-  @@unique([companyId, email])
-  @@index([companyId])
-  @@map("customers")
-}
-
-
-// =============================================================================
-// REMINDERS & NOTIFICATIONS (Module 3.3)
-// =============================================================================
-
 enum ReminderChannel {
   EMAIL
   WHATSAPP
@@ -642,109 +503,4 @@ enum ReminderLogStatus {
   SUCCESS
   FAILED
   PENDING
-}
-
-model ReminderConfig {
-  id        String          @id @default(cuid())
-  companyId String
-  channel   ReminderChannel @default(EMAIL)
-  timeValue Int             // e.g. 24
-  timeUnit  TimeUnit        // e.g. HOURS
-  isActive  Boolean         @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  company   Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  logs      BookingReminderLog[]
-
-  @@map("reminder_configs")
-}
-
-model BookingReminderLog {
-  id              String            @id @default(cuid())
-  bookingId       String
-  reminderConfigId String
-
-  sentAt          DateTime          @default(now())
-  channel         ReminderChannel
-  status          ReminderLogStatus @default(SUCCESS)
-  error           String? 
-
-  booking         Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  reminderConfig  ReminderConfig @relation(fields: [reminderConfigId], references: [id], onDelete: Cascade)
-
-  @@index([bookingId])
-  @@map("booking_reminder_logs")
-}
-
-// =============================================================================
-// TESTIMONIALS
-// =============================================================================
-
-model Testimonial {
-  id        String   @id @default(cuid())
-  companyId String
-  
-  name      String
-  title     String?  // "Paciente VIP", "Cliente satisfecha"
-  image     String?  // URL
-  text      String   @db.Text
-  
-  isActive  Boolean  @default(true)
-  sortOrder Int      @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  @@index([companyId])
-  @@map("testimonials")
-}
-
-// =============================================================================
-// BILLING & PAYMENTS (Module 4 Extension)
-// =============================================================================
-
-model PaymentMethod {
-  id            String   @id @default(cuid())
-  companyId     String
-  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
-  gateway       String   @default("PAYU") // PAYU, STRIPE, etc.
-  token         String   // The token returned by PayU
-  last4         String?  // For display purposes (e.g., "4242")
-  brand         String?  // VISA, MASTERCARD
-  expiryMonth   Int?
-  expiryYear    Int?
-  
-  isDefault     Boolean  @default(false)
-  status        String   @default("ACTIVE") // ACTIVE, EXPIRED
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@index([companyId])
-  @@map("payment_methods")
-}
-
-model Transaction {
-  id            String   @id @default(cuid())
-  companyId     String
-  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  amount        Decimal  @db.Decimal(10, 2)
-  currency      String   @default("USD")
-  status        String   // PENDING, SUCCESS, FAILED, REFUNDED
-  type          String   // SUBSCRIPTION, ONE_TIME
-  
-  gatewayId     String?  // Transaction ID from PayU
-  gatewayResponse Json?  // Full response for debugging
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@index([companyId])
-  @@map("transactions")
 }

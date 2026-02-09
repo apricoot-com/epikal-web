@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# run script for Epikal Web Development
+
+echo "🚀 Starting Epikal Web Development Environment..."
+
+# 1. Ensure Docker Compose is running
+echo "🐳 Checking Docker services..."
+if ! docker compose ps | grep "epikal-postgres" > /dev/null; then
+    echo "Starting Docker containers..."
+    docker compose up -d
+    echo "Waiting for database to be ready..."
+    # Simple wait loop
+    until docker compose exec postgres pg_isready -U epikal -d epikal; do
+        echo "Waiting for postgres..."
+        sleep 2
+    done
+    echo "✅ Database is ready!"
+else
+    echo "✅ Docker containers are already running."
+fi
+
+# 2. Run Migrations
+echo "📦 Running database migrations..."
+npm run db:migrate
+
+# 3. Seed Database
+echo "🌱 Seeding database..."
+npm run db:seed
+
+# 4. Start Server
+echo "🚀 Starting Next.js development server..."
+npm run dev
