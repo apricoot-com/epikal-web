@@ -11,12 +11,13 @@ import { addDays, subDays, startOfHour, setHours } from "date-fns";
  * Refined version for full system testing with rich content
  */
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || "postgresql://epikal:epikal@127.0.0.1:5433/epikal?sslmode=disable",
+const prisma = new PrismaClient({
+    datasources: {
+        db: {
+            url: process.env.DATABASE_URL || "postgresql://epikal:epikal@127.0.0.1:5433/epikal?sslmode=disable",
+        },
+    },
 });
-
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
 
 async function main() {
     console.log("🌱 Starting full database seed with rich content...\n");
