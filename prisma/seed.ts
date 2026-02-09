@@ -89,7 +89,6 @@ async function main() {
             subscriptionStatus: "ACTIVE",
             subscriptionEndsAt: addDays(new Date(), 30),
             description: "Somos Clínica Aurora, un espacio dedicado al bienestar integral y la belleza consciente. Fundada en 2015, nuestra misión es combinar la tecnología más avanzada con un trato profundamente humano para resaltar tu belleza natural. Nos especializamos en tratamientos faciales y corporales no invasivos, avalados por un equipo médico de primer nivel.",
-            aboutImage: "/seed/aurora/clinic-interior.jpg",
             socialUrls: {
                 facebook: "https://facebook.com/clinicaaurora",
                 instagram: "https://instagram.com/clinicaaurora",
