@@ -12,7 +12,7 @@ import { addDays, subDays, startOfHour, setHours } from "date-fns";
  */
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.DATABASE_URL || "postgresql://epikal:epikal@127.0.0.1:5433/epikal?sslmode=disable",
 });
 
 const adapter = new PrismaPg(pool);

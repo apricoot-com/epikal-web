@@ -43,6 +43,7 @@ model Company {
   services                    Service[]
   createdTemplates            Template[]         @relation("TemplateOwner")
   members                     UserCompany[]
+  paymentMethods              PaymentMethod[]
 
   @@map("companies")
 }
@@ -96,6 +97,24 @@ model CompanyBranding {
   company           Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@map("company_brandings")
+}
+
+model PaymentMethod {
+  id          String   @id @default(cuid())
+  companyId   String
+  gateway     String
+  token       String
+  last4       String?
+  brand       String?
+  expiryMonth Int?
+  expiryYear  Int?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("payment_methods")
 }
 
 /// Sedes / Ubicaciones físicas
