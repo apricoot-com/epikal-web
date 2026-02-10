@@ -41,7 +41,6 @@ export const companyRouter = router({
                 timezone: z.string().optional(),
                 currency: z.string().length(3).optional(),
                 language: z.string().length(2).optional(),
-                language: z.string().length(2).optional(),
                 description: z.string().optional().nullable(),
                 aboutImage: z.string().optional().nullable(),
                 siteTemplateId: z.string().optional(),

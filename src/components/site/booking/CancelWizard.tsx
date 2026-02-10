@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { trpc } from '@/src/utils/trpc';
+import { trpc } from '@/src/lib/trpc/client';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Button } from '@/src/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/src/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Calendar as CalendarIcon, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
 

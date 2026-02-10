@@ -18,6 +18,32 @@ export type SubscriptionPlan = {
 
 export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, SubscriptionPlan> = {
 
+    FREE: {
+        name: "Gratis",
+        description: "Plan gratuito para comenzar",
+        priceInCents: 0,
+        limits: {
+            maxLocations: 1,
+            maxServices: 5,
+            maxTeamMembers: 1,
+            maxResources: 1,
+            customDomain: false,
+            whiteLabel: false,
+        },
+    },
+    BASIC: {
+        name: "Básico",
+        description: "Para pequeños negocios",
+        priceInCents: 1500,
+        limits: {
+            maxLocations: 1,
+            maxServices: 10,
+            maxTeamMembers: 1,
+            maxResources: 2,
+            customDomain: false,
+            whiteLabel: false,
+        },
+    },
     PROFESSIONAL: {
         name: "Profesional",
         description: "Para profesionales independientes",

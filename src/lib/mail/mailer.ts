@@ -60,6 +60,7 @@ export async function sendBookingSuccessEmail({
     startTime,
     durationInMinutes,
     rescheduleUrl,
+    cancelUrl,
     companyLogo,
     brandingColor,
 }: {
@@ -70,6 +71,7 @@ export async function sendBookingSuccessEmail({
     startTime: Date;
     durationInMinutes: number;
     rescheduleUrl?: string;
+    cancelUrl?: string;
     companyLogo?: string | null;
     brandingColor?: string | null;
 }) {
@@ -119,6 +121,7 @@ export async function sendBookingSuccessEmail({
             serviceName,
             formattedDate,
             rescheduleUrl,
+            cancelUrl,
             companyLogo,
             brandingColor,
         },

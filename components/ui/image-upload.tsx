@@ -12,7 +12,7 @@ interface ImageUploadProps {
     value?: string;
     onChange: (url: string) => void;
     onRemove?: () => void;
-    folder: "profiles" | "services" | "branding" | "templates";
+    folder: "profiles" | "services" | "branding" | "templates" | "company" | "testimonials";
     label?: string;
     description?: string;
 }
