@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  web:
+    build: .
+    container_name: epikal-web-prod
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://epikal:epikal@postgres:5432/epikal?sslmode=disable
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - NODE_ENV=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - epikal-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: epikal-postgres-prod
+    restart: always
+    environment:
+      POSTGRES_USER: epikal
+      POSTGRES_PASSWORD: epikal
+      POSTGRES_DB: epikal
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U epikal -d epikal"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - epikal-network
+    # No ports exposed to host for security
+
+  redis:
+    image: redis:7-alpine
+    container_name: epikal-redis-prod
+    restart: always
+    volumes:
+      - redis_data_prod:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - epikal-network
+    # No ports exposed to host for security
+
+networks:
+  epikal-network:
+    driver: bridge
+
+volumes:
+  postgres_data_prod:
+  redis_data_prod:

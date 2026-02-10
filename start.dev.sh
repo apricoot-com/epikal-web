@@ -6,12 +6,12 @@ echo "🚀 Starting Epikal Web Development Environment..."
 
 # 1. Ensure Docker Compose is running
 echo "🐳 Checking Docker services..."
-if ! docker compose ps | grep "epikal-postgres" > /dev/null; then
+if ! docker compose -f docker-compose.dev.yml ps | grep "epikal-postgres" > /dev/null; then
     echo "Starting Docker containers..."
-    docker compose up -d
+    docker compose -f docker-compose.dev.yml up -d
     echo "Waiting for database to be ready..."
     # Simple wait loop
-    until docker compose exec postgres pg_isready -U epikal -d epikal; do
+    until docker compose -f docker-compose.dev.yml exec postgres pg_isready -U epikal -d epikal; do
         echo "Waiting for postgres..."
         sleep 2
     done

@@ -41,7 +41,7 @@ export function SortableBlockItem({
                 <Button size="sm" variant="secondary" onClick={onEdit} className="shadow-sm">
                     Edit
                 </Button>
-                <Button size="sm" variant="destructive" size="icon" onClick={onDelete} className="shadow-sm">
+                <Button variant="destructive" size="icon" onClick={onDelete} className="shadow-sm">
                     <Trash2 className="h-4 w-4" />
                 </Button>
             </div>

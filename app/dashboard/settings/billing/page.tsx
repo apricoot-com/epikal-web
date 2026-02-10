@@ -11,6 +11,24 @@ import { CreditCardForm } from "@/components/billing/credit-card-form";
 
 const TIER_INFO: Record<SubscriptionTier, { price: string; features: string[] }> = {
 
+    FREE: {
+        price: "Gratis",
+        features: [
+            "1 ubicación",
+            "Hasta 5 servicios",
+            "1 profesional",
+            "Agendamiento limitado",
+        ],
+    },
+    BASIC: {
+        price: "$15",
+        features: [
+            "1 ubicación",
+            "Hasta 10 servicios",
+            "1 profesional",
+            "Agendamiento online",
+        ],
+    },
     PROFESSIONAL: {
         price: "$29",
         features: [

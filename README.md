@@ -5,39 +5,64 @@ Plataforma SaaS para gestión de clínicas estéticas y salones de belleza.
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
-- Docker & Docker Compose (for database)
-- Node.js 18+
+- Docker & Docker Compose (Required)
+- Node.js 18+ (Optional, for local development outside Docker)
 
-### 2. Setup Environment
+### 2. Quick Start
+We provide a unified script to manage the development environment (Docker + Migrations + Seed + Dev Server).
+
 ```bash
-# Start Infrastructure (Postgres, Redis, MailHog)
-docker-compose up -d
-
-# Install Dependencies
-npm install
-
-# Setup Database Schema
-npx prisma generate
-npx prisma db push
+# Start Development Environment
+./start.dev.sh
 ```
 
-### 3. Seed Database (Demo Data)
-Populates the database with a test company, users, services, resources, and templates.
-**Note:** This command clears existing data to ensure a clean state!
+This script will:
+1. Start Postgres (Port 5433), Redis, and MailHog via `docker-compose.dev.yml`.
+2. Wait for the database to be ready.
+3. Apply migrations (`npm run db:migrate`).
+4. Seed the database with demo data (`npm run db:seed`).
+5. Start the Next.js development server (`npm run dev`).
+
+### 3. Production Deployment
+For production, we use a secure, optimized Docker setup that bundles the application:
 
 ```bash
-# Build Templates
-npx tsx scripts/build-templates.ts
+# Build and Run Production Stack
+docker compose -f docker-compose.prod.yml up --build -d
+```
+
+**Production Features:**
+- **Secure**: No database ports exposed to host.
+- **Resilient**: Restart policy set to `always`.
+- **Optimized**: Uses `output: standalone` for minimal image size.
+
+### 4. Manual Commands (Development)
+If you prefer running commands manually:
+
+```bash
+# Start Infrastructure Only
+docker compose -f docker-compose.dev.yml up -d
 
 # Seed Database
 npm run db:seed
+
+# Start Dev Server
+npm run dev
 ```
 
-Para más detalles sobre los roles, credenciales de prueba y configuración del entorno de desarrollo, consulta [docs/setup-seed.md](file:///Users/roman/Workspace/apricoot/epikal-web/docs/setup-seed.md).
+### 5. Resetting Environments (Clear Database)
+To completely wipe the database and Redis data (useful for a fresh start):
 
-### 4. Run Development Server
+**Development:**
 ```bash
-npm run dev
+# Stops containers and removes volumes (postgres_data, redis_data)
+docker compose -f docker-compose.dev.yml down -v
+```
+
+**Production:**
+```bash
+# Stops containers and removes volumes (postgres_data_prod, redis_data_prod)
+docker compose -f docker-compose.prod.yml down -v
 ```
 
 ---

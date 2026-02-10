@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import prisma from "@/src/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import CancelWizard from "@/src/components/site/booking/CancelWizard";
 
 export default async function CancelPage(props: {

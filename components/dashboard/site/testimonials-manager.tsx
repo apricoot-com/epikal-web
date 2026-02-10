@@ -197,7 +197,7 @@ export function TestimonialsManager() {
                 </div>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {testimonials?.map((t) => (
+                    {testimonials?.map((t: any) => (
                         <Card key={t.id} className="relative group">
                             <CardHeader className="pb-3">
                                 <div className="flex items-start justify-between">

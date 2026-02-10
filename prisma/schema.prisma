@@ -44,8 +44,27 @@ model Company {
   createdTemplates            Template[]         @relation("TemplateOwner")
   members                     UserCompany[]
   paymentMethods              PaymentMethod[]
+  transactions                Transaction[]
+  testimonials                Testimonial[]
 
   @@map("companies")
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  companyId String
+  name      String
+  title     String?
+  text      String
+  image     String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("testimonials")
 }
 
 /// Representa una persona que accede al SaaS
@@ -169,6 +188,7 @@ model Resource {
   type         ResourceType
   name         String
   description  String?
+  bio          String?
   status       ServiceStatus     @default(ACTIVE)
   calendarId   String?
   image        String?
@@ -468,6 +488,7 @@ enum SubscriptionTier {
   FREE
   BASIC
   PROFESSIONAL
+  TEAM
   ENTERPRISE
 }
 
@@ -522,4 +543,34 @@ enum ReminderLogStatus {
   SUCCESS
   FAILED
   PENDING
+}
+
+model Transaction {
+  id              String            @id @default(cuid())
+  companyId       String
+  amount          Decimal           @db.Decimal(10, 2)
+  currency        String            @default("USD")
+  status          TransactionStatus
+  type            TransactionType
+  gatewayId       String?
+  gatewayResponse Json?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  company         Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("transactions")
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum TransactionType {
+  SUBSCRIPTION
+  ONE_TIME
+  REFUND
 }

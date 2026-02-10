@@ -49,7 +49,7 @@ export async function GET(
         }
     };
 
-    let company;
+    let company: any;
     const isLocal = domain.includes("localhost");
 
     if (isLocal) {
@@ -103,7 +103,7 @@ export async function GET(
     }
 
     // 2. Resolve File & Route Logic
-    const templatePath = path.join(process.cwd(), "public", "templates", company.siteTemplate.storagePath);
+    const templatePath = path.join(process.cwd(), "public", "templates", (company.siteTemplate as any).storagePath);
     const hasExtension = urlPath.includes(".");
 
     if (hasExtension) {
