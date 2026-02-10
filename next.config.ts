@@ -15,6 +15,10 @@ const nextConfig: NextConfig = {
         protocol: 'https', // randomuser.me uses https
         hostname: 'randomuser.me',
       },
+      ...(process.env.STORAGE_CLOUDFRONT_DOMAIN ? [{
+        protocol: 'https' as const,
+        hostname: process.env.STORAGE_CLOUDFRONT_DOMAIN.replace(/^https?:\/\//, ''),
+      }] : []),
     ],
   },
 };

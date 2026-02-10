@@ -91,6 +91,9 @@ const navItems = [
         icon: User,
         roles: ["STAFF", "OWNER", "ADMIN"],
     },
+];
+
+const superAdminItems = [
     {
         title: "Super Admin",
         href: "/dashboard/superadmin/companies",
@@ -201,6 +204,10 @@ export function DashboardSidebar() {
         if (isSuperadmin && item.roles.includes("SUPERADMIN")) return true;
         return item.roles.includes(userRole);
     });
+    const filteredSuperAdminItems = superAdminItems.filter(item => {
+        if (isSuperadmin) return true;
+        return false;
+    });
 
     return (
         <Sidebar collapsible="icon">
@@ -258,6 +265,30 @@ export function DashboardSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
+                {filteredSuperAdminItems.length > 0 && (
+                    <SidebarGroup>
+                        <SidebarGroupLabel>Super Admin</SidebarGroupLabel>
+                        <SidebarGroupContent>
+                            <SidebarMenu>
+                                {filteredSuperAdminItems.map((item) => (
+                                    <SidebarMenuItem key={item.href}>
+                                        <SidebarMenuButton
+                                            asChild
+                                            isActive={pathname === item.href}
+                                            tooltip={item.title}
+                                        >
+                                            <Link href={item.href}>
+                                                <item.icon />
+                                                <span>{item.title}</span>
+                                            </Link>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                ))}
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                )}
+
                 {filteredNavItems.length > 0 && (
                     <SidebarGroup>
                         <SidebarGroupLabel>Menú Principal</SidebarGroupLabel>

@@ -10,7 +10,7 @@ export function getStorageProvider(): StorageProvider {
     let type = process.env.STORAGE_TYPE;
 
     // Auto-detect S3 if not explicitly set
-    if (!type && process.env.STORAGE_S3_BUCKET && process.env.STORAGE_S3_ACCESS_KEY && process.env.STORAGE_S3_SECRET_KEY) {
+    if (!type && process.env.STORAGE_S3_BUCKET && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
         type = 's3';
     }
 

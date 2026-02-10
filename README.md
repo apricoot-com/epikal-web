@@ -66,8 +66,8 @@ The system automatically switches to S3 storage if the following environment var
 
 ```env
 STORAGE_S3_BUCKET=your-bucket-name
-STORAGE_S3_ACCESS_KEY=your-access-key
-STORAGE_S3_SECRET_KEY=your-secret-key
+AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_SECRET_ACCESS_KEY=your-secret-access-key
 STORAGE_S3_REGION=us-east-1 (optional, defaults to us-east-1)
 ```
 

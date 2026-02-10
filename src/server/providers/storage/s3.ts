@@ -13,8 +13,8 @@ export class S3StorageProvider implements StorageProvider {
         this.client = new S3Client({
             region: process.env.STORAGE_S3_REGION || 'us-east-1',
             credentials: {
-                accessKeyId: process.env.STORAGE_S3_ACCESS_KEY || '',
-                secretAccessKey: process.env.STORAGE_S3_SECRET_KEY || '',
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
             },
         });
     }
