@@ -69,7 +69,7 @@ docker compose -f docker-compose.prod.yml down -v
 
 ## 🔑 Demo Credentials
 
-Consulta el listado completo de roles y usuarios de prueba en [docs/setup-seed.md](file:///Users/roman/Workspace/apricoot/epikal-web/docs/setup-seed.md).
+Consulta el listado completo de roles y usuarios de prueba en [docs/setup-seed.md](./docs/setup-seed.md).
 
 > El script de semilla limpia los datos existentes para asegurar un estado consistente. Si necesitas restablecerlos, simplemente ejecuta `npm run db:seed`.
 
