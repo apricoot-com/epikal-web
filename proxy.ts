@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
  * - /onboarding → Requires auth, no company
  * - /login, /signup, /api/auth/* → Public
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const url = request.nextUrl;
     const pathname = url.pathname;
     const fullHost = request.headers.get("host") || "";
@@ -27,14 +27,14 @@ export function middleware(request: NextRequest) {
         : (hostname === rootDomain || hostname === `www.${rootDomain}`);
 
     // DIAGNOSTIC LOG
-    console.log(`[Middleware] Host: ${hostname}, Path: ${pathname}, isMain: ${isMainDomain}`);
+    console.log(`[Proxy] Host: ${hostname}, Path: ${pathname}, isMain: ${isMainDomain}`);
 
     // 1. Handle Subdomain Rewrites
     // If NOT on main domain AND NOT already on an internal path (/sites, /api, /_next)
     // We use the hostname (without port) as the site identifier
     if (!isMainDomain && !pathname.startsWith('/api') && !pathname.startsWith('/sites') && !pathname.startsWith('/_next')) {
         const siteRewritePath = `/sites/${hostname}${pathname}`;
-        console.log(`[Middleware] REWRITE: ${fullHost}${pathname} -> ${siteRewritePath}`);
+        console.log(`[Proxy] REWRITE: ${fullHost}${pathname} -> ${siteRewritePath}`);
 
         // Clone the URL and update pathname to preserve query params
         const url = request.nextUrl.clone();
@@ -61,7 +61,7 @@ export function middleware(request: NextRequest) {
     const sessionCookie = request.cookies.get("better-auth.session_token");
 
     if (!sessionCookie) {
-        console.log(`[Middleware] REDIRECT TO LOGIN: ${pathname}`);
+        console.log(`[Proxy] REDIRECT TO LOGIN: ${pathname}`);
         const loginUrl = new URL("/login", request.url);
         loginUrl.searchParams.set("callbackUrl", pathname);
         return NextResponse.redirect(loginUrl);
