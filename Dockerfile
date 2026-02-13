@@ -23,6 +23,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY tsconfig.json .
 COPY next.config.ts .
+COPY prisma.config.ts .
 COPY . .
 
 # Next.js collects completely anonymous telemetry data about general usage.
@@ -60,6 +61,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Copy migrations and seed script for the entrypoint
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules 
 # Note: copying node_modules might be redundant if standalone includes everything, 
 # but often needed for specific server-side things or prisma scripts not bundled.
@@ -78,7 +80,7 @@ ENV HOSTNAME "0.0.0.0"
 
 # CMD ["node", "server.js"]
 # We will override CMD with a custom entrypoint in docker-compose or via a script
-COPY --chown=nextjs:nodejs start.prod.sh ./start.prod.sh
-RUN chmod +x ./start.prod.sh
+COPY --chown=nextjs:nodejs scripts/entrypoint.sh ./scripts/entrypoint.sh
+RUN chmod +x ./scripts/entrypoint.sh
 
-CMD ["./start.prod.sh"]
+CMD ["./scripts/entrypoint.sh"]
