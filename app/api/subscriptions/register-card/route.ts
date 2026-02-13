@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { PaymentService } from '@/lib/payments/service';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { SUBSCRIPTION_PLANS } from '@/src/lib/subscription/plans';
 
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
         const paymentMethodResult = await provider.tokenizeCard(cardData);
 
         // 2. Save PaymentMethod to DB & Activate Trial
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // Unset existing defaults
             await tx.paymentMethod.updateMany({
                 where: { companyId, isDefault: true },
