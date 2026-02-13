@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { PaymentService } from '@/lib/payments/service';
 import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { SUBSCRIPTION_PLANS } from '@/src/lib/subscription/plans';
 
