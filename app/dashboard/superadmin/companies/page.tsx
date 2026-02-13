@@ -167,8 +167,8 @@ function CreateCompanyDialog() {
                         />
                     </div>
                     <DialogFooter>
-                        <Button type="submit" disabled={createCompany.isLoading}>
-                            {createCompany.isLoading ? "Creando..." : "Crear Empresa"}
+                        <Button type="submit" disabled={createCompany.isPending}>
+                            {createCompany.isPending ? "Creando..." : "Crear Empresa"}
                         </Button>
                     </DialogFooter>
                 </form>
