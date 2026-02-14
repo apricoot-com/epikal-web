@@ -42,8 +42,9 @@ export async function createContext(opts?: FetchCreateContextFnOptions) {
         const activeCompanyId = cookieStore.get("activeCompanyId")?.value;
 
         if (activeCompanyId) {
-            // Verify user has access to this company
-            const membership = await prisma.userCompany.findFirst({
+            // 1. Try to find membership normally
+            let companyRecord = null;
+            let membership = await prisma.userCompany.findFirst({
                 where: {
                     userId: session.user.id,
                     companyId: activeCompanyId,
@@ -55,18 +56,27 @@ export async function createContext(opts?: FetchCreateContextFnOptions) {
             });
 
             if (membership) {
-                const subData = (membership.company.subscriptionData as any) || {};
+                companyRecord = membership.company;
+            } else if (userIsSuperadmin) {
+                // God Mode: If superadmin but no membership, fetch the company directly
+                companyRecord = await prisma.company.findUnique({
+                    where: { id: activeCompanyId }
+                });
+            }
+
+            if (companyRecord) {
+                const subData = (companyRecord.subscriptionData as any) || {};
                 company = {
-                    id: membership.company.id,
-                    slug: membership.company.slug,
-                    name: membership.company.name,
+                    id: companyRecord.id,
+                    slug: companyRecord.slug,
+                    name: companyRecord.name,
                     subscriptionTier: subData.tier || "FREE",
                     subscriptionStatus: subData.status || "ACTIVE",
                     subscriptionEndsAt: subData.endsAt || null,
                     customLimits: subData.customLimits || null,
                     subscriptionData: subData,
-                    siteSettings: membership.company.siteSettings,
-                    socialUrls: membership.company.socialUrls,
+                    siteSettings: companyRecord.siteSettings,
+                    socialUrls: companyRecord.socialUrls,
                 };
             }
         }

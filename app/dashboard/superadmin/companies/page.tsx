@@ -183,25 +183,21 @@ export default function SuperAdminCompaniesPage() {
     const router = useRouter();
 
     const handleImpersonate = async (companyId: string) => {
-        if (!confirm("¿Estás seguro de que quieres acceder como el dueño de esta empresa?")) return;
+        if (!confirm("¿Estás seguro de que quieres acceder al dashboard de esta empresa?")) return;
 
-        const toastId = toast.loading("Iniciando sesión como usuario...");
+        const toastId = toast.loading("Cambiando contexto de empresa...");
         try {
-            const result = await impersonate.mutateAsync({ companyId });
+            // Set the active company cookie (context.ts will handle the rest via 'God Mode')
+            document.cookie = `activeCompanyId=${companyId}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7 days
 
-            if (result.success && result.sessionToken) {
-                // Set the session cookie manually
-                document.cookie = `better-auth.session_token=${result.sessionToken}; path=/; max-age=${60 * 60 * 24}`; // 1 day
+            toast.dismiss(toastId);
+            toast.success("Cambiado correctamente. Redirigiendo...");
 
-                toast.dismiss(toastId);
-                toast.success("Sesión iniciada. Redirigiendo...");
-
-                // Force reload to pick up new session
-                window.location.href = "/dashboard";
-            }
+            // Redirect to dashboard
+            window.location.href = "/dashboard";
         } catch (error) {
             toast.dismiss(toastId);
-            toast.error("Error al iniciar sesión");
+            toast.error("Error al cambiar de empresa");
             console.error(error);
         }
     };
