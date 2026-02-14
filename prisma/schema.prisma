@@ -22,9 +22,6 @@ model Company {
   subscriptionStatus          SubscriptionStatus @default(ACTIVE)
   subscriptionEndsAt          DateTime?
   customLimits                Json?
-  gtmContainerId              String?
-  fbPixelId                   String?
-  fbAccessToken               String?
   createdAt                   DateTime           @default(now())
   updatedAt                   DateTime           @updatedAt
   siteTemplateId              String?

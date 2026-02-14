@@ -134,9 +134,16 @@ export const analyticsRouter = router({
             gtmContainerId: z.string().regex(/^GTM-[A-Z0-9]+$/).nullable()
         }))
         .mutation(async ({ ctx, input }) => {
+            const siteSettings = (ctx.company.siteSettings as any) || {};
+
             await ctx.prisma.company.update({
                 where: { id: ctx.company.id },
-                data: { gtmContainerId: input.gtmContainerId }
+                data: {
+                    siteSettings: {
+                        ...siteSettings,
+                        gtmContainerId: input.gtmContainerId
+                    }
+                }
             });
 
             return { success: true };
@@ -151,12 +158,16 @@ export const analyticsRouter = router({
             fbAccessToken: z.string().nullable()
         }))
         .mutation(async ({ ctx, input }) => {
-            // TODO: Encrypt fbAccessToken before storing
+            const siteSettings = (ctx.company.siteSettings as any) || {};
+
             await ctx.prisma.company.update({
                 where: { id: ctx.company.id },
                 data: {
-                    fbPixelId: input.fbPixelId,
-                    fbAccessToken: input.fbAccessToken
+                    siteSettings: {
+                        ...siteSettings,
+                        fbPixelId: input.fbPixelId,
+                        fbAccessToken: input.fbAccessToken
+                    }
                 }
             });
 

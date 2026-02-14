@@ -35,13 +35,18 @@ export async function trackFacebookConversion(event: FBConversionEvent) {
         // Fetch company's Facebook Pixel configuration
         const company = await prisma.company.findUnique({
             where: { id: event.companyId },
-            select: { fbPixelId: true, fbAccessToken: true }
+            select: { siteSettings: true }
         });
 
-        if (!company?.fbPixelId || !company?.fbAccessToken) {
+        const settings = (company?.siteSettings as any) || {};
+
+        if (!settings.fbPixelId || !settings.fbAccessToken) {
             // No FB tracking configured for this company
             return;
         }
+
+        const fbPixelId = settings.fbPixelId;
+        const fbAccessToken = settings.fbAccessToken;
 
         // Hash user data for privacy
         const hashedUserData: any = {};
@@ -65,7 +70,7 @@ export async function trackFacebookConversion(event: FBConversionEvent) {
 
         // Send event to Facebook
         const response = await fetch(
-            `https://graph.facebook.com/v18.0/${company.fbPixelId}/events`,
+            `https://graph.facebook.com/v18.0/${fbPixelId}/events`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -77,7 +82,7 @@ export async function trackFacebookConversion(event: FBConversionEvent) {
                         custom_data: event.customData || {},
                         action_source: 'website'
                     }],
-                    access_token: company.fbAccessToken
+                    access_token: fbAccessToken
                 })
             }
         );

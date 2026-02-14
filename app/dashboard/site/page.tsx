@@ -67,8 +67,9 @@ export default function SiteEditorPage() {
     // Initialize form values when company data loads
     useEffect(() => {
         if (company) {
-            setGtmId(company.gtmContainerId || '');
-            setFbPixelId(company.fbPixelId || '');
+            const settings = (company.siteSettings as any) || {};
+            setGtmId(settings.gtmContainerId || '');
+            setFbPixelId(settings.fbPixelId || '');
         }
     }, [company]);
 
@@ -284,7 +285,7 @@ export default function SiteEditorPage() {
                                         <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-400">
                                             <Tag className="h-5 w-5" />
                                         </div>
-                                        {company?.gtmContainerId ? (
+                                        {siteSettings.gtmContainerId ? (
                                             <Badge variant="outline" className="border-blue-200 text-blue-700">Configurado</Badge>
                                         ) : (
                                             <Badge variant="secondary">No configurado</Badge>
@@ -295,7 +296,7 @@ export default function SiteEditorPage() {
                                 </CardHeader>
                                 <CardContent className="pb-4">
                                     <div className="text-sm font-mono text-muted-foreground truncate">
-                                        {company?.gtmContainerId || "Sin ID asignado"}
+                                        {siteSettings.gtmContainerId || "Sin ID asignado"}
                                     </div>
                                 </CardContent>
                                 <CardFooter className="pt-0">
@@ -344,7 +345,7 @@ export default function SiteEditorPage() {
                                         <div className="p-2 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg text-indigo-600 dark:text-indigo-400">
                                             <Facebook className="h-5 w-5" />
                                         </div>
-                                        {company?.fbPixelId ? (
+                                        {siteSettings.fbPixelId ? (
                                             <Badge variant="outline" className="border-indigo-200 text-indigo-700">Configurado</Badge>
                                         ) : (
                                             <Badge variant="secondary">No configurado</Badge>
@@ -355,7 +356,7 @@ export default function SiteEditorPage() {
                                 </CardHeader>
                                 <CardContent className="pb-4">
                                     <div className="text-sm font-mono text-muted-foreground truncate">
-                                        {company?.fbPixelId || "Sin Pixel ID"}
+                                        {siteSettings.fbPixelId || "Sin Pixel ID"}
                                     </div>
                                 </CardContent>
                                 <CardFooter className="pt-0">

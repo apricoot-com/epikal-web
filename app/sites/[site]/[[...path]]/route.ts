@@ -289,7 +289,7 @@ export async function GET(
         pageType: pageContext.type || 'home',
         serviceId: pageContext.type === 'service-detail' ? pageContext.data?.id : null,
         serviceName: pageContext.type === 'service-detail' ? pageContext.data?.name : null,
-        gtmContainerId: company.gtmContainerId || null
+        gtmContainerId: siteSettings.gtmContainerId || null
     };
 
     // 4. Inject Scripts
