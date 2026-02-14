@@ -1,5 +1,7 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { auth } from "../src/lib/auth";
 import { randomUUID } from "crypto";
 import { addDays, subDays, startOfHour, setHours } from "date-fns";
@@ -9,11 +11,12 @@ import { addDays, subDays, startOfHour, setHours } from "date-fns";
  * Refined version for full system testing with rich content
  */
 
-if (!process.env.DATABASE_URL) {
-    process.env.DATABASE_URL = "postgresql://epikal:epikal@127.0.0.1:5433/epikal?sslmode=disable";
-}
+const connectionString = process.env.DATABASE_URL || "postgresql://epikal:epikal@127.0.0.1:5433/epikal?sslmode=disable";
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
 
 const prisma = new PrismaClient({
+    adapter,
     log: ['info', 'warn', 'error'],
 });
 
