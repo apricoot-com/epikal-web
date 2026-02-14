@@ -13,10 +13,7 @@ export const subscriptionRouter = router({
             where: { id: ctx.company.id },
             select: {
                 id: true,
-                subscriptionTier: true,
-                subscriptionStatus: true,
-                subscriptionEndsAt: true,
-                customLimits: true,
+                subscriptionData: true,
                 paymentMethods: {
                     where: { isDefault: true },
                     take: 1,
@@ -57,17 +54,23 @@ export const subscriptionRouter = router({
             });
         }
 
+        const subData = (company.subscriptionData as any) || {};
+        const tier = subData.tier || "FREE";
+        const status = subData.status || "ACTIVE";
+        const endsAt = subData.endsAt || null;
+        const customLimits = subData.customLimits || null;
+
         const limits = getCompanyLimits(
-            company.subscriptionTier,
-            company.customLimits as any
+            tier,
+            customLimits
         );
-        const plan = SUBSCRIPTION_PLANS[company.subscriptionTier];
+        const plan = SUBSCRIPTION_PLANS[tier as keyof typeof SUBSCRIPTION_PLANS];
 
         return {
             companyId: company.id,
-            tier: company.subscriptionTier,
-            status: company.subscriptionStatus,
-            endsAt: company.subscriptionEndsAt,
+            tier: tier,
+            status: status,
+            endsAt: endsAt,
             planName: plan.name,
             planDescription: plan.description,
             limits,
@@ -95,18 +98,18 @@ export const subscriptionRouter = router({
             const company = await ctx.prisma.company.findUnique({
                 where: { id: ctx.company.id },
                 select: {
-                    subscriptionTier: true,
-                    customLimits: true,
+                    subscriptionData: true,
                 },
             });
 
             if (!company) return { available: false };
 
+            const subData = (company.subscriptionData as any) || {};
             return {
                 available: hasFeature(
-                    company.subscriptionTier,
+                    subData.tier || "FREE",
                     input.feature,
-                    company.customLimits as any
+                    subData.customLimits || null
                 ),
             };
         }),

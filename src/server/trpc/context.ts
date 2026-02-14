@@ -29,7 +29,11 @@ export async function createContext(opts?: FetchCreateContextFnOptions) {
         name: string;
         subscriptionTier: any;
         subscriptionStatus: any;
+        subscriptionEndsAt: any;
         customLimits: any;
+        subscriptionData: any;
+        siteSettings: any;
+        socialUrls: any;
     } | null = null;
 
     if (session?.user) {
@@ -51,13 +55,18 @@ export async function createContext(opts?: FetchCreateContextFnOptions) {
             });
 
             if (membership) {
+                const subData = (membership.company.subscriptionData as any) || {};
                 company = {
                     id: membership.company.id,
                     slug: membership.company.slug,
                     name: membership.company.name,
-                    subscriptionTier: membership.company.subscriptionTier,
-                    subscriptionStatus: membership.company.subscriptionStatus,
-                    customLimits: membership.company.customLimits,
+                    subscriptionTier: subData.tier || "FREE",
+                    subscriptionStatus: subData.status || "ACTIVE",
+                    subscriptionEndsAt: subData.endsAt || null,
+                    customLimits: subData.customLimits || null,
+                    subscriptionData: subData,
+                    siteSettings: membership.company.siteSettings,
+                    socialUrls: membership.company.socialUrls,
                 };
             }
         }
@@ -75,13 +84,18 @@ export async function createContext(opts?: FetchCreateContextFnOptions) {
             });
 
             if (membership) {
+                const subData = (membership.company.subscriptionData as any) || {};
                 company = {
                     id: membership.company.id,
                     slug: membership.company.slug,
                     name: membership.company.name,
-                    subscriptionTier: membership.company.subscriptionTier,
-                    subscriptionStatus: membership.company.subscriptionStatus,
-                    customLimits: membership.company.customLimits,
+                    subscriptionTier: subData.tier || "FREE",
+                    subscriptionStatus: subData.status || "ACTIVE",
+                    subscriptionEndsAt: subData.endsAt || null,
+                    customLimits: subData.customLimits || null,
+                    subscriptionData: subData,
+                    siteSettings: membership.company.siteSettings,
+                    socialUrls: membership.company.socialUrls,
                 };
             }
         }

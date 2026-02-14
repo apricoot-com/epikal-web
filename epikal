@@ -17,6 +17,7 @@ show_help() {
     echo "Commands:"
     echo "  start    Start the environment (up -d)"
     echo "  stop     Stop the environment (down)"
+    echo "  clear    Stop and remove all data/volumes (down -v)"
     echo "  logs     View container logs (logs -f)"
     echo "  restart  Restart the environment"
     echo "  shell    Open a shell in the web container (prod only) or db"
@@ -73,6 +74,10 @@ case "$SUBCOMMAND" in
     stop)
         echo "🛑 Stopping $COMMAND environment..."
         docker compose -f $COMPOSE_FILE down
+        ;;
+    clear)
+        echo "🧹 Clearing $COMMAND environment and data..."
+        docker compose -f $COMPOSE_FILE down -v
         ;;
     logs)
         docker compose -f $COMPOSE_FILE logs -f $SERVICE_NAME

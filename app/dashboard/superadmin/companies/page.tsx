@@ -258,15 +258,22 @@ export default function SuperAdminCompaniesPage() {
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex flex-col gap-1 items-start">
-                                            <Badge variant="secondary" className="text-xs">
-                                                {company.subscriptionTier}
-                                            </Badge>
-                                            <Badge
-                                                variant={company.subscriptionStatus === 'ACTIVE' ? 'default' : 'destructive'}
-                                                className="text-[10px]"
-                                            >
-                                                {company.subscriptionStatus}
-                                            </Badge>
+                                            {(() => {
+                                                const subData = (company.subscriptionData as any) || {};
+                                                return (
+                                                    <>
+                                                        <Badge variant="secondary" className="text-xs">
+                                                            {subData.tier || 'FREE'}
+                                                        </Badge>
+                                                        <Badge
+                                                            variant={subData.status === 'ACTIVE' ? 'default' : 'destructive'}
+                                                            className="text-[10px]"
+                                                        >
+                                                            {subData.status || 'ACTIVE'}
+                                                        </Badge>
+                                                    </>
+                                                );
+                                            })()}
                                         </div>
                                     </TableCell>
                                     <TableCell>

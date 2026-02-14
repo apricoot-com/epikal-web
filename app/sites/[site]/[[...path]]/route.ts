@@ -85,13 +85,16 @@ export async function GET(
     }
 
     // Check Subscription Status
-    const isSubscriptionActive = company.subscriptionStatus === 'ACTIVE' || company.subscriptionStatus === 'TRIALING';
-    if (!isSubscriptionActive && !isLocal) { // Allow localhost to bypass for debugging if needed, or enforce it. Let's enforce it usually unless we want to debug.
-        // Actually, seed data has localhost companies with CANCELED status for testing, so we should enforce it even on localhost.
+    const subData = (company.subscriptionData as any) || {};
+    const subStatus = subData.status || 'ACTIVE';
+
+    const isSubscriptionActive = subStatus === 'ACTIVE' || subStatus === 'TRIALING';
+    if (!isSubscriptionActive && !isLocal) {
+        // Logic for handling inactive subscriptions
     }
 
     // Strict check: if status is CANCELED or PAST_DUE
-    if (company.subscriptionStatus === 'CANCELED' || company.subscriptionStatus === 'PAST_DUE') {
+    if (subStatus === 'CANCELED' || subStatus === 'PAST_DUE') {
         const maintenancePath = path.join(process.cwd(), "public", "maintenance.html");
         if (fs.existsSync(maintenancePath)) {
             const maintenanceHtml = fs.readFileSync(maintenancePath, "utf-8");

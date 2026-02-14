@@ -84,9 +84,11 @@ async function main() {
             currency: "COP",
             timezone: "America/Bogota",
             siteTemplateId: template.id,
-            subscriptionTier: "PROFESSIONAL",
-            subscriptionStatus: "ACTIVE",
-            subscriptionEndsAt: addDays(new Date(), 30),
+            subscriptionData: {
+                tier: "PROFESSIONAL",
+                status: "ACTIVE",
+                endsAt: addDays(new Date(), 30)
+            },
             description: "Somos Clínica Aurora, un espacio dedicado al bienestar integral y la belleza consciente. Fundada en 2015, nuestra misión es combinar la tecnología más avanzada con un trato profundamente humano para resaltar tu belleza natural. Nos especializamos en tratamientos faciales y corporales no invasivos, avalados por un equipo médico de primer nivel.",
             socialUrls: {
                 facebook: "https://facebook.com/clinicaaurora",
@@ -106,9 +108,11 @@ async function main() {
             language: "es",
             currency: "USD",
             timezone: "America/Bogota",
-            subscriptionTier: "PROFESSIONAL",
-            subscriptionStatus: "CANCELED",
-            subscriptionEndsAt: subDays(new Date(), 10), // Expired 10 days ago
+            subscriptionData: {
+                tier: "PROFESSIONAL",
+                status: "CANCELED",
+                endsAt: subDays(new Date(), 10)
+            },
             siteTemplateId: template.id,
             siteSettings: {
                 pages: {
@@ -133,9 +137,11 @@ async function main() {
             language: "es",
             currency: "USD",
             timezone: "America/Bogota",
-            subscriptionTier: "PROFESSIONAL",
-            subscriptionStatus: "PAST_DUE",
-            subscriptionEndsAt: subDays(new Date(), 5), // Payment failed 5 days ago
+            subscriptionData: {
+                tier: "PROFESSIONAL",
+                status: "PAST_DUE",
+                endsAt: subDays(new Date(), 5)
+            },
             siteTemplateId: template.id,
             siteSettings: {
                 pages: {

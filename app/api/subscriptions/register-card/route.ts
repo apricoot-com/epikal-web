@@ -91,8 +91,12 @@ export async function POST(req: Request) {
 
             // 3. Reactivation Logic
             // If CANCELED or PAST_DUE, we must CHARGE immediately to reactivate.
-            if (company.subscriptionStatus === 'CANCELED' || company.subscriptionStatus === 'PAST_DUE') {
-                const plan = SUBSCRIPTION_PLANS[company.subscriptionTier];
+            const subData = (company.subscriptionData as any) || {};
+            const subStatus = subData.status || 'ACTIVE';
+            const subTier = subData.tier || 'FREE';
+
+            if (subStatus === 'CANCELED' || subStatus === 'PAST_DUE') {
+                const plan = SUBSCRIPTION_PLANS[subTier as keyof typeof SUBSCRIPTION_PLANS];
                 const amountInCents = plan.priceInCents || 0;
 
                 if (amountInCents > 0) {
@@ -144,8 +148,11 @@ export async function POST(req: Request) {
                 await tx.company.update({
                     where: { id: companyId },
                     data: {
-                        subscriptionStatus: 'ACTIVE',
-                        subscriptionEndsAt: newPeriodEnd
+                        subscriptionData: {
+                            ...subData,
+                            status: 'ACTIVE',
+                            endsAt: newPeriodEnd
+                        }
                     }
                 });
             }

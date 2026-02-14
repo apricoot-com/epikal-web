@@ -172,10 +172,10 @@ export const superadminRouter = router({
                     language: "es",
                     currency: "MXN",
                     timezone: "America/Mexico_City",
-                    subscriptionTier: "PROFESSIONAL",
-                    subscriptionStatus: "ACTIVE",
-                    // Default template (assuming one exists, or null)
-                    // We might want to find default template
+                    subscriptionData: {
+                        tier: "PROFESSIONAL",
+                        status: "ACTIVE"
+                    },
                 },
             });
 

@@ -89,7 +89,7 @@ function SubscriptionStatusCard() {
         }
     };
 
-    const config = statusConfig[subscription.status] || statusConfig.ACTIVE;
+    const config = statusConfig[subscription.status as keyof typeof statusConfig] || statusConfig.ACTIVE;
 
     return (
         <Alert variant={config.variant} className="bg-background border-l-4">

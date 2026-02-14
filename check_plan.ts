@@ -5,10 +5,12 @@ async function main() {
   const company = await prisma.company.findFirst({
     where: { slug: 'clinica-aurora' }
   });
-  
+
   if (company) {
-    console.log('Company Tier:', company.subscriptionTier);
-    const plan = SUBSCRIPTION_PLANS[company.subscriptionTier];
+    const subData = (company.subscriptionData as any) || {};
+    const tier = subData.tier || 'FREE';
+    console.log('Company Tier:', tier);
+    const plan = SUBSCRIPTION_PLANS[tier as keyof typeof SUBSCRIPTION_PLANS];
     console.log('Plan Object:', plan);
     console.log('Plan Name:', plan?.name);
   } else {

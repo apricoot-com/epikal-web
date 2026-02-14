@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { PaymentService } from '@/lib/payments/service';
 import { SUBSCRIPTION_PLANS } from '@/src/lib/subscription/plans';
 
@@ -14,14 +15,13 @@ export async function GET(req: Request) {
         const now = new Date();
 
         // 1. Find companies due for renewal
-        // Status: ACTIVE, TRIALING, or PAST_DUE (retry logic)
-        // EndsAt: <= NOW
-        const companiesToCharge = await prisma.company.findMany({
+        // We fetch those that have any subscription data and then filter in memory
+        // for performance/simplicity given the JSON refactor.
+        const allCompanies = await prisma.company.findMany({
             where: {
-                subscriptionStatus: { in: ['ACTIVE', 'TRIALING', 'PAST_DUE'] },
-                subscriptionEndsAt: { lte: now },
+                subscriptionData: { not: Prisma.AnyNull },
                 paymentMethods: {
-                    some: { isDefault: true } // Must have a payment method
+                    some: { isDefault: true }
                 }
             },
             include: {
@@ -29,9 +29,19 @@ export async function GET(req: Request) {
                     where: { isDefault: true },
                     take: 1
                 }
-            },
-            take: 50 // Batch size
+            }
         });
+
+        const companiesToCharge = allCompanies.filter(company => {
+            const subData = (company.subscriptionData as any) || {};
+            const status = subData.status;
+            const endsAt = subData.endsAt ? new Date(subData.endsAt) : null;
+
+            const isEligibleStatus = ['ACTIVE', 'TRIALING', 'PAST_DUE'].includes(status);
+            const isExpired = endsAt && endsAt <= now;
+
+            return isEligibleStatus && isExpired;
+        }).slice(0, 50);
 
         const results = {
             processed: 0,
@@ -42,17 +52,18 @@ export async function GET(req: Request) {
 
         for (const company of companiesToCharge) {
             results.processed++;
-            const plan = SUBSCRIPTION_PLANS[company.subscriptionTier];
+            const subData = (company.subscriptionData as any) || {};
+            const tier = subData.tier || 'FREE';
+            const plan = SUBSCRIPTION_PLANS[tier as keyof typeof SUBSCRIPTION_PLANS];
             const amountInCents = plan.priceInCents || 0;
 
             // Skip free plans or no price defined
             if (amountInCents <= 0) {
-                // Just extend for free? Or maybe it shouldn't be in this query if it's free.
                 continue;
             }
 
             const paymentMethod = company.paymentMethods[0];
-            if (!paymentMethod) continue; // Should be covered by query but safe check
+            if (!paymentMethod) continue;
 
             try {
                 // Charge
@@ -72,8 +83,11 @@ export async function GET(req: Request) {
                     await prisma.company.update({
                         where: { id: company.id },
                         data: {
-                            subscriptionStatus: 'ACTIVE',
-                            subscriptionEndsAt: newEndsAt
+                            subscriptionData: {
+                                ...subData,
+                                status: 'ACTIVE',
+                                endsAt: newEndsAt
+                            }
                         }
                     });
                     results.succeeded++;
@@ -82,7 +96,10 @@ export async function GET(req: Request) {
                     await prisma.company.update({
                         where: { id: company.id },
                         data: {
-                            subscriptionStatus: 'PAST_DUE'
+                            subscriptionData: {
+                                ...subData,
+                                status: 'PAST_DUE'
+                            }
                         }
                     });
                     results.failed++;
